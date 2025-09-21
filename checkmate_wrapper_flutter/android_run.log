@@ -1,0 +1,467 @@
+Launching lib/main.dart on A063 in debug mode...
+Running Gradle task 'assembleDebug'...                          
+I/flutter (10671): NtLifecycle->scheduledWakeUp tag:KeepAlive,length:Instance of 'BluetoothHelper',Instance of 'NtWatchWorker'
+Checking the license for package NDK (Side by side) 26.3.11579264 in /Users/mohtashammurshidmadani/Library/Android/sdk/licenses
+License for package NDK (Side by side) 26.3.11579264 accepted.
+Preparing "Install NDK (Side by side) 26.3.11579264 v.26.3.11579264".
+"Install NDK (Side by side) 26.3.11579264 v.26.3.11579264" ready.
+Installing NDK (Side by side) 26.3.11579264 in /Users/mohtashammurshidmadani/Library/Android/sdk/ndk/26.3.11579264
+"Install NDK (Side by side) 26.3.11579264 v.26.3.11579264" complete.
+"Install NDK (Side by side) 26.3.11579264 v.26.3.11579264" finished.
+Checking the license for package CMake 3.22.1 in /Users/mohtashammurshidmadani/Library/Android/sdk/licenses
+License for package CMake 3.22.1 accepted.
+Preparing "Install CMake 3.22.1 v.3.22.1".
+"Install CMake 3.22.1 v.3.22.1" ready.
+Installing CMake 3.22.1 in /Users/mohtashammurshidmadani/Library/Android/sdk/cmake/3.22.1
+"Install CMake 3.22.1 v.3.22.1" complete.
+"Install CMake 3.22.1 v.3.22.1" finished.
+I/flutter (10671): NtLifecycle->scheduledWakeUp tag:KeepAlive,length:Instance of 'BluetoothHelper',Instance of 'NtWatchWorker'
+Running Gradle task 'assembleDebug'...                           1029.5s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...          14.4s
+I/flutter ( 4468): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(61)] Using the Impeller rendering backend (Vulkan).
+Syncing files to device A063...                                    108ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on A063 is available at: http://127.0.0.1:55553/RqzD_b_yBbs=/
+The Flutter DevTools debugger and profiler on A063 is available at: http://127.0.0.1:9100?uri=http://127.0.0.1:55553/RqzD_b_yBbs=/
+I/Choreographer( 4468): Skipped 274 frames!  The application may be doing too much work on its main thread.
+E/e.checkmate_app( 4468): Invalid resource ID 0x00000000.
+W/System.err( 4468): android.content.res.Resources$NotFoundException: String resource ID #0x0
+W/System.err( 4468): 	at android.content.res.Resources.getText(Resources.java:466)
+W/System.err( 4468): 	at android.content.res.Resources.getString(Resources.java:559)
+W/System.err( 4468): 	at com.nothing.experience.sdk.NothingExperience.getAppName(NothingExperience.java:81)
+W/System.err( 4468): 	at com.nothing.experience.sdk.NothingExperience.<init>(NothingExperience.java:49)
+W/System.err( 4468): 	at com.nothing.experience.sdk.NothingExperience.getInstance(NothingExperience.java:65)
+W/System.err( 4468): 	at com.nothing.experience.AppTracking.<init>(AppTracking.java:20)
+W/System.err( 4468): 	at com.nothing.experience.AppTracking.getInstance(AppTracking.java:27)
+W/System.err( 4468): 	at com.nothing.performance.NtPerformanceDataTrackingImpl$pjy.run(go/retraceme 429c33afc2ff3fc9b63af58c066dd4342728a6e9f25a5d200e0f8911ab123def:128)
+W/System.err( 4468): 	at android.os.Handler.handleCallback(Handler.java:959)
+W/System.err( 4468): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+W/System.err( 4468): 	at android.os.Looper.loopOnce(Looper.java:267)
+W/System.err( 4468): 	at android.os.Looper.loop(Looper.java:371)
+W/System.err( 4468): 	at android.os.HandlerThread.run(HandlerThread.java:94)
+D/CompatChangeReporter( 4468): Compat change id reported: 306666082; UID 10152; state: ENABLED
+I/WindowExtensionsImpl( 4468): Initializing Window Extensions, vendor API level=6, activity embedding enabled=true
+I/e.checkmate_app( 4468): Compiler allocated 5160KB to compile void android.view.ViewRootImpl.performTraversals()
+W/libc    ( 4468): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 4468): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 4468): type=1400 audit(0.0:11855): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+D/NtViewRootImpl( 4468): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+I/AdrenoGLES-0( 4468): QUALCOMM build                   : 923a446bf8, I23d7d7df15
+I/AdrenoGLES-0( 4468): Build Date                       : 09/05/24
+I/AdrenoGLES-0( 4468): OpenGL ES Shader Compiler Version: EV031.35.01.12
+I/AdrenoGLES-0( 4468): Local Branch                     : 
+I/AdrenoGLES-0( 4468): Remote Branch                    : refs/tags/AU_LINUX_ANDROID_LA.UM.9.14.11.00.00.571.148
+I/AdrenoGLES-0( 4468): Remote Branch                    : NONE
+I/AdrenoGLES-0( 4468): Reconstruct Branch               : NOTHING
+I/AdrenoGLES-0( 4468): Build Config                     : S P 10.0.7 AArch64
+I/AdrenoGLES-0( 4468): Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+I/AdrenoGLES-0( 4468): PFP: 0x016dc094, ME: 0x00000000
+W/libc    ( 4468): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/e.checkmate_app( 4468): type=1400 audit(0.0:11856): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+W/libc    ( 4468): Access denied finding property "vendor.gpp.create_frc_extension"
+E/qdgralloc( 4468): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils( 4468): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 4468): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 4468): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 4468): isSupported(1, 1, 56, 1, ...) failed with 7
+E/GraphicBufferAllocator( 4468): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 7
+E/AHardwareBuffer( 4468): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 4468): GetGpuPixelFormat: No map for format: 0x3b
+E/AdrenoUtils( 4468): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 4468): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 4468): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 4468): isSupported(1, 1, 59, 1, ...) failed with 7
+E/GraphicBufferAllocator( 4468): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+E/AHardwareBuffer( 4468): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 4468): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils( 4468): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 4468): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 4468): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 4468): isSupported(1, 1, 56, 1, ...) failed with 7
+E/GraphicBufferAllocator( 4468): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 7
+E/AHardwareBuffer( 4468): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 4468): GetGpuPixelFormat: No map for format: 0x3b
+E/AdrenoUtils( 4468): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 4468): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 4468): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 4468): isSupported(1, 1, 59, 1, ...) failed with 7
+E/GraphicBufferAllocator( 4468): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+E/AHardwareBuffer( 4468): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+I/SurfaceView( 4468): surfaceview vote min fps
+I/WebViewFactory( 4468): Loading com.google.android.webview version 140.0.7339.51 (code 733905133)
+V/ResourcesManager( 4468): The following library key has been added: ResourcesKey{ mHash=1f3a16da mResDir=null mSplitDirs=[] mOverlayDirs=[/product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk,/data/resource-cache/com.android.systemui-neutral-wsvk.frro,/data/resource-cache/com.android.systemui-accent-6nkm.frro,/data/resource-cache/com.android.systemui-dynamic-gwT4.frro] mLibDirs=[/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk,/data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk,/system_ext/framework/androidx.window.extensions.jar] mDisplayId=0 mOverrideConfig=v35 mCompatInfo={420dpi always-compat} mLoaders=[]}
+W/e.checkmate_app( 4468): Failed to find entry 'classes.dex': Entry not found
+D/nativeloader( 4468): Configuring clns-8 for other apk /data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk. target_sdk_version=36, uses_libraries=ALL, library_path=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/lib/arm64:/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk!/lib/arm64-v8a:/data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand
+D/nativeloader( 4468): Extending system_exposed_libraries: libbinauralrenderer_wrapper.qti.so:libhoaeffects.qti.so:libupdateprof.qti.so:libthermalclient.qti.so:libdiag_system.qti.so:libqape.qti.so:libqesdk_ndk_platform.qti.so:liblistenjni.qti.so
+D/ApplicationLoaders( 4468): Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+W/e.checkmate_app( 4468): Loading /data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/oat/arm64/base.odex non-executable as it requires an image which we failed to load
+D/nativeloader( 4468): Configuring clns-9 for other apk /data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/lib/arm64:/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk!/lib/arm64-v8a:/data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand
+I/cr_WVCFactoryProvider( 4468): version=140.0.7339.51 (733905133) minSdkVersion=29 multiprocess=true packageId=2 splits=<none>
+D/nativeloader( 4468): Load /data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk!/lib/arm64-v8a/libmonochrome_64.so using class loader ns clns-9 (caller=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk): ok
+D/nativeloader( 4468): Load /system/lib64/libwebviewchromium_plat_support.so using class loader ns clns-9 (caller=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk): ok
+I/chromium( 4468): [0921/223623.662585:INFO:android_webview/browser/variations/variations_seed_loader.cc:67] Failed to open file for reading.: No such file or directory (2)
+I/chromium( 4468): [0921/223623.663285:INFO:android_webview/browser/variations/variations_seed_loader.cc:67] Failed to open file for reading.: No such file or directory (2)
+I/cr_LibraryLoader( 4468): Successfully loaded native library
+I/cr_CachingUmaRecorder( 4468): Flushed 14 samples from 14 histograms, 0 samples were dropped.
+I/cr_CombinedPProvider( 4468): #registerProvider() provider:WV.zj@c4df2a6 isPolicyCacheEnabled:false policyProvidersSize:0
+I/cr_PolicyProvider( 4468): #setManagerAndSource() 0
+I/cr_CombinedPProvider( 4468): #linkNativeInternal() 1
+I/cr_AppResProvider( 4468): #getApplicationRestrictionsFromUserManager() Bundle[EMPTY_PARCEL]
+I/cr_PolicyProvider( 4468): #notifySettingsAvailable() 0
+I/cr_CombinedPProvider( 4468): #onSettingsAvailable() 0
+I/cr_CombinedPProvider( 4468): #flushPolicies()
+W/chromium( 4468): [WARNING:net/dns/dns_config_service_android.cc:69] Failed to read DnsConfig.
+W/chromium( 4468): [WARNING:android_webview/browser/network_service/net_helpers.cc:143] HTTP Cache size is: 20971520
+I/CameraManagerGlobal( 4468): Connecting to camera service
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 4468): [soar.cts] ignore the status update of camera: 2
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 4468): [soar.cts] ignore the status update of camera: 3
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 4468): ignore the torch status update of camera: 2
+W/libc    ( 4468): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 4468): ignore the torch status update of camera: 3
+W/cr_media( 4468): BLUETOOTH_CONNECT permission is missing.
+W/cr_media( 4468): getBluetoothAdapter() requires BLUETOOTH permission
+W/cr_media( 4468): registerBluetoothIntentsIfNeeded: Requires BLUETOOTH permission
+I/AdrenoVK-0( 4468): QUALCOMM build          : 923a446bf8, I23d7d7df15
+I/AdrenoVK-0( 4468): Build Date              : 09/05/24
+I/AdrenoVK-0( 4468): Shader Compiler Version : EV031.35.01.12
+I/AdrenoVK-0( 4468): Local Branch            : 
+I/AdrenoVK-0( 4468): Remote Branch           : refs/tags/AU_LINUX_ANDROID_LA.UM.9.14.11.00.00.571.148
+I/AdrenoVK-0( 4468): Remote Branch           : NONE
+I/AdrenoVK-0( 4468): Reconstruct Branch      : NOTHING
+I/AdrenoVK-0( 4468): Build Config            : S P 10.0.7 AArch64
+I/AdrenoVK-0( 4468): Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+I/Choreographer( 4468): Skipped 93 frames!  The application may be doing too much work on its main thread.
+I/PlatformViewsController( 4468): Hosting view in view hierarchy for platform view: 0
+I/PlatformViewsController( 4468): PlatformView is using SurfaceProducer backend
+W/libc    ( 4468): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 4468): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 4468): type=1400 audit(0.0:11857): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+I/HWUI    ( 4468): Davey! duration=848ms; Flags=1, FrameTimelineVsyncId=10259443, IntendedVsync=22973582318788, Vsync=22974357954691, InputEventId=0, HandleInputStart=22974367213057, AnimationStart=22974367220504, PerformTraversalsStart=22974372292015, DrawStart=22974384681025, FrameDeadline=22973593985455, FrameInterval=22974366132640, FrameStartTime=8340171, SyncQueued=22974385936963, SyncStart=22974386341494, IssueDrawCommandsStart=22974390751807, SwapBuffers=22974423037327, FrameCompleted=22974431709411, DequeueBufferDuration=7173646, QueueBufferDuration=1668334, GpuCompleted=22974430528161, SwapBuffersCompleted=22974431709411, DisplayPresentTime=72904454231359566, CommandSubmissionCompleted=22974423037327, 
+W/VideoCapabilities( 4468): Unrecognized profile/level 0/3 for video/mpeg2
+W/VideoCapabilities( 4468): Unrecognized profile/level 0/3 for video/mpeg2
+W/VideoCapabilities( 4468): Unsupported mime image/vnd.android.heic
+W/libc    ( 4468): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 4468): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 4468): type=1400 audit(0.0:11858): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+W/VideoCapabilities( 4468): Unsupported mime image/vnd.android.heic
+I/e.checkmate_app( 4468): hiddenapi: Accessing hidden field Landroid/content/pm/ApplicationInfo;->primaryCpuAbi:Ljava/lang/String; (runtime_flags=0, domain=platform, api=unsupported) from Lorg/chromium/android_webview/SystemStateUtil; (domain=app) using reflection: allowed
+D/NtViewRootImpl( 4468): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+D/ProfileInstaller( 4468): Installing profile for com.example.checkmate_app
+I/chromium( 4468): [INFO:CONSOLE:16] "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview", source: https://magical-marmot-34.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js (16)
+I/Choreographer( 4468): Skipped 46 frames!  The application may be doing too much work on its main thread.
+I/HWUI    ( 4468): Davey! duration=773ms; Flags=0, FrameTimelineVsyncId=10264725, IntendedVsync=22980130567021, Vsync=22980898085669, InputEventId=0, HandleInputStart=22980899196544, AnimationStart=22980899199460, PerformTraversalsStart=22980900430815, DrawStart=22980900523783, FrameDeadline=22980897196905, FrameInterval=22980898225710, FrameStartTime=16666666, SyncQueued=22980901582846, SyncStart=22980905047794, IssueDrawCommandsStart=22980905105346, SwapBuffers=22980905596596, FrameCompleted=22980907881439, DequeueBufferDuration=16927, QueueBufferDuration=924948, GpuCompleted=22980907881439, SwapBuffersCompleted=22980906912169, DisplayPresentTime=72057628414509766, CommandSubmissionCompleted=22980905596596, 
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/e.checkmate_app( 4468): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk' with 2 weak references
+I/e.checkmate_app( 4468): hiddenapi: Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (runtime_flags=0, domain=core-platform, api=unsupported) from LWV/u6; (domain=app) using reflection: allowed
+E/FilePhenotypeFlags( 4468): Config package com.google.android.gms.clearcut_client#com.example.checkmate_app cannot use FILE backing without declarative registration. See go/phenotype-android-integration#phenotype for more information. This will lead to stale flags.
+D/NtViewRootImpl( 4468): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+I/chromium( 4468): [INFO:CONSOLE:1] "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+I/chromium( 4468): 
+I/chromium( 4468): If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+I/chromium( 4468): 
+I/chromium( 4468): For more information, see https://radix-ui.com/primitives/docs/components/dialog", source: https://checkmate.mohtasham.dev/_next/static/chunks/684-3f2b18b42e390433.js (1)
+I/chromium( 4468): [INFO:CONSOLE:1] "Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.", source: https://checkmate.mohtasham.dev/_next/static/chunks/730-3e8449c8edf4d44c.js (1)
+I/AssistStructure( 4468): Flattened final assist data: 1644 bytes, containing 1 windows, 4 views
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/AssistStructure( 4468): Flattened final assist data: 1644 bytes, containing 1 windows, 4 views
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 4468): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/CompatChangeReporter( 4468): Compat change id reported: 312399441; UID 10152; state: ENABLED
+I/ImeTracker( 4468): com.example.checkmate_app:d3d75cd6: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_CLOSE_CURRENT_SESSION fromUser false
+W/WindowOnBackDispatcher( 4468): sendCancelIfRunning: isInProgress=false callback=android.view.ViewRootImpl$$ExternalSyntheticLambda11@9c58707
+Lost connection to device.
+Launching lib/main.dart on A063 in debug mode...
+Running Gradle task 'assembleDebug'...                          
+Running Gradle task 'assembleDebug'...                             14.5s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...          13.3s
+I/flutter ( 5661): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(61)] Using the Impeller rendering backend (Vulkan).
+Syncing files to device A063...                                    177ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on A063 is available at: http://127.0.0.1:56343/ciHsv5m5odc=/
+The Flutter DevTools debugger and profiler on A063 is available at: http://127.0.0.1:9100?uri=http://127.0.0.1:56343/ciHsv5m5odc=/
+I/Choreographer( 5661): Skipped 269 frames!  The application may be doing too much work on its main thread.
+E/e.checkmate_app( 5661): Invalid resource ID 0x00000000.
+W/System.err( 5661): android.content.res.Resources$NotFoundException: String resource ID #0x0
+W/System.err( 5661): 	at android.content.res.Resources.getText(Resources.java:466)
+W/System.err( 5661): 	at android.content.res.Resources.getString(Resources.java:559)
+W/System.err( 5661): 	at com.nothing.experience.sdk.NothingExperience.getAppName(NothingExperience.java:81)
+W/System.err( 5661): 	at com.nothing.experience.sdk.NothingExperience.<init>(NothingExperience.java:49)
+W/System.err( 5661): 	at com.nothing.experience.sdk.NothingExperience.getInstance(NothingExperience.java:65)
+W/System.err( 5661): 	at com.nothing.experience.AppTracking.<init>(AppTracking.java:20)
+W/System.err( 5661): 	at com.nothing.experience.AppTracking.getInstance(AppTracking.java:27)
+W/System.err( 5661): 	at com.nothing.performance.NtPerformanceDataTrackingImpl$pjy.run(go/retraceme 429c33afc2ff3fc9b63af58c066dd4342728a6e9f25a5d200e0f8911ab123def:128)
+W/System.err( 5661): 	at android.os.Handler.handleCallback(Handler.java:959)
+W/System.err( 5661): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+W/System.err( 5661): 	at android.os.Looper.loopOnce(Looper.java:267)
+W/System.err( 5661): 	at android.os.Looper.loop(Looper.java:371)
+W/System.err( 5661): 	at android.os.HandlerThread.run(HandlerThread.java:94)
+D/CompatChangeReporter( 5661): Compat change id reported: 306666082; UID 10152; state: ENABLED
+I/WindowExtensionsImpl( 5661): Initializing Window Extensions, vendor API level=6, activity embedding enabled=true
+I/e.checkmate_app( 5661): Compiler allocated 5160KB to compile void android.view.ViewRootImpl.performTraversals()
+W/libc    ( 5661): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 5661): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 5661): type=1400 audit(0.0:11877): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+D/NtViewRootImpl( 5661): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+I/AdrenoGLES-0( 5661): QUALCOMM build                   : 923a446bf8, I23d7d7df15
+I/AdrenoGLES-0( 5661): Build Date                       : 09/05/24
+I/AdrenoGLES-0( 5661): OpenGL ES Shader Compiler Version: EV031.35.01.12
+I/AdrenoGLES-0( 5661): Local Branch                     : 
+I/AdrenoGLES-0( 5661): Remote Branch                    : refs/tags/AU_LINUX_ANDROID_LA.UM.9.14.11.00.00.571.148
+I/AdrenoGLES-0( 5661): Remote Branch                    : NONE
+I/AdrenoGLES-0( 5661): Reconstruct Branch               : NOTHING
+I/AdrenoGLES-0( 5661): Build Config                     : S P 10.0.7 AArch64
+I/AdrenoGLES-0( 5661): Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+I/AdrenoGLES-0( 5661): PFP: 0x016dc094, ME: 0x00000000
+W/libc    ( 5661): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 5661): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 5661): type=1400 audit(0.0:11878): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 56, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x3b
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 59, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 56, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x3b
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 59, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+I/SurfaceView( 5661): surfaceview vote min fps
+I/WebViewFactory( 5661): Loading com.google.android.webview version 140.0.7339.51 (code 733905133)
+V/ResourcesManager( 5661): The following library key has been added: ResourcesKey{ mHash=1f3a16da mResDir=null mSplitDirs=[] mOverlayDirs=[/product/overlay/NavigationBarModeGestural/NavigationBarModeGesturalOverlay.apk,/data/resource-cache/com.android.systemui-neutral-wsvk.frro,/data/resource-cache/com.android.systemui-accent-6nkm.frro,/data/resource-cache/com.android.systemui-dynamic-gwT4.frro] mLibDirs=[/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk,/data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk,/system_ext/framework/androidx.window.extensions.jar] mDisplayId=0 mOverrideConfig=v35 mCompatInfo={420dpi always-compat} mLoaders=[]}
+W/e.checkmate_app( 5661): Failed to find entry 'classes.dex': Entry not found
+D/nativeloader( 5661): Configuring clns-8 for other apk /data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk. target_sdk_version=36, uses_libraries=ALL, library_path=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/lib/arm64:/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk!/lib/arm64-v8a:/data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand
+D/nativeloader( 5661): Extending system_exposed_libraries: libbinauralrenderer_wrapper.qti.so:libhoaeffects.qti.so:libupdateprof.qti.so:libthermalclient.qti.so:libdiag_system.qti.so:libqape.qti.so:libqesdk_ndk_platform.qti.so:liblistenjni.qti.so
+D/ApplicationLoaders( 5661): Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+W/e.checkmate_app( 5661): Loading /data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/oat/arm64/base.odex non-executable as it requires an image which we failed to load
+D/nativeloader( 5661): Configuring clns-9 for other apk /data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/lib/arm64:/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk!/lib/arm64-v8a:/data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand
+I/cr_WVCFactoryProvider( 5661): version=140.0.7339.51 (733905133) minSdkVersion=29 multiprocess=true packageId=2 splits=<none>
+D/nativeloader( 5661): Load /data/app/~~mgKzNgWnw187ivkkwUqGZQ==/com.google.android.trichromelibrary_733905133-Sw7es5g_8CWngiy0XOzWVw==/base.apk!/lib/arm64-v8a/libmonochrome_64.so using class loader ns clns-9 (caller=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk): ok
+D/nativeloader( 5661): Load /system/lib64/libwebviewchromium_plat_support.so using class loader ns clns-9 (caller=/data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk): ok
+I/cr_LibraryLoader( 5661): Successfully loaded native library
+I/cr_CachingUmaRecorder( 5661): Flushed 14 samples from 14 histograms, 0 samples were dropped.
+I/cr_CombinedPProvider( 5661): #registerProvider() provider:WV.zj@f8314e7 isPolicyCacheEnabled:false policyProvidersSize:0
+I/cr_PolicyProvider( 5661): #setManagerAndSource() 0
+I/cr_CombinedPProvider( 5661): #linkNativeInternal() 1
+I/cr_AppResProvider( 5661): #getApplicationRestrictionsFromUserManager() Bundle[EMPTY_PARCEL]
+I/cr_PolicyProvider( 5661): #notifySettingsAvailable() 0
+I/cr_CombinedPProvider( 5661): #onSettingsAvailable() 0
+I/cr_CombinedPProvider( 5661): #flushPolicies()
+W/chromium( 5661): [WARNING:net/dns/dns_config_service_android.cc:69] Failed to read DnsConfig.
+W/chromium( 5661): [WARNING:android_webview/browser/network_service/net_helpers.cc:143] HTTP Cache size is: 20971520
+I/CameraManagerGlobal( 5661): Connecting to camera service
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 5661): [soar.cts] ignore the status update of camera: 2
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 5661): [soar.cts] ignore the status update of camera: 3
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 5661): ignore the torch status update of camera: 2
+W/libc    ( 5661): Access denied finding property "vendor.camera.aux.packagelist"
+W/CameraManagerGlobal( 5661): ignore the torch status update of camera: 3
+W/cr_media( 5661): BLUETOOTH_CONNECT permission is missing.
+W/cr_media( 5661): getBluetoothAdapter() requires BLUETOOTH permission
+W/cr_media( 5661): registerBluetoothIntentsIfNeeded: Requires BLUETOOTH permission
+I/AdrenoVK-0( 5661): QUALCOMM build          : 923a446bf8, I23d7d7df15
+I/AdrenoVK-0( 5661): Build Date              : 09/05/24
+I/AdrenoVK-0( 5661): Shader Compiler Version : EV031.35.01.12
+I/AdrenoVK-0( 5661): Local Branch            : 
+I/AdrenoVK-0( 5661): Remote Branch           : refs/tags/AU_LINUX_ANDROID_LA.UM.9.14.11.00.00.571.148
+I/AdrenoVK-0( 5661): Remote Branch           : NONE
+I/AdrenoVK-0( 5661): Reconstruct Branch      : NOTHING
+I/AdrenoVK-0( 5661): Build Config            : S P 10.0.7 AArch64
+I/AdrenoVK-0( 5661): Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+I/Choreographer( 5661): Skipped 87 frames!  The application may be doing too much work on its main thread.
+W/e.checkmate_app( 5661): type=1400 audit(0.0:11879): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+I/PlatformViewsController( 5661): Hosting view in view hierarchy for platform view: 0
+I/PlatformViewsController( 5661): PlatformView is using SurfaceProducer backend
+W/libc    ( 5661): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 5661): Access denied finding property "vendor.gpp.create_frc_extension"
+I/HWUI    ( 5661): Davey! duration=759ms; Flags=1, FrameTimelineVsyncId=10298190, IntendedVsync=23148162284219, Vsync=23148887555978, InputEventId=0, HandleInputStart=23148893230021, AnimationStart=23148893233042, PerformTraversalsStart=23148895072886, DrawStart=23148906721323, FrameDeadline=23148173950886, FrameInterval=23148892387782, FrameStartTime=8336457, SyncQueued=23148907993459, SyncStart=23148908249344, IssueDrawCommandsStart=23148909494032, SwapBuffers=23148915496948, FrameCompleted=23148922252886, DequeueBufferDuration=2949636, QueueBufferDuration=1215364, GpuCompleted=23148922252886, SwapBuffersCompleted=23148917785855, DisplayPresentTime=-5476376622715973392, CommandSubmissionCompleted=23148915496948, 
+W/libc    ( 5661): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 5661): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 5661): type=1400 audit(0.0:11880): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+W/VideoCapabilities( 5661): Unrecognized profile/level 0/3 for video/mpeg2
+W/VideoCapabilities( 5661): Unrecognized profile/level 0/3 for video/mpeg2
+I/ContentCaptureHelper( 5661): Setting logging level to OFF
+W/VideoCapabilities( 5661): Unsupported mime image/vnd.android.heic
+W/VideoCapabilities( 5661): Unsupported mime image/vnd.android.heic
+I/e.checkmate_app( 5661): hiddenapi: Accessing hidden field Landroid/content/pm/ApplicationInfo;->primaryCpuAbi:Ljava/lang/String; (runtime_flags=0, domain=platform, api=unsupported) from Lorg/chromium/android_webview/SystemStateUtil; (domain=app) using reflection: allowed
+D/NtViewRootImpl( 5661): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+D/ProfileInstaller( 5661): Installing profile for com.example.checkmate_app
+W/e.checkmate_app( 5661): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~XE565DM7RaAgN9L73Cy5yA==/com.google.android.webview-bRc8MRPsE6UkrEBWcyZ9Zg==/base.apk' with 2 weak references
+I/e.checkmate_app( 5661): hiddenapi: Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (runtime_flags=0, domain=core-platform, api=unsupported) from LWV/u6; (domain=app) using reflection: allowed
+E/FilePhenotypeFlags( 5661): Config package com.google.android.gms.clearcut_client#com.example.checkmate_app cannot use FILE backing without declarative registration. See go/phenotype-android-integration#phenotype for more information. This will lead to stale flags.
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/chromium( 5661): [INFO:CONSOLE:1] "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+I/chromium( 5661): 
+I/chromium( 5661): If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+I/chromium( 5661): 
+I/chromium( 5661): For more information, see https://radix-ui.com/primitives/docs/components/dialog", source: https://prod.dmsurgvp1argw.amplifyapp.com/_next/static/chunks/684-22b7e5d17c938261.js (1)
+I/chromium( 5661): [INFO:CONSOLE:1] "Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.", source: https://prod.dmsurgvp1argw.amplifyapp.com/_next/static/chunks/22-a303fae623ac3162.js (1)
+I/AssistStructure( 5661): Flattened final assist data: 1664 bytes, containing 1 windows, 4 views
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+I/AssistStructure( 5661): Flattened final assist data: 1664 bytes, containing 1 windows, 4 views
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/VRI[MainActivity]( 5661): visibilityChanged oldVisibility=true newVisibility=false
+I/flutter ( 5661): Received shared files: ({path: https://vt.tiktok.com/ZSDmoC1Xn/, thumbnail: null, duration: null, type: text, mimeType: text/plain, message: null})
+I/flutter ( 5661): Processing shared content: https://vt.tiktok.com/ZSDmoC1Xn/
+I/flutter ( 5661): Loading URL: https://prod.dmsurgvp1argw.amplifyapp.com/?link=https%3A%2F%2Fvt.tiktok.com%2FZSDmoC1Xn%2F
+W/libc    ( 5661): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 5661): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 5661): type=1400 audit(0.0:12357): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+W/libc    ( 5661): Access denied finding property "vendor.display.enable_optimal_refresh_rate"
+W/libc    ( 5661): Access denied finding property "vendor.gpp.create_frc_extension"
+W/e.checkmate_app( 5661): type=1400 audit(0.0:12358): avc:  denied  { read } for  name="u:object_r:vendor_display_prop:s0" dev="tmpfs" ino=12491 scontext=u:r:untrusted_app:s0:c152,c256,c512,c768 tcontext=u:object_r:vendor_display_prop:s0 tclass=file permissive=0 app=com.example.checkmate_app
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 56, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x3b
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 59, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 56, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+E/qdgralloc( 5661): GetGpuPixelFormat: No map for format: 0x3b
+E/AdrenoUtils( 5661): <validate_memory_layout_input_parmas:1970>: Unknown Format 0
+E/AdrenoUtils( 5661): <adreno_init_memory_layout:4720>: Memory Layout input parameter validation failed!
+W/qdgralloc( 5661): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4( 5661): isSupported(1, 1, 59, 1, ...) failed with 7
+E/GraphicBufferAllocator( 5661): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 7
+E/AHardwareBuffer( 5661): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -7), handle=0x0
+I/SurfaceView( 5661): surfaceview vote min fps
+D/NtViewRootImpl( 5661): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+W/ImageReader_JNI( 5661): Unable to acquire a buffer item, very likely client tried to acquire more than maxImages buffers
+D/NtViewRootImpl( 5661): mPopUpViewOffsets: offset=(0.0, 0.0), scale=(1.0, 1.0)
+Lost connection to device.

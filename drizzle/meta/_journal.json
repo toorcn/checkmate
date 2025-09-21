@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1758434758249,
+      "tag": "0000_colossal_lake",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758437833066,
+      "tag": "0001_fast_valeria_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758443905629,
+      "tag": "0002_tiresome_morgan_stark",
+      "breakpoints": true
+    }
+  ]
+}
