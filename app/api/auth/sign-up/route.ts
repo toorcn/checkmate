@@ -1,33 +1,59 @@
 import { NextResponse } from "next/server";
-import { createSessionJWT, COOKIE_NAME } from "@/lib/auth";
-import { upsertUser, createSession } from "@/lib/db/repo";
+import { cognitoSignUp } from "@/lib/cognito";
 
 export async function POST(req: Request) {
-  const { email, password } = await req.json().catch(() => ({}));
-  if (typeof email !== "string" || typeof password !== "string") {
-    return new NextResponse("Invalid body", { status: 400 });
+  try {
+    const { email, password, username } = await req.json().catch(() => ({}));
+    if (typeof email !== "string" || typeof password !== "string") {
+      return new NextResponse(
+        JSON.stringify({ error: "Invalid body" }), 
+        { 
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          }
+        }
+      );
+    }
+
+    // Create user in Cognito
+    const cognitoResult = await cognitoSignUp(email, password, username);
+    
+    return new NextResponse(JSON.stringify({
+      success: true,
+      userSub: cognitoResult.userSub,
+      needsEmailVerification: cognitoResult.codeDeliveryDetails ? true : false,
+      codeDeliveryDetails: cognitoResult.codeDeliveryDetails,
+    }), { 
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+  } catch (error) {
+    console.error("Sign-up error:", error);
+    
+    // Return the specific error message from Cognito
+    if (error instanceof Error) {
+      return new NextResponse(
+        JSON.stringify({ error: error.message }), 
+        { 
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          }
+        }
+      );
+    }
+    
+    return new NextResponse(
+      JSON.stringify({ error: "Internal server error" }), 
+      { 
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        }
+      }
+    );
   }
-  // Persist user (id = email as stable identifier for now)
-  await upsertUser({ id: email, email, username: email.split("@")[0] });
-  const sessionId = crypto.randomUUID();
-  const maxAgeSec = 60 * 60 * 24 * 7; // 7 days
-  const expiresAt = new Date(Date.now() + maxAgeSec * 1000);
-  const ua = req.headers.get("user-agent");
-  const ip = (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "")
-    .split(",")[0]
-    .trim();
-  const created = await createSession({
-    id: sessionId,
-    userId: email,
-    userAgent: ua,
-    ipAddress: ip || null,
-    expiresAt,
-  });
-  const jwt = await createSessionJWT({ sub: email, email, sessionId: created ? sessionId : undefined });
-  const res = new NextResponse(null, { status: 204 });
-  res.headers.append(
-    "Set-Cookie",
-    `${COOKIE_NAME}=${jwt}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${maxAgeSec}`
-  );
-  return res;
 }
