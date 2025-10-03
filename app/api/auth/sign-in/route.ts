@@ -75,9 +75,28 @@ export async function POST(req: Request) {
     return res;
   } catch (error) {
     console.error("Sign-in error:", error);
-    if (error instanceof Error && error.message.includes("NotAuthorizedException")) {
-      return new NextResponse("Invalid credentials", { status: 401 });
+    
+    // Return the specific error message from Cognito
+    if (error instanceof Error) {
+      return new NextResponse(
+        JSON.stringify({ error: error.message }), 
+        { 
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          }
+        }
+      );
     }
-    return new NextResponse("Internal server error", { status: 500 });
+    
+    return new NextResponse(
+      JSON.stringify({ error: "Internal server error" }), 
+      { 
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        }
+      }
+    );
   }
 }
