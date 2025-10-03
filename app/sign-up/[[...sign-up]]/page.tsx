@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
-import { signUpEmailPassword, verifyEmail, resendVerificationCode } from "@/lib/better-auth-client";
+import { signUpEmailPassword, verifyEmail, resendVerificationCode, signInEmailPassword } from "@/lib/better-auth-client";
 import React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -53,10 +53,12 @@ export default function Page() {
     
     try {
       await verifyEmail({ email, code: verificationCode });
-      setSuccessMessage("Email verified successfully! Redirecting...");
+
+      await signInEmailPassword({email, password})
+      setSuccessMessage("Email verified successfully! Logging you in...");
       setTimeout(() => {
-        router.replace("/sign-in");
-      }, 2000);
+        router.replace("/");
+      }, 1500);
     } catch (err: any) {
       setError(err?.message || "Failed to verify email");
     } finally {
