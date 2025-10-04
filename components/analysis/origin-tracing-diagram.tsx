@@ -16,7 +16,6 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 
 // Add mobile-specific and fullscreen styles for ReactFlow
@@ -47,6 +46,13 @@ const mobileStyles = `
   .react-flow-fullscreen-container .react-flow__viewport {
     width: 100% !important;
     height: 100% !important;
+  }
+  
+  /* Fullscreen sidebar styling */
+  .fullscreen-sidebar {
+    border-left: 1px solid #e5e7eb;
+    background: white;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
   }
   
   /* Controls positioning and sizing */
@@ -947,7 +953,7 @@ function OriginTracingDiagramInternal({
   const [animatingNodes, setAnimatingNodes] = useState<string[]>([]);
   const [currentAnimationIndex, setCurrentAnimationIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(2500); // ms per node
+  const [animationSpeed] = useState(2500); // ms per node
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Split panel resizing
@@ -1376,8 +1382,8 @@ function OriginTracingDiagramInternal({
         color: 'text-blue-600',
         items: originNodes.map(node => ({
           id: `nav-${node.id}`,
-          label: formatNodeText(node.data.label, 50),
-          icon: getPlatformIcon(node.data.label),
+          label: formatNodeText(String(node.data.label || ''), 50),
+          icon: getPlatformIcon(String(node.data.label || '')),
           nodeId: node.id,
         })),
       });
@@ -1392,8 +1398,8 @@ function OriginTracingDiagramInternal({
         color: 'text-purple-600',
         items: evolutionNodes.map(node => ({
           id: `nav-${node.id}`,
-          label: formatNodeText(node.data.label || node.data.platform, 50),
-          icon: getPlatformIcon(node.data.platform || node.data.label),
+          label: formatNodeText(String(node.data.label || node.data.platform || ''), 50),
+          icon: getPlatformIcon(String(node.data.platform || node.data.label || '')),
           nodeId: node.id,
         })),
       });
@@ -1408,8 +1414,8 @@ function OriginTracingDiagramInternal({
         color: 'text-violet-600',
         items: beliefNodes.map(node => ({
           id: `nav-${node.id}`,
-          label: formatNodeText(node.data.name, 50),
-          icon: getBiasIcon(node.data.name || ''),
+          label: formatNodeText(String(node.data.name || ''), 50),
+          icon: getBiasIcon(String(node.data.name || '')),
           nodeId: node.id,
         })),
       });
@@ -1424,8 +1430,8 @@ function OriginTracingDiagramInternal({
         color: 'text-emerald-600',
         items: sourceNodes.map(node => ({
           id: `nav-${node.id}`,
-          label: formatNodeText(node.data.sourceName || node.data.label, 50),
-          icon: getPlatformIcon(node.data.sourceName || node.data.label),
+          label: formatNodeText(String(node.data.sourceName || node.data.label || ''), 50),
+          icon: getPlatformIcon(String(node.data.sourceName || node.data.label || '')),
           nodeId: node.id,
         })),
       });
@@ -1605,16 +1611,16 @@ function OriginTracingDiagramInternal({
         }
       >
         <div className="h-full flex flex-col">
-          {!isFullscreen && (
-            <div className="p-3 border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    Interactive evolution diagram • Click sections to explore and animate
-                  </p>
-                </div>
+          <div className={isFullscreen ? "p-4 border-b bg-white" : "p-3 border-b"}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  Interactive evolution diagram • Click sections to explore and animate
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
                 {isAnimating && (
-                  <div className="flex items-center gap-2">
+                  <>
                     <Button
                       size="sm"
                       variant="outline"
@@ -1633,11 +1639,30 @@ function OriginTracingDiagramInternal({
                       <XIcon className="h-3 w-3 mr-1" />
                       Stop
                     </Button>
-                  </div>
+                  </>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={toggleFullscreen}
+                  className="h-7 text-xs"
+                  title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullscreen ? (
+                    <>
+                      <Minimize2 className="h-3 w-3 mr-1" />
+                      Exit Fullscreen
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="h-3 w-3 mr-1" />
+                      Fullscreen
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
-          )}
+          </div>
           
           {/* Split view container */}
           <div className="flex-1 flex overflow-hidden">
@@ -1684,37 +1709,22 @@ function OriginTracingDiagramInternal({
                   showZoom={true}
                   showFitView={true}
                   position="top-right"
-                >
-                  <div 
-                    className="react-flow__controls-button" 
-                    onClick={toggleFullscreen}
-                    title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                  >
-                    {isFullscreen ? (
-                      <Minimize2 className="h-4 w-4" />
-                    ) : (
-                      <Maximize2 className="h-4 w-4" />
-                    )}
-                  </div>
-                </Controls>
+                />
                 <Background gap={15} size={1} color="#f1f5f9" />
               </ReactFlow>
             </div>
             
             {/* Resizer */}
-            {!isFullscreen && (
-              <div 
-                className="split-view-resizer"
-                onMouseDown={handleMouseDown}
-              />
-            )}
+            <div 
+              className="split-view-resizer"
+              onMouseDown={handleMouseDown}
+            />
             
             {/* Navigation sidebar */}
-            {!isFullscreen && (
-              <div 
-                className="border-l bg-white overflow-y-auto"
-                style={{ width: `${sidebarWidth}%` }}
-              >
+            <div 
+              className={isFullscreen ? "fullscreen-sidebar overflow-y-auto" : "border-l bg-white overflow-y-auto"}
+              style={{ width: `${sidebarWidth}%` }}
+            >
                 <div className="p-4">
                   <h3 className="font-semibold text-sm mb-4 text-gray-900">
                     Navigation
@@ -1757,7 +1767,7 @@ function OriginTracingDiagramInternal({
                         {/* Section items */}
                         {expandedSections.has(section.id) && (
                           <div className="border-t bg-gray-50">
-                            {section.items.map((item, idx) => {
+                            {section.items.map((item) => {
                               const isCurrentlyAnimating = 
                                 isAnimating && 
                                 activeSection === section.id && 
@@ -1809,9 +1819,17 @@ function OriginTracingDiagramInternal({
                       </p>
                     </div>
                   )}
+                  
+                  {/* Additional info in fullscreen */}
+                  {isFullscreen && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-xs text-gray-500 text-center">
+                        Press ESC or click Exit Fullscreen to return
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
           </div>
         </div>
       </div>
