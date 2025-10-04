@@ -65,6 +65,7 @@ export interface NavSection {
   title: string;
   items: NavItem[];
   color: string;
+  subsections?: NavSection[];
 }
 
 export interface OriginTracingGraphResult {

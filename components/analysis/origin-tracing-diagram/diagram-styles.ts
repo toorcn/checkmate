@@ -113,15 +113,18 @@ export const diagramStyles = `
     }
   }
   
-  /* Enhanced Edge Styles */
+  /* Enhanced Edge Styles with Better Visibility */
   .react-flow__edge-path {
-    stroke-width: 2;
     stroke-linecap: round;
-    transition: stroke-width 0.2s ease;
+    stroke-linejoin: round;
+    transition: stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
   }
   
   .react-flow__edge:hover .react-flow__edge-path {
-    stroke-width: 3;
+    stroke-width: 4px !important;
+    opacity: 1 !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
   
   .react-flow__edge.animated .react-flow__edge-path {
@@ -135,15 +138,27 @@ export const diagramStyles = `
     }
   }
   
+  /* Enhanced edge text background */
   .react-flow__edge-textbg {
     fill: white;
-    fill-opacity: 0.9;
+    fill-opacity: 0.95;
+    rx: 4;
   }
   
   .react-flow__edge-text {
     font-size: 11px;
-    font-weight: 500;
-    fill: #64748b;
+    font-weight: 600;
+    fill: #475569;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Marker (arrow) enhancement */
+  .react-flow__edge .react-flow__edge-path {
+    stroke-opacity: inherit;
+  }
+  
+  marker {
+    opacity: inherit;
   }
   
   /* Premium Control Buttons */

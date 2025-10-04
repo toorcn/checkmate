@@ -60,10 +60,10 @@ export function ClaimNode({ data }: { data: NodeData }) {
   return (
     <div className={`relative px-7 py-6 border-2 rounded-2xl shadow-2xl min-w-[280px] max-w-[400px] backdrop-blur-sm transition-all duration-300 ${styles.bg} ${styles.border} ${styles.text}`}>
       {/* All-direction handles for the central claim node */}
-      <Handle type="target" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="target" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Right} id="right" />
+      <Handle type="target" position={Position.Top} id="top" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Left} id="left" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} id="right" style={{ opacity: 0 }} />
       
       {/* Corner accent */}
       <div className="absolute top-0 right-0 w-20 h-20 bg-white/30 rounded-bl-full -z-10" />

@@ -10,10 +10,10 @@ export function BeliefDriverNode({ data }: { data: NodeData }) {
   return (
     <div className="relative px-6 py-5 bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 border-2 border-violet-300 rounded-2xl shadow-lg min-w-[220px] max-w-[360px] transition-all duration-300 backdrop-blur-sm">
       {/* All-direction handles */}
-      <Handle type="target" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="target" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Right} id="right" />
+      <Handle type="target" position={Position.Top} id="top" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Left} id="left" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} id="right" style={{ opacity: 0 }} />
       
       {/* Corner accent */}
       <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/40 rounded-tr-full -z-10" />

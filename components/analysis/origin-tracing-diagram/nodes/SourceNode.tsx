@@ -14,10 +14,10 @@ export function SourceNode({ data }: { data: NodeData }) {
   return (
     <div className={`relative px-6 py-5 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border-2 border-emerald-300 rounded-2xl shadow-lg min-w-[220px] max-w-[320px] transition-all duration-300 backdrop-blur-sm`}>
       {/* All-direction handles */}
-      <Handle type="target" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="target" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Right} id="right" />
+      <Handle type="target" position={Position.Top} id="top" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Left} id="left" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} id="right" style={{ opacity: 0 }} />
       
       {/* Corner accent */}
       <div className="absolute top-0 right-0 w-16 h-16 bg-white/40 rounded-bl-full -z-10" />

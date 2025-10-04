@@ -53,58 +53,58 @@ export function useOriginTracingGraph({
       (originTracing?.propagationPaths?.length || 0),
       1
     );
-    const centerX = 1200; // Fixed center position
-    const evolutionWidth = Math.min(800, totalEvolutionSteps * 180); // Width for evolution chain
+    const centerX = 1400; // Shifted right for better spacing
+    const evolutionWidth = Math.min(1000, totalEvolutionSteps * 300); // Increased width and spacing
     
-    // Define layout for interconnected network with centered claim
+    // Define layout for interconnected network with improved spacing
     const LAYOUT = {
       // Current claim at center - always centered
       currentClaim: { 
         x: centerX, 
-        y: 320 
+        y: 500 
       },
       
-      // Evolution timeline - flows toward center from left
+      // Evolution timeline - flows toward center from left with more space
       evolution: {
-        startX: centerX - evolutionWidth - 150,
-        endX: centerX - 150,
-        y: 320,
-        stepSpacing: Math.max(150, evolutionWidth / Math.max(totalEvolutionSteps, 1)),
-        verticalSpread: 100,
+        startX: centerX - evolutionWidth - 250,
+        endX: centerX - 400,
+        y: 500,
+        stepSpacing: Math.max(350, evolutionWidth / Math.max(totalEvolutionSteps, 1)),
+        verticalSpread: 180, // Increased vertical spread
       },
       
-      // Belief drivers above center - reduced spacing
+      // Belief drivers above center - increased spacing
       beliefs: { 
-        startX: centerX - (Math.min(beliefDrivers.length, 3) * 320) / 2,
-        y: 80, 
-        spacing: 320,
-        maxPerRow: 3
+        startX: centerX - (Math.min(beliefDrivers.length, 2) * 450) / 2,
+        y: 50, 
+        spacing: 450, // Increased spacing
+        maxPerRow: 2 // Reduced per row for less crowding
       },
       
-      // Sources below center - reduced spacing  
+      // Sources below center - increased spacing  
       sources: { 
-        startX: centerX - (Math.min(sources.length, 3) * 300) / 2, 
-        y: 480, 
-        spacing: 300,
-        maxPerRow: 3
+        startX: centerX - (Math.min(sources.length, 2) * 420) / 2, 
+        y: 950, 
+        spacing: 420, // Increased spacing
+        maxPerRow: 2 // Reduced per row for less crowding
       },
       
-      // All links at bottom - reduced spacing
+      // All links at bottom - increased spacing
       allLinks: {
-        startX: centerX - (Math.min(allLinks.length, 4) * 280) / 2,
-        y: 650,
-        spacing: 280,
-        maxPerRow: 4,
+        startX: centerX - (Math.min(allLinks.length, 3) * 380) / 2,
+        y: 1200,
+        spacing: 380, // Increased spacing
+        maxPerRow: 3, // Reduced per row
       },
       
-      // Node dimensions - optimized spacing
-      nodeWidth: 260,
-      nodeHeight: 110,
-      minSpacing: 50,
+      // Node dimensions - realistic sizing
+      nodeWidth: 320,
+      nodeHeight: 140,
+      minSpacing: 80,
       
       // Layout bounds
       centerX,
-      totalHeight: 750
+      totalHeight: 1400 // Increased height for better vertical spacing
     };
 
     // Build chronological evolution chain
@@ -180,13 +180,21 @@ export function useOriginTracingGraph({
       return 0;
     });
 
-    // Create interconnected evolution chain
+    // Create interconnected evolution chain with better spacing
     evolutionSteps.forEach((step, index) => {
       const stepNodeId = `evolution-${nodeId++}`;
       const stepNumber = previousNodeId ? localEvolutionNodes.length : 0;
       
-      // Alternate positions to prevent overlaps
-      const yOffset = (index % 3 === 0) ? 0 : (index % 3 === 1 ? -80 : 80);
+      // Improved vertical stagger pattern for better clarity
+      let yOffset = 0;
+      if (evolutionSteps.length > 3) {
+        // For many nodes, use sine wave pattern for smooth distribution
+        const progress = index / Math.max(evolutionSteps.length - 1, 1);
+        yOffset = Math.sin(progress * Math.PI * 2) * 180;
+      } else {
+        // For few nodes, use simple alternating pattern with more spacing
+        yOffset = (index % 3 - 1) * 200;
+      }
       
       nodes.push({
         id: stepNodeId,
@@ -205,8 +213,8 @@ export function useOriginTracingGraph({
       localEvolutionNodes.push(stepNodeId);
       evolutionNodes.push(stepNodeId);
 
-      // Connect to previous node in chain
-      if (previousNodeId && index < 4) {
+      // Connect to previous node in chain - only connect sequential nodes for clarity
+      if (previousNodeId) {
         edges.push({
           id: `${previousNodeId}-${stepNodeId}`,
           source: previousNodeId,
@@ -214,13 +222,13 @@ export function useOriginTracingGraph({
           target: stepNodeId,
           targetHandle: 'left',
           type: 'smoothstep',
-          animated: index < 2,
+          animated: index < 2, // Animate only first connections
           markerEnd: { type: MarkerType.ArrowClosed },
-          label: index === 0 ? 'evolves' : '',
+          label: index === 0 ? 'evolves' : '', // Only label first connection
           style: { 
-            stroke: step.type === 'timeline' ? '#0066cc' : '#ff8800', 
-            strokeWidth: 2,
-            opacity: 0.8
+            stroke: step.type === 'timeline' ? '#0ea5e9' : '#f97316', 
+            strokeWidth: 2.5,
+            opacity: 0.85
           },
         });
       }
@@ -257,7 +265,7 @@ export function useOriginTracingGraph({
       });
     }
 
-    // Add belief drivers above evolution chain
+    // Add belief drivers above evolution chain with better spacing
     beliefDrivers.forEach((driver, index) => {
       const driverNodeId = `belief-${nodeId++}`;
       beliefDriverNodes.push(driverNodeId);
@@ -265,7 +273,7 @@ export function useOriginTracingGraph({
       const row = Math.floor(index / LAYOUT.beliefs.maxPerRow);
       
       const x = LAYOUT.beliefs.startX + col * LAYOUT.beliefs.spacing;
-      const y = LAYOUT.beliefs.y - row * 120;
+      const y = LAYOUT.beliefs.y - row * 280; // Increased row spacing
       
       nodes.push({
         id: driverNodeId,
@@ -278,6 +286,7 @@ export function useOriginTracingGraph({
         },
       });
 
+      // Connect ALL belief drivers with varying opacity for visual hierarchy
       edges.push({
         id: `${driverNodeId}-${currentClaimNodeId}`,
         source: driverNodeId,
@@ -286,12 +295,16 @@ export function useOriginTracingGraph({
         targetHandle: 'top',
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
-        label: index === 0 ? 'influences belief' : '',
-        style: { stroke: '#8b5cf6', strokeWidth: 2, opacity: 0.8 },
+        label: index === 0 ? 'influences' : '',
+        style: { 
+          stroke: '#a855f7', 
+          strokeWidth: index < 2 ? 2.5 : 2, // Primary connections thicker
+          opacity: index < 2 ? 0.7 : 0.4 // Secondary connections more subtle
+        },
       });
     });
 
-    // Add fact-check sources below evolution chain
+    // Add fact-check sources below evolution chain with better spacing
     sources.forEach((source, index) => {
       const sourceNodeId = `source-${nodeId++}`;
       sourceNodes.push(sourceNodeId);
@@ -305,7 +318,7 @@ export function useOriginTracingGraph({
         type: 'source',
         position: { 
           x: LAYOUT.sources.startX + col * LAYOUT.sources.spacing,
-          y: LAYOUT.sources.y + row * 130
+          y: LAYOUT.sources.y + row * 280 // Increased row spacing
         },
         data: { 
           label: source.title, 
@@ -315,6 +328,7 @@ export function useOriginTracingGraph({
         },
       });
 
+      // Connect ALL sources with varying visual weight based on credibility
       edges.push({
         id: `${currentClaimNodeId}-${sourceNodeId}`,
         source: currentClaimNodeId,
@@ -323,8 +337,12 @@ export function useOriginTracingGraph({
         targetHandle: 'top',
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
-        label: 'fact-checked by',
-        style: { stroke: '#10b981', strokeWidth: 2 },
+        label: index === 0 ? 'fact-checked by' : '',
+        style: { 
+          stroke: '#10b981', 
+          strokeWidth: source.credibility >= 80 ? 2.5 : 2, // High credibility thicker
+          opacity: source.credibility >= 80 ? 0.8 : 0.5 // High credibility more visible
+        },
       });
     });
 
@@ -332,7 +350,7 @@ export function useOriginTracingGraph({
     const sourceUrls = new Set(sources.map(source => source.url));
     const uniqueLinks = allLinks.filter(link => !sourceUrls.has(link.url));
     
-    uniqueLinks.slice(0, 8).forEach((link, index) => {
+    uniqueLinks.slice(0, 6).forEach((link, index) => { // Reduced to 6 for less clutter
       const linkNodeId = `alllink-${nodeId++}`;
       linkNodes.push(linkNodeId);
       const col = index % LAYOUT.allLinks.maxPerRow;
@@ -340,7 +358,7 @@ export function useOriginTracingGraph({
       
       const x = Math.min(
         LAYOUT.allLinks.startX + col * LAYOUT.allLinks.spacing,
-        LAYOUT.centerX + 600 - LAYOUT.nodeWidth
+        LAYOUT.centerX + 800 - LAYOUT.nodeWidth
       );
       
       const matchingSource = sources.find(source => source.url === link.url);
@@ -352,7 +370,7 @@ export function useOriginTracingGraph({
         type: 'source',
         position: { 
           x,
-          y: LAYOUT.allLinks.y + row * 100
+          y: LAYOUT.allLinks.y + row * 260 // Increased row spacing
         },
         data: {
           label: link.title || link.url,
@@ -381,35 +399,68 @@ export function useOriginTracingGraph({
   const navSections = useMemo((): NavSection[] => {
     const sections: NavSection[] = [];
     
-    // Origin section
+    // Get node groups
     const originNodes = nodes.filter(n => n.type === 'origin');
-    if (originNodes.length > 0) {
-      sections.push({
-        id: 'origin',
-        title: 'Origin',
-        color: 'text-blue-600',
-        items: originNodes.map(node => ({
-          id: `nav-${node.id}`,
-          label: formatNodeText(String(node.data.label || ''), 50),
-          icon: getPlatformIcon(String(node.data.label || '')),
-          nodeId: node.id,
-        })),
-      });
-    }
-    
-    // Evolution section
     const evolutionNodes = nodes.filter(n => n.type === 'evolution' || n.type === 'propagation');
-    if (evolutionNodes.length > 0) {
+    const claimNodes = nodes.filter(n => n.type === 'claim');
+    
+    // Evolution Timeline section with nested subsections
+    const hasEvolutionContent = originNodes.length > 0 || evolutionNodes.length > 0 || claimNodes.length > 0;
+    if (hasEvolutionContent) {
+      const subsections: NavSection[] = [];
+      
+      // Original Source subsection
+      if (originNodes.length > 0) {
+        subsections.push({
+          id: 'evolution-origin',
+          title: 'Original Source',
+          color: 'text-blue-600',
+          items: originNodes.map(node => ({
+            id: `nav-${node.id}`,
+            label: formatNodeText(String(node.data.label || ''), 50),
+            icon: getPlatformIcon(String(node.data.label || '')),
+            nodeId: node.id,
+          })),
+        });
+      }
+      
+      // Evolution Steps subsection
+      if (evolutionNodes.length > 0) {
+        subsections.push({
+          id: 'evolution-steps',
+          title: 'Evolution Steps',
+          color: 'text-orange-600',
+          items: evolutionNodes.map(node => ({
+            id: `nav-${node.id}`,
+            label: formatNodeText(String(node.data.label || node.data.platform || ''), 50),
+            icon: getPlatformIcon(String(node.data.platform || node.data.label || '')),
+            nodeId: node.id,
+          })),
+        });
+      }
+      
+      // Current Claim subsection
+      if (claimNodes.length > 0) {
+        subsections.push({
+          id: 'evolution-claim',
+          title: 'Current Claim',
+          color: 'text-red-600',
+          items: claimNodes.map(node => ({
+            id: `nav-${node.id}`,
+            label: formatNodeText(String(node.data.label || ''), 60),
+            icon: getPlatformIcon('claim'),
+            nodeId: node.id,
+          })),
+        });
+      }
+      
+      // Add parent Evolution Timeline section
       sections.push({
         id: 'evolution',
         title: 'Evolution Timeline',
         color: 'text-purple-600',
-        items: evolutionNodes.map(node => ({
-          id: `nav-${node.id}`,
-          label: formatNodeText(String(node.data.label || node.data.platform || ''), 50),
-          icon: getPlatformIcon(String(node.data.platform || node.data.label || '')),
-          nodeId: node.id,
-        })),
+        items: [], // Parent section has no direct items, only subsections
+        subsections,
       });
     }
     

@@ -134,7 +134,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
     startProgress,
     stopProgress,
     resetProgress,
-  } = useAnimatedProgress({ duration: 15000 }); // 30 seconds
+  } = useAnimatedProgress({ duration: 20000 }); // 30 seconds
   const [isSignedIn, setIsSignedIn] = React.useState(false);
   React.useEffect(() => {
     (async () => {

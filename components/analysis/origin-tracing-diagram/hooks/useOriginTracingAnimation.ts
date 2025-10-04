@@ -67,15 +67,22 @@ export function useOriginTracingAnimation({
     // Find which section this node belongs to and expand it
     const currentNode = nodes.find(n => n.id === currentNodeId);
     if (currentNode) {
-      let sectionToExpand: string | null = null;
+      const sectionsToExpand: string[] = [];
       
-      if (currentNode.type === 'origin') sectionToExpand = 'origin';
-      else if (currentNode.type === 'evolution' || currentNode.type === 'propagation') sectionToExpand = 'evolution';
-      else if (currentNode.type === 'beliefDriver') sectionToExpand = 'beliefs';
-      else if (currentNode.type === 'source') sectionToExpand = 'sources';
+      if (currentNode.type === 'origin') {
+        sectionsToExpand.push('evolution', 'evolution-origin');
+      } else if (currentNode.type === 'evolution' || currentNode.type === 'propagation') {
+        sectionsToExpand.push('evolution', 'evolution-steps');
+      } else if (currentNode.type === 'claim') {
+        sectionsToExpand.push('evolution', 'evolution-claim');
+      } else if (currentNode.type === 'beliefDriver') {
+        sectionsToExpand.push('beliefs');
+      } else if (currentNode.type === 'source') {
+        sectionsToExpand.push('sources');
+      }
       
-      if (sectionToExpand) {
-        setExpandedSections(new Set([sectionToExpand]));
+      if (sectionsToExpand.length > 0) {
+        setExpandedSections(new Set(sectionsToExpand));
       }
     }
   }, [isAnimating, animatingNodes, currentAnimationIndex, nodes]);
@@ -150,12 +157,70 @@ export function useOriginTracingAnimation({
   // Handle section click
   const handleSectionClick = useCallback((sectionId: string) => {
     const section = navSections.find(s => s.id === sectionId);
-    if (!section || section.items.length === 0) return;
+    if (!section) return;
     
     stopAnimation();
     setActiveSection(sectionId);
     
-    const nodeIds = section.items.map(item => item.nodeId);
+    // Special handling for Evolution Timeline - sequential subsection animation
+    if (sectionId === 'evolution' && section.subsections && section.subsections.length > 0) {
+      // Collect node IDs from each subsection in order: origin → steps → claim
+      const subsectionGroups = section.subsections.map(subsection => ({
+        id: subsection.id,
+        nodeIds: subsection.items.map(item => item.nodeId)
+      }));
+      
+      // Filter out empty groups
+      const validGroups = subsectionGroups.filter(group => group.nodeIds.length > 0);
+      
+      if (validGroups.length === 0) return;
+      
+      // Collect all node IDs for the sequential animation
+      const allNodeIds = validGroups.flatMap(group => group.nodeIds);
+      
+      if (allNodeIds.length === 0) return;
+      
+      const sectionNodes = nodes.filter(n => allNodeIds.includes(n.id));
+      if (sectionNodes.length === 0) return;
+      
+      // Calculate bounding box for the entire evolution timeline
+      const padding = 100;
+      const minX = Math.min(...sectionNodes.map(n => n.position.x)) - padding;
+      const minY = Math.min(...sectionNodes.map(n => n.position.y)) - padding;
+      const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
+      const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
+      
+      // Fit to bounds to show the entire evolution timeline
+      fitBounds(
+        { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+        { duration: 800, padding: 0.2 }
+      );
+      
+      // Start sequential animation through subsections after initial zoom
+      setTimeout(() => {
+        setAnimatingNodes(allNodeIds);
+        setCurrentAnimationIndex(0);
+        setIsAnimating(true);
+      }, 850);
+      
+      return;
+    }
+    
+    // Default behavior for non-evolution sections
+    // Collect items from section or its subsections
+    let nodeIds: string[] = [];
+    if (section.subsections && section.subsections.length > 0) {
+      // If section has subsections, collect all items from subsections
+      nodeIds = section.subsections.flatMap(subsection => 
+        subsection.items.map(item => item.nodeId)
+      );
+    } else {
+      // Regular section with items
+      nodeIds = section.items.map(item => item.nodeId);
+    }
+    
+    if (nodeIds.length === 0) return;
+    
     const sectionNodes = nodes.filter(n => nodeIds.includes(n.id));
     
     if (sectionNodes.length === 0) return;
@@ -183,7 +248,25 @@ export function useOriginTracingAnimation({
   
   // Handle item click
   const handleItemClick = useCallback((sectionId: string, nodeId: string) => {
-    const section = navSections.find(s => s.id === sectionId);
+    // Find the section (could be a top-level section or a subsection)
+    let section: NavSection | undefined;
+    
+    // First, check if it's a direct section
+    section = navSections.find(s => s.id === sectionId);
+    
+    // If not found, check if it's a subsection
+    if (!section) {
+      for (const parentSec of navSections) {
+        if (parentSec.subsections) {
+          const foundSubsection = parentSec.subsections.find(sub => sub.id === sectionId);
+          if (foundSubsection) {
+            section = foundSubsection;
+            break;
+          }
+        }
+      }
+    }
+    
     if (!section) return;
     
     stopAnimation();
@@ -247,15 +330,22 @@ export function useOriginTracingAnimation({
     setFocusedNodeId(node.id);
     
     // Find which section this node belongs to and expand only that section
-    let sectionToExpand: string | null = null;
+    const sectionsToExpand: string[] = [];
     
-    if (node.type === 'origin') sectionToExpand = 'origin';
-    else if (node.type === 'evolution' || node.type === 'propagation') sectionToExpand = 'evolution';
-    else if (node.type === 'beliefDriver') sectionToExpand = 'beliefs';
-    else if (node.type === 'source') sectionToExpand = 'sources';
+    if (node.type === 'origin') {
+      sectionsToExpand.push('evolution', 'evolution-origin');
+    } else if (node.type === 'evolution' || node.type === 'propagation') {
+      sectionsToExpand.push('evolution', 'evolution-steps');
+    } else if (node.type === 'claim') {
+      sectionsToExpand.push('evolution', 'evolution-claim');
+    } else if (node.type === 'beliefDriver') {
+      sectionsToExpand.push('beliefs');
+    } else if (node.type === 'source') {
+      sectionsToExpand.push('sources');
+    }
     
-    if (sectionToExpand) {
-      setExpandedSections(new Set([sectionToExpand]));
+    if (sectionsToExpand.length > 0) {
+      setExpandedSections(new Set(sectionsToExpand));
     }
     
     // Highlight the node

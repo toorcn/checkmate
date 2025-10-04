@@ -10,10 +10,10 @@ export function EvolutionNode({ data }: { data: NodeData }) {
   return (
     <div className="relative px-6 py-5 bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 border-2 border-purple-300 rounded-2xl shadow-lg min-w-[220px] max-w-[300px] transition-all duration-300 backdrop-blur-sm">
       {/* All-direction handles */}
-      <Handle type="target" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="target" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Right} id="right" />
+      <Handle type="target" position={Position.Top} id="top" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Left} id="left" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} id="right" style={{ opacity: 0 }} />
       
       {/* Corner accent */}
       <div className="absolute bottom-0 right-0 w-14 h-14 bg-white/40 rounded-tl-full -z-10" />

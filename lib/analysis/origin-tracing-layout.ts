@@ -8,15 +8,16 @@ import { Node } from '@xyflow/react';
 
 /**
  * Detect and resolve node overlaps with multiple passes
+ * Enhanced with better spacing and collision detection
  */
 export function resolveOverlaps(nodes: Node[]): Node[] {
   const resolvedNodes = [...nodes];
-  const nodeSpacing = 280; // Reduced minimum spacing between nodes
-  const verticalSpacing = 180; // Reduced minimum vertical spacing
-  const gridSize = 40; // Snap to grid for cleaner layout
+  const nodeSpacing = 380; // Increased minimum horizontal spacing
+  const verticalSpacing = 260; // Increased minimum vertical spacing
+  const gridSize = 20; // Finer grid for smoother positioning
   
-  // Multiple passes to resolve all overlaps
-  for (let pass = 0; pass < 3; pass++) {
+  // Multiple passes to resolve all overlaps thoroughly
+  for (let pass = 0; pass < 5; pass++) {
     for (let i = 0; i < resolvedNodes.length; i++) {
       for (let j = i + 1; j < resolvedNodes.length; j++) {
         const nodeA = resolvedNodes[i];
@@ -25,11 +26,41 @@ export function resolveOverlaps(nodes: Node[]): Node[] {
         const horizontalDistance = Math.abs(nodeA.position.x - nodeB.position.x);
         const verticalDistance = Math.abs(nodeA.position.y - nodeB.position.y);
         
-        // Check if nodes are too close horizontally (same row-ish)
-        if (verticalDistance < 120 && horizontalDistance < nodeSpacing) {
-          const adjustment = nodeSpacing - horizontalDistance + 40; // Reduced buffer
-          
-          // Move the rightmost node further right
+        // Calculate actual node dimensions for more accurate collision
+        const nodeAWidth = 320; // Max node width
+        const nodeAHeight = 140; // Max node height
+        const nodeBWidth = 320;
+        const nodeBHeight = 140;
+        
+        // Check for actual overlap
+        const overlapX = (nodeAWidth / 2 + nodeBWidth / 2) - horizontalDistance;
+        const overlapY = (nodeAHeight / 2 + nodeBHeight / 2) - verticalDistance;
+        
+        // If nodes overlap or are too close
+        if (overlapX > 0 && overlapY > 0) {
+          // Resolve by moving in the direction of least overlap
+          if (overlapX < overlapY) {
+            // Move horizontally
+            const adjustment = overlapX + 60;
+            if (nodeA.position.x < nodeB.position.x) {
+              nodeB.position.x += adjustment;
+            } else {
+              nodeA.position.x += adjustment;
+            }
+          } else {
+            // Move vertically
+            const adjustment = overlapY + 60;
+            if (nodeA.position.y < nodeB.position.y) {
+              nodeB.position.y += adjustment;
+            } else {
+              nodeA.position.y += adjustment;
+            }
+          }
+        }
+        
+        // Additional check: ensure minimum spacing even without overlap
+        if (verticalDistance < 150 && horizontalDistance < nodeSpacing) {
+          const adjustment = nodeSpacing - horizontalDistance + 80;
           if (nodeA.position.x < nodeB.position.x) {
             nodeB.position.x += adjustment;
           } else {
@@ -37,11 +68,8 @@ export function resolveOverlaps(nodes: Node[]): Node[] {
           }
         }
         
-        // Check if nodes are too close vertically (same column-ish)
-        if (horizontalDistance < 120 && verticalDistance < verticalSpacing) {
-          const adjustment = verticalSpacing - verticalDistance + 40; // Reduced buffer
-          
-          // Move the lower node further down
+        if (horizontalDistance < 150 && verticalDistance < verticalSpacing) {
+          const adjustment = verticalSpacing - verticalDistance + 80;
           if (nodeA.position.y < nodeB.position.y) {
             nodeB.position.y += adjustment;
           } else {
@@ -62,7 +90,7 @@ export function resolveOverlaps(nodes: Node[]): Node[] {
 }
 
 /**
- * Create logical flow layout for nodes
+ * Create logical flow layout for nodes with improved spacing and clarity
  */
 export function createLogicalFlow(
   originNodeId: string | null,
@@ -73,48 +101,48 @@ export function createLogicalFlow(
   linkNodes: string[],
   nodes: Node[]
 ): Node[] {
-  const centerX = 1200;
-  const centerY = 400;
+  const centerX = 1400; // Moved right for more space
+  const centerY = 500; // Moved down for better balance
   
-  // Create a more logical flow pattern
+  // Create a clear, hierarchical flow pattern with ample spacing
   const flowLayout = {
-    // Origin on far left
-    origin: { x: centerX - 800, y: centerY },
+    // Origin on far left with more space
+    origin: { x: centerX - 1100, y: centerY },
     
-    // Evolution chain flowing left to right toward center - reduced spacing
+    // Evolution chain with significantly increased spacing
     evolution: {
-      startX: centerX - 700,
-      endX: centerX - 250,
+      startX: centerX - 1000,
+      endX: centerX - 400,
       y: centerY,
-      spacing: Math.max(250, 500 / Math.max(evolutionNodes.length, 1))
+      spacing: Math.max(350, 800 / Math.max(evolutionNodes.length, 1))
     },
     
-    // Claim at center-right (destination of flow)
+    // Claim at center (destination of flow)
     claim: { x: centerX, y: centerY },
     
-    // Belief drivers above in arc formation - reduced spacing
+    // Belief drivers above in wider arc formation
     beliefs: {
-      centerX: centerX - 350,
-      y: centerY - 300,
-      radius: 450,
-      startAngle: -Math.PI / 2.5,
-      endAngle: Math.PI / 2.5
+      centerX: centerX - 200,
+      y: centerY - 450, // More vertical separation
+      radius: 600, // Larger radius to spread out
+      startAngle: -Math.PI / 2.2,
+      endAngle: Math.PI / 2.2
     },
     
-    // Sources below in arc formation - reduced spacing
+    // Sources below in wider arc formation
     sources: {
       centerX: centerX,
-      y: centerY + 300,
-      radius: 450,
-      startAngle: Math.PI / 4,
-      endAngle: Math.PI - Math.PI / 4
+      y: centerY + 450, // More vertical separation
+      radius: 600, // Larger radius
+      startAngle: Math.PI / 3.5,
+      endAngle: Math.PI - Math.PI / 3.5
     },
     
-    // Links on the right side in column - reduced spacing
+    // Links on the right side with better spacing
     links: {
-      x: centerX + 500,
-      startY: centerY - 250,
-      spacing: 150
+      x: centerX + 650, // More horizontal separation
+      startY: centerY - 400,
+      spacing: 220 // Increased vertical spacing
     }
   };
   
@@ -124,12 +152,22 @@ export function createLogicalFlow(
       return { ...node, position: flowLayout.origin };
     }
     
-    // Update evolution nodes
+    // Update evolution nodes with improved vertical distribution
     const evolutionIndex = evolutionNodes.indexOf(node.id);
     if (evolutionIndex !== -1) {
       const progress = evolutionNodes.length > 1 ? evolutionIndex / (evolutionNodes.length - 1) : 0;
       const x = flowLayout.evolution.startX + (flowLayout.evolution.endX - flowLayout.evolution.startX) * progress;
-      const yOffset = (evolutionIndex % 3 - 1) * 100; // Reduced vertical stagger
+      
+      // Better vertical stagger pattern to avoid overlaps
+      let yOffset = 0;
+      if (evolutionNodes.length > 3) {
+        // For many nodes, use sine wave pattern for smooth distribution
+        yOffset = Math.sin(progress * Math.PI * 2) * 150;
+      } else {
+        // For few nodes, use simple alternating pattern
+        yOffset = (evolutionIndex % 3 - 1) * 180;
+      }
+      
       return { ...node, position: { x, y: flowLayout.evolution.y + yOffset } };
     }
     
@@ -138,35 +176,37 @@ export function createLogicalFlow(
       return { ...node, position: flowLayout.claim };
     }
     
-    // Update belief driver positions in arc
+    // Update belief driver positions in wider arc
     const beliefIndex = beliefDriverNodes.indexOf(node.id);
     if (beliefIndex !== -1 && beliefDriverNodes.length > 0) {
       const angle = beliefDriverNodes.length === 1 
         ? 0 
         : flowLayout.beliefs.startAngle + (flowLayout.beliefs.endAngle - flowLayout.beliefs.startAngle) * (beliefIndex / (beliefDriverNodes.length - 1));
       const x = flowLayout.beliefs.centerX + Math.cos(angle) * flowLayout.beliefs.radius;
-      const y = flowLayout.beliefs.y + Math.sin(angle) * flowLayout.beliefs.radius / 2;
+      const y = flowLayout.beliefs.y + Math.sin(angle) * (flowLayout.beliefs.radius * 0.4); // Flatter arc
       return { ...node, position: { x, y } };
     }
     
-    // Update source positions in arc
+    // Update source positions in wider arc
     const sourceIndex = sourceNodes.indexOf(node.id);
     if (sourceIndex !== -1 && sourceNodes.length > 0) {
       const angle = sourceNodes.length === 1 
         ? Math.PI / 2 
         : flowLayout.sources.startAngle + (flowLayout.sources.endAngle - flowLayout.sources.startAngle) * (sourceIndex / (sourceNodes.length - 1));
       const x = flowLayout.sources.centerX + Math.cos(angle) * flowLayout.sources.radius;
-      const y = flowLayout.sources.y + Math.sin(angle) * flowLayout.sources.radius / 3;
+      const y = flowLayout.sources.y + Math.sin(angle) * (flowLayout.sources.radius * 0.35); // Flatter arc
       return { ...node, position: { x, y } };
     }
     
-    // Update link positions in column
+    // Update link positions in column with better spacing
     const linkIndex = linkNodes.indexOf(node.id);
     if (linkIndex !== -1) {
+      // Stagger links horizontally slightly to avoid strict column
+      const xOffset = (linkIndex % 2) * 100;
       return { 
         ...node, 
         position: { 
-          x: flowLayout.links.x, 
+          x: flowLayout.links.x + xOffset, 
           y: flowLayout.links.startY + linkIndex * flowLayout.links.spacing 
         } 
       };
