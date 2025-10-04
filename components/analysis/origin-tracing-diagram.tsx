@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   Node,
@@ -12,6 +12,8 @@ import {
   Position,
   MarkerType,
   Handle,
+  useReactFlow,
+  ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Card } from '../ui/card';
@@ -82,6 +84,31 @@ const mobileStyles = `
     border-color: #9ca3af !important;
   }
   
+  /* Resizer styles */
+  .split-view-resizer {
+    width: 8px;
+    cursor: col-resize;
+    background: #e5e7eb;
+    position: relative;
+    transition: background 0.2s;
+  }
+  
+  .split-view-resizer:hover {
+    background: #9ca3af;
+  }
+  
+  .split-view-resizer::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 40px;
+    background: white;
+    border-radius: 2px;
+  }
+  
   @media (max-width: 640px) {
     .react-flow__controls {
       bottom: 10px !important;
@@ -116,7 +143,12 @@ import {
   TrendingUp,
   Share2,
   Maximize2,
-  Minimize2
+  Minimize2,
+  ChevronDown,
+  ChevronRight,
+  Play,
+  Pause,
+  X as XIcon
 } from 'lucide-react';
 
 // Helper function to parse simple markdown to text for plain text contexts
@@ -881,7 +913,23 @@ const createLogicalFlow = (
   return resolveOverlaps(updatedNodes);
 };
 
-export function OriginTracingDiagram({
+// Navigation item interface
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  nodeId: string;
+}
+
+interface NavSection {
+  id: string;
+  title: string;
+  items: NavItem[];
+  color: string;
+}
+
+// Internal component that uses ReactFlow hooks
+function OriginTracingDiagramInternal({
   originTracing,
   beliefDrivers = [],
   sources = [],
@@ -891,6 +939,20 @@ export function OriginTracingDiagram({
 }: OriginTracingDiagramProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { fitBounds, setCenter, getZoom } = useReactFlow();
+  
+  // State management for navigation and animation
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['origin', 'evolution', 'beliefs', 'sources']));
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [animatingNodes, setAnimatingNodes] = useState<string[]>([]);
+  const [currentAnimationIndex, setCurrentAnimationIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationSpeed, setAnimationSpeed] = useState(2500); // ms per node
+  const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Split panel resizing
+  const [sidebarWidth, setSidebarWidth] = useState(30); // percentage
+  const isResizingRef = useRef(false);
   
   // Fullscreen toggle handler
   const toggleFullscreen = useCallback(async () => {
@@ -1300,6 +1362,232 @@ export function OriginTracingDiagram({
   const onConnect = useCallback(() => {
     // Disable manual connections for this read-only diagram
   }, []);
+  
+  // Build navigation sections from nodes
+  const navSections = useMemo((): NavSection[] => {
+    const sections: NavSection[] = [];
+    
+    // Origin section
+    const originNodes = nodes.filter(n => n.type === 'origin');
+    if (originNodes.length > 0) {
+      sections.push({
+        id: 'origin',
+        title: 'Origin',
+        color: 'text-blue-600',
+        items: originNodes.map(node => ({
+          id: `nav-${node.id}`,
+          label: formatNodeText(node.data.label, 50),
+          icon: getPlatformIcon(node.data.label),
+          nodeId: node.id,
+        })),
+      });
+    }
+    
+    // Evolution section
+    const evolutionNodes = nodes.filter(n => n.type === 'evolution' || n.type === 'propagation');
+    if (evolutionNodes.length > 0) {
+      sections.push({
+        id: 'evolution',
+        title: 'Evolution Timeline',
+        color: 'text-purple-600',
+        items: evolutionNodes.map(node => ({
+          id: `nav-${node.id}`,
+          label: formatNodeText(node.data.label || node.data.platform, 50),
+          icon: getPlatformIcon(node.data.platform || node.data.label),
+          nodeId: node.id,
+        })),
+      });
+    }
+    
+    // Belief Drivers section
+    const beliefNodes = nodes.filter(n => n.type === 'beliefDriver');
+    if (beliefNodes.length > 0) {
+      sections.push({
+        id: 'beliefs',
+        title: 'Belief Drivers',
+        color: 'text-violet-600',
+        items: beliefNodes.map(node => ({
+          id: `nav-${node.id}`,
+          label: formatNodeText(node.data.name, 50),
+          icon: getBiasIcon(node.data.name || ''),
+          nodeId: node.id,
+        })),
+      });
+    }
+    
+    // Sources section
+    const sourceNodes = nodes.filter(n => n.type === 'source');
+    if (sourceNodes.length > 0) {
+      sections.push({
+        id: 'sources',
+        title: 'Fact-Check Sources',
+        color: 'text-emerald-600',
+        items: sourceNodes.map(node => ({
+          id: `nav-${node.id}`,
+          label: formatNodeText(node.data.sourceName || node.data.label, 50),
+          icon: getPlatformIcon(node.data.sourceName || node.data.label),
+          nodeId: node.id,
+        })),
+      });
+    }
+    
+    return sections;
+  }, [nodes]);
+  
+  // Stop animation
+  const stopAnimation = useCallback(() => {
+    if (animationTimerRef.current) {
+      clearTimeout(animationTimerRef.current);
+      animationTimerRef.current = null;
+    }
+    setIsAnimating(false);
+    setCurrentAnimationIndex(0);
+  }, []);
+  
+  // Animation loop effect
+  useEffect(() => {
+    if (!isAnimating || animatingNodes.length === 0) {
+      return;
+    }
+    
+    const currentNodeId = animatingNodes[currentAnimationIndex];
+    const currentNode = nodes.find(n => n.id === currentNodeId);
+    
+    if (currentNode) {
+      // Center on the current node
+      setCenter(currentNode.position.x + 150, currentNode.position.y + 75, {
+        duration: 800,
+        zoom: Math.max(getZoom(), 0.8),
+      });
+    }
+    
+    // Schedule next animation
+    animationTimerRef.current = setTimeout(() => {
+      const nextIndex = (currentAnimationIndex + 1) % animatingNodes.length;
+      setCurrentAnimationIndex(nextIndex);
+    }, animationSpeed);
+    
+    return () => {
+      if (animationTimerRef.current) {
+        clearTimeout(animationTimerRef.current);
+      }
+    };
+  }, [isAnimating, animatingNodes, currentAnimationIndex, nodes, setCenter, getZoom, animationSpeed]);
+  
+  // Handle section click
+  const handleSectionClick = useCallback((sectionId: string) => {
+    const section = navSections.find(s => s.id === sectionId);
+    if (!section || section.items.length === 0) return;
+    
+    stopAnimation();
+    setActiveSection(sectionId);
+    
+    const nodeIds = section.items.map(item => item.nodeId);
+    const sectionNodes = nodes.filter(n => nodeIds.includes(n.id));
+    
+    if (sectionNodes.length === 0) return;
+    
+    // Calculate bounding box
+    const padding = 100;
+    const minX = Math.min(...sectionNodes.map(n => n.position.x)) - padding;
+    const minY = Math.min(...sectionNodes.map(n => n.position.y)) - padding;
+    const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
+    const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
+    
+    // Fit to bounds
+    fitBounds(
+      { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+      { duration: 600, padding: 0.2 }
+    );
+    
+    // Start animation after zoom
+    setTimeout(() => {
+      setAnimatingNodes(nodeIds);
+      setCurrentAnimationIndex(0);
+      setIsAnimating(true);
+    }, 700);
+  }, [navSections, nodes, fitBounds, stopAnimation]);
+  
+  // Handle item click
+  const handleItemClick = useCallback((sectionId: string, nodeId: string) => {
+    const section = navSections.find(s => s.id === sectionId);
+    if (!section) return;
+    
+    stopAnimation();
+    setActiveSection(sectionId);
+    
+    const nodeIds = section.items.map(item => item.nodeId);
+    const sectionNodes = nodes.filter(n => nodeIds.includes(n.id));
+    
+    if (sectionNodes.length === 0) return;
+    
+    // Calculate bounding box for section
+    const padding = 100;
+    const minX = Math.min(...sectionNodes.map(n => n.position.x)) - padding;
+    const minY = Math.min(...sectionNodes.map(n => n.position.y)) - padding;
+    const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
+    const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
+    
+    // Fit to bounds
+    fitBounds(
+      { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+      { duration: 600, padding: 0.2 }
+    );
+    
+    // Start animation from the clicked item
+    setTimeout(() => {
+      const startIndex = nodeIds.indexOf(nodeId);
+      setAnimatingNodes(nodeIds);
+      setCurrentAnimationIndex(startIndex >= 0 ? startIndex : 0);
+      setIsAnimating(true);
+    }, 700);
+  }, [navSections, nodes, fitBounds, stopAnimation]);
+  
+  // Toggle section expansion
+  const toggleSection = useCallback((sectionId: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  }, []);
+  
+  // Handle resize
+  const handleMouseDown = useCallback(() => {
+    isResizingRef.current = true;
+  }, []);
+  
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current || !containerRef.current) return;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidth = ((containerRect.right - e.clientX) / containerRect.width) * 100;
+      const clampedWidth = Math.max(20, Math.min(50, newWidth)); // Between 20% and 50%
+      setSidebarWidth(clampedWidth);
+    };
+    
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+  
+  // Stop animation when user interacts with graph
+  const handlePaneClick = useCallback(() => {
+    stopAnimation();
+  }, [stopAnimation]);
 
   if (!originTracing?.hypothesizedOrigin && !beliefDrivers.length && !sources.length) {
     return null;
@@ -1313,90 +1601,229 @@ export function OriginTracingDiagram({
         className={
           isFullscreen 
             ? "react-flow-fullscreen-container"
-            : "w-full h-[600px] sm:h-[500px] md:h-[600px] p-3 md:pb-0 shadow-lg mb-6 bg-white border rounded-lg"
+            : "w-full h-[700px] sm:h-[600px] md:h-[700px] shadow-lg mb-6 bg-white border rounded-lg"
         }
       >
-        <div className="h-full">
+        <div className="h-full flex flex-col">
           {!isFullscreen && (
-            <div className="mb-3">
+            <div className="p-3 border-b">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    Step-by-step evolution from origin through platforms to current state
-                    <span className="hidden sm:inline ml-2 text-gray-400">• Scroll wheel to zoom, controls to reset view</span>
-                    <span className="sm:hidden ml-2 text-gray-400">• Pinch to zoom, tap controls to reset</span>
+                    Interactive evolution diagram • Click sections to explore and animate
                   </p>
                 </div>
+                {isAnimating && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsAnimating(false)}
+                      className="h-7 text-xs"
+                    >
+                      <Pause className="h-3 w-3 mr-1" />
+                      Pause
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={stopAnimation}
+                      className="h-7 text-xs"
+                    >
+                      <XIcon className="h-3 w-3 mr-1" />
+                      Stop
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}
-          <div className={
-            isFullscreen 
-              ? "h-full w-full bg-gradient-to-br from-gray-50 to-white relative"
-              : "h-[calc(100%-3.5rem)] w-full border rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-white relative"
-          }>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            fitView
-            fitViewOptions={{ 
-              padding: 0.15, // More padding on mobile
-              includeHiddenNodes: false,
-              minZoom: 0.1, // Lower min zoom for mobile
-              maxZoom: 1.5
-            }}
-            minZoom={0.1} // Lower min zoom for mobile
-            maxZoom={1.5}
-            attributionPosition="bottom-left"
-            defaultViewport={{ x: 0, y: 0, zoom: 0.2 }} // Lower default zoom for mobile
-            proOptions={{ hideAttribution: false }}
-            // Ensure proper container sizing
-            style={{ width: '100%', height: '100%' }}
-            className="react-flow-mobile-container"
-            // Disable interactions that interfere with scrolling
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={true}  // Enable to allow link clicks
-            panOnDrag={true}
-            // Keep zoom functionality for better UX
-            zoomOnScroll={true}
-            zoomOnPinch={true}
-            zoomOnDoubleClick={false}  // Disable to prevent accidental interactions
-            // Allow page scrolling when not actively zooming
-            preventScrolling={false}
-            // Prevent selection visual feedback while allowing clicks
-            selectNodesOnDrag={false}
-            // Disable multi-selection
-            multiSelectionKeyCode={null}
-          >
-            <Controls 
-              showInteractive={false}
-              showZoom={true}  // Keep zoom controls visible
-              showFitView={true}  // Allow users to reset view
-              position="top-right"
+          
+          {/* Split view container */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Graph panel */}
+            <div 
+              className="relative bg-gradient-to-br from-gray-50 to-white"
+              style={{ width: `${100 - sidebarWidth}%` }}
             >
-              {/* Custom fullscreen control */}
-              <div 
-                className="react-flow__controls-button" 
-                onClick={toggleFullscreen}
-                title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onPaneClick={handlePaneClick}
+                nodeTypes={nodeTypes}
+                fitView
+                fitViewOptions={{ 
+                  padding: 0.15,
+                  includeHiddenNodes: false,
+                  minZoom: 0.1,
+                  maxZoom: 1.5
+                }}
+                minZoom={0.1}
+                maxZoom={1.5}
+                attributionPosition="bottom-left"
+                defaultViewport={{ x: 0, y: 0, zoom: 0.2 }}
+                proOptions={{ hideAttribution: false }}
+                style={{ width: '100%', height: '100%' }}
+                className="react-flow-mobile-container"
+                nodesDraggable={false}
+                nodesConnectable={false}
+                elementsSelectable={true}
+                panOnDrag={true}
+                zoomOnScroll={true}
+                zoomOnPinch={true}
+                zoomOnDoubleClick={false}
+                preventScrolling={false}
+                selectNodesOnDrag={false}
+                multiSelectionKeyCode={null}
               >
-                {isFullscreen ? (
-                  <Minimize2 className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )}
+                <Controls 
+                  showInteractive={false}
+                  showZoom={true}
+                  showFitView={true}
+                  position="top-right"
+                >
+                  <div 
+                    className="react-flow__controls-button" 
+                    onClick={toggleFullscreen}
+                    title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  >
+                    {isFullscreen ? (
+                      <Minimize2 className="h-4 w-4" />
+                    ) : (
+                      <Maximize2 className="h-4 w-4" />
+                    )}
+                  </div>
+                </Controls>
+                <Background gap={15} size={1} color="#f1f5f9" />
+              </ReactFlow>
+            </div>
+            
+            {/* Resizer */}
+            {!isFullscreen && (
+              <div 
+                className="split-view-resizer"
+                onMouseDown={handleMouseDown}
+              />
+            )}
+            
+            {/* Navigation sidebar */}
+            {!isFullscreen && (
+              <div 
+                className="border-l bg-white overflow-y-auto"
+                style={{ width: `${sidebarWidth}%` }}
+              >
+                <div className="p-4">
+                  <h3 className="font-semibold text-sm mb-4 text-gray-900">
+                    Navigation
+                  </h3>
+                  
+                  {/* Navigation sections */}
+                  <div className="space-y-2">
+                    {navSections.map((section) => (
+                      <div key={section.id} className="border rounded-lg overflow-hidden">
+                        {/* Section header */}
+                        <button
+                          onClick={() => handleSectionClick(section.id)}
+                          className={`w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 transition-colors ${
+                            activeSection === section.id ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleSection(section.id);
+                              }}
+                              className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded"
+                            >
+                              {expandedSections.has(section.id) ? (
+                                <ChevronDown className="h-3 w-3" />
+                              ) : (
+                                <ChevronRight className="h-3 w-3" />
+                              )}
+                            </button>
+                            <span className={`text-sm font-medium ${section.color} truncate`}>
+                              {section.title}
+                            </span>
+                            <Badge variant="outline" className="text-xs ml-auto flex-shrink-0">
+                              {section.items.length}
+                            </Badge>
+                          </div>
+                        </button>
+                        
+                        {/* Section items */}
+                        {expandedSections.has(section.id) && (
+                          <div className="border-t bg-gray-50">
+                            {section.items.map((item, idx) => {
+                              const isCurrentlyAnimating = 
+                                isAnimating && 
+                                activeSection === section.id && 
+                                animatingNodes[currentAnimationIndex] === item.nodeId;
+                              
+                              return (
+                                <button
+                                  key={item.id}
+                                  onClick={() => handleItemClick(section.id, item.nodeId)}
+                                  className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-white transition-colors border-b last:border-b-0 ${
+                                    isCurrentlyAnimating ? 'bg-blue-100 border-l-4 border-l-blue-500' : ''
+                                  }`}
+                                >
+                                  <div className="flex-shrink-0 mt-0.5 opacity-70">
+                                    {item.icon}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className={`text-xs leading-relaxed ${
+                                      isCurrentlyAnimating ? 'font-semibold text-blue-900' : 'text-gray-700'
+                                    }`}>
+                                      {item.label}
+                                    </p>
+                                  </div>
+                                  {isCurrentlyAnimating && (
+                                    <div className="flex-shrink-0">
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Animation info */}
+                  {isAnimating && activeSection && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Play className="h-3 w-3 text-blue-600" />
+                        <span className="text-xs font-medium text-blue-900">
+                          Auto-touring {navSections.find(s => s.id === activeSection)?.title}
+                        </span>
+                      </div>
+                      <p className="text-xs text-blue-700">
+                        {currentAnimationIndex + 1} of {animatingNodes.length}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </Controls>
-            <Background gap={15} size={1} color="#f1f5f9" />
-          </ReactFlow>
+            )}
           </div>
         </div>
       </div>
     </>
+  );
+}
+
+// Wrapper component with ReactFlowProvider
+export function OriginTracingDiagram(props: OriginTracingDiagramProps) {
+  return (
+    <ReactFlowProvider>
+      <OriginTracingDiagramInternal {...props} />
+    </ReactFlowProvider>
   );
 }
