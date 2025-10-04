@@ -1002,7 +1002,7 @@ function OriginTracingDiagramInternal({
   const { fitBounds, setCenter, getZoom } = useReactFlow();
   
   // State management for navigation and animation
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['origin', 'evolution', 'beliefs', 'sources']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [animatingNodes, setAnimatingNodes] = useState<string[]>([]);
   const [currentAnimationIndex, setCurrentAnimationIndex] = useState(0);
@@ -1515,7 +1515,36 @@ function OriginTracingDiagramInternal({
     );
   }, [setNodes]);
   
-  // Update node highlighting when animation state changes
+  // Update focused node and section expansion when animation state changes
+  useEffect(() => {
+    if (!isAnimating || animatingNodes.length === 0) {
+      setFocusedNodeId(null);
+      return;
+    }
+    
+    const currentNodeId = animatingNodes[currentAnimationIndex];
+    
+    // Update focused node for description panel
+    setFocusedNodeId(currentNodeId);
+    
+    // Find which section this node belongs to and expand it
+    // We need to find the node type to determine the section
+    const currentNode = nodes.find(n => n.id === currentNodeId);
+    if (currentNode) {
+      let sectionToExpand: string | null = null;
+      
+      if (currentNode.type === 'origin') sectionToExpand = 'origin';
+      else if (currentNode.type === 'evolution' || currentNode.type === 'propagation') sectionToExpand = 'evolution';
+      else if (currentNode.type === 'beliefDriver') sectionToExpand = 'beliefs';
+      else if (currentNode.type === 'source') sectionToExpand = 'sources';
+      
+      if (sectionToExpand) {
+        setExpandedSections(new Set([sectionToExpand]));
+      }
+    }
+  }, [isAnimating, animatingNodes, currentAnimationIndex, nodes]);
+  
+  // Separate effect for node highlighting to avoid dependency issues
   useEffect(() => {
     if (!isAnimating || animatingNodes.length === 0) {
       // Remove highlighting from all nodes when animation stops
@@ -1525,14 +1554,10 @@ function OriginTracingDiagramInternal({
           className: (node.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
         }))
       );
-      setFocusedNodeId(null);
       return;
     }
     
     const currentNodeId = animatingNodes[currentAnimationIndex];
-    
-    // Update focused node for description panel
-    setFocusedNodeId(currentNodeId);
     
     // Update nodes to highlight ONLY the current one, remove from all others
     setNodes(nds => 
@@ -1702,6 +1727,48 @@ function OriginTracingDiagramInternal({
       stopAnimation();
     }
   }, [stopAnimation, isAnimating]);
+  
+  // Handle node click to focus it
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    // Stop any ongoing animation
+    if (isAnimating) {
+      stopAnimation();
+    }
+    
+    // Set focus on the clicked node
+    setFocusedNodeId(node.id);
+    
+    // Find which section this node belongs to and expand only that section
+    let sectionToExpand: string | null = null;
+    
+    if (node.type === 'origin') sectionToExpand = 'origin';
+    else if (node.type === 'evolution' || node.type === 'propagation') sectionToExpand = 'evolution';
+    else if (node.type === 'beliefDriver') sectionToExpand = 'beliefs';
+    else if (node.type === 'source') sectionToExpand = 'sources';
+    
+    if (sectionToExpand) {
+      setExpandedSections(new Set([sectionToExpand]));
+    }
+    
+    // Highlight the node
+    setNodes(nds => 
+      nds.map(n => {
+        const baseClassName = (n.className || '').replace(/\s*node-highlighted\s*/g, '').trim();
+        return {
+          ...n,
+          className: n.id === node.id 
+            ? `${baseClassName} node-highlighted`.trim()
+            : baseClassName,
+        };
+      })
+    );
+    
+    // Center on the clicked node
+    setCenter(node.position.x + 150, node.position.y + 75, {
+      duration: 500,
+      zoom: Math.max(getZoom(), 0.8),
+    });
+  }, [isAnimating, stopAnimation, setNodes, setCenter, getZoom]);
 
   if (!originTracing?.hypothesizedOrigin && !beliefDrivers.length && !sources.length) {
     return null;
@@ -1786,6 +1853,7 @@ function OriginTracingDiagramInternal({
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onPaneClick={handlePaneClick}
+                onNodeClick={handleNodeClick}
                 nodeTypes={nodeTypes}
                 fitView
                 fitViewOptions={{ 
