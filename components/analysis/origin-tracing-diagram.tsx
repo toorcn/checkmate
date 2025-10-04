@@ -1010,6 +1010,7 @@ function OriginTracingDiagramInternal({
   const [animationSpeed] = useState(2500); // ms per node
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isTransitioningRef = useRef(false);
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   
   // Split panel resizing
   const [sidebarWidth, setSidebarWidth] = useState(30); // percentage
@@ -1503,6 +1504,7 @@ function OriginTracingDiagramInternal({
     }
     setIsAnimating(false);
     setCurrentAnimationIndex(0);
+    setFocusedNodeId(null);
     
     // Immediately remove all highlighting
     setNodes(nds => 
@@ -1523,10 +1525,14 @@ function OriginTracingDiagramInternal({
           className: (node.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
         }))
       );
+      setFocusedNodeId(null);
       return;
     }
     
     const currentNodeId = animatingNodes[currentAnimationIndex];
+    
+    // Update focused node for description panel
+    setFocusedNodeId(currentNodeId);
     
     // Update nodes to highlight ONLY the current one, remove from all others
     setNodes(nds => 
@@ -1875,31 +1881,104 @@ function OriginTracingDiagramInternal({
                                 isAnimating && 
                                 activeSection === section.id && 
                                 animatingNodes[currentAnimationIndex] === item.nodeId;
+                              const isFocused = focusedNodeId === item.nodeId;
+                              const focusedNode = isFocused ? nodes.find(n => n.id === item.nodeId) : null;
                               
                               return (
-                                <button
-                                  key={item.id}
-                                  onClick={() => handleItemClick(section.id, item.nodeId)}
-                                  className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-white transition-colors border-b last:border-b-0 ${
-                                    isCurrentlyAnimating ? 'bg-blue-100 border-l-4 border-l-blue-500' : ''
-                                  }`}
-                                >
-                                  <div className="flex-shrink-0 mt-0.5 opacity-70">
-                                    {item.icon}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className={`text-xs leading-relaxed ${
-                                      isCurrentlyAnimating ? 'font-semibold text-blue-900' : 'text-gray-700'
-                                    }`}>
-                                      {item.label}
-                                    </p>
-                                  </div>
-                                  {isCurrentlyAnimating && (
-                                    <div className="flex-shrink-0">
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                                <div key={item.id} className="border-b last:border-b-0">
+                                  <button
+                                    onClick={() => handleItemClick(section.id, item.nodeId)}
+                                    className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-white transition-colors ${
+                                      isCurrentlyAnimating ? 'bg-blue-100 border-l-4 border-l-blue-500' : ''
+                                    }`}
+                                  >
+                                    <div className="flex-shrink-0 mt-0.5 opacity-70">
+                                      {item.icon}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-xs leading-relaxed ${
+                                        isCurrentlyAnimating ? 'font-semibold text-blue-900' : 'text-gray-700'
+                                      }`}>
+                                        {item.label}
+                                      </p>
+                                    </div>
+                                    {isCurrentlyAnimating && (
+                                      <div className="flex-shrink-0">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                                      </div>
+                                    )}
+                                  </button>
+                                  
+                                  {/* Expanded description when focused */}
+                                  {isFocused && focusedNode && (
+                                    <div className="px-3 py-3 bg-gradient-to-br from-blue-50 to-indigo-50 border-t border-blue-200 animate-in slide-in-from-top duration-300">
+                                      <div className="space-y-2">
+                                        {/* Description/Content */}
+                                        <div className="text-xs text-gray-800 leading-relaxed">
+                                          {focusedNode.type === 'beliefDriver' ? String(focusedNode.data.description || '') : null}
+                                          {(focusedNode.type === 'origin' || focusedNode.type === 'evolution' || focusedNode.type === 'propagation') 
+                                            ? String(focusedNode.data.label || '') : null}
+                                          {focusedNode.type === 'source' ? String(focusedNode.data.label || '') : null}
+                                          {focusedNode.type === 'claim' ? String(focusedNode.data.label || '') : null}
+                                        </div>
+                                        
+                                        {/* Impact */}
+                                        {focusedNode.data.impact && typeof focusedNode.data.impact === 'string' ? (
+                                          <div className="pt-2 border-t border-blue-200">
+                                            <p className="text-xs text-gray-600">
+                                              <span className="font-semibold">Impact:</span> {focusedNode.data.impact}
+                                            </p>
+                                          </div>
+                                        ) : null}
+                                        
+                                        {/* Credibility */}
+                                        {focusedNode.data.credibility !== undefined ? (
+                                          <div className="pt-2 border-t border-blue-200 flex items-center justify-between">
+                                            <span className="text-xs font-semibold text-gray-600">Credibility:</span>
+                                            <Badge variant={Number(focusedNode.data.credibility) >= 80 ? 'default' : 'secondary'} className="text-xs">
+                                              {String(focusedNode.data.credibility)}%
+                                            </Badge>
+                                          </div>
+                                        ) : null}
+                                        
+                                        {/* URL Link */}
+                                        {(focusedNode.data.url && typeof focusedNode.data.url === 'string') ? (
+                                          <div className="pt-2 border-t border-blue-200">
+                                            <a
+                                              href={focusedNode.data.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                            >
+                                              <ExternalLink className="h-3 w-3" />
+                                              View Source
+                                            </a>
+                                          </div>
+                                        ) : null}
+                                        
+                                        {/* References */}
+                                        {(focusedNode.data.references && Array.isArray(focusedNode.data.references) && focusedNode.data.references.length > 0) ? (
+                                          <div className="pt-2 border-t border-blue-200">
+                                            <p className="text-xs font-semibold text-gray-600 mb-1">References:</p>
+                                            <div className="space-y-1">
+                                              {focusedNode.data.references.slice(0, 3).map((ref: any, idx: number) => (
+                                                <a
+                                                  key={idx}
+                                                  href={ref.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="block text-xs text-blue-600 hover:text-blue-800 truncate"
+                                                >
+                                                  • {ref.title}
+                                                </a>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : null}
+                                      </div>
                                     </div>
                                   )}
-                                </button>
+                                </div>
                               );
                             })}
                           </div>
