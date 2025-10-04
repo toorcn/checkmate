@@ -85,7 +85,7 @@ function OriginTracingDiagramInternal({
         className={
           isFullscreen 
             ? "react-flow-fullscreen-container"
-            : "w-full h-[700px] sm:h-[600px] md:h-[700px] shadow-lg mb-6 bg-white border rounded-lg"
+            : "w-full h-[700px] sm:h-[600px] md:h-[700px] shadow-2xl mb-6 bg-white border-2 border-slate-200 rounded-2xl overflow-hidden"
         }
       >
         <div className="h-full flex flex-col">
@@ -102,7 +102,7 @@ function OriginTracingDiagramInternal({
           <div className="flex-1 flex overflow-hidden">
             {/* Graph panel */}
             <div 
-              className="relative bg-gradient-to-br from-gray-50 to-white"
+              className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20"
               style={{ width: `${100 - sidebarWidth}%` }}
             >
               <ReactFlow
@@ -145,7 +145,12 @@ function OriginTracingDiagramInternal({
                   showFitView={true}
                   position="top-right"
                 />
-                <Background gap={15} size={1} color="#f1f5f9" />
+                <Background 
+                  gap={20} 
+                  size={1.5} 
+                  color="#cbd5e1" 
+                  style={{ opacity: 0.3 }}
+                />
               </ReactFlow>
             </div>
             

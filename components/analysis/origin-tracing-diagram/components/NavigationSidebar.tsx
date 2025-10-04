@@ -39,44 +39,49 @@ export function NavigationSidebar({
 }: NavigationSidebarProps) {
   return (
     <div 
-      className={isFullscreen ? "fullscreen-sidebar overflow-y-auto" : "border-l bg-white overflow-y-auto"}
+      className={isFullscreen ? "fullscreen-sidebar overflow-y-auto" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto"}
       style={{ width: `${sidebarWidth}%` }}
     >
-      <div className="p-4">
-        <h3 className="font-semibold text-sm mb-4 text-gray-900">
-          Navigation
-        </h3>
+      <div className="p-5">
+        <div className="mb-5 pb-4 border-b border-slate-200">
+          <h3 className="font-bold text-base mb-1 text-slate-900 tracking-tight">
+            Navigation
+          </h3>
+          <p className="text-xs text-slate-600 font-medium">
+            Explore the claim journey
+          </p>
+        </div>
         
         {/* Navigation sections */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {navSections.map((section) => (
-            <div key={section.id} className="border rounded-lg overflow-hidden">
+            <div key={section.id} className="border-2 border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all bg-white">
               {/* Section header */}
-              <div className="flex items-center">
+              <div className="flex items-center bg-gradient-to-r from-slate-50 to-white">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onToggleSection(section.id);
                   }}
-                  className="flex-shrink-0 p-3 hover:bg-gray-100 transition-colors"
+                  className="flex-shrink-0 p-3 hover:bg-slate-100 transition-colors rounded-l-xl"
                   aria-label={expandedSections.has(section.id) ? "Collapse section" : "Expand section"}
                 >
                   {expandedSections.has(section.id) ? (
-                    <ChevronDown className="h-3 w-3" />
+                    <ChevronDown className="h-4 w-4 text-slate-700" />
                   ) : (
-                    <ChevronRight className="h-3 w-3" />
+                    <ChevronRight className="h-4 w-4 text-slate-700" />
                   )}
                 </button>
                 <button
                   onClick={() => onSectionClick(section.id)}
-                  className={`flex-1 px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 transition-colors ${
-                    activeSection === section.id ? 'bg-blue-50' : ''
+                  className={`flex-1 px-3 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition-all ${
+                    activeSection === section.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                   }`}
                 >
-                  <span className={`text-sm font-medium ${section.color} truncate`}>
+                  <span className={`text-sm font-bold ${section.color} truncate tracking-tight`}>
                     {section.title}
                   </span>
-                  <Badge variant="outline" className="text-xs ml-auto flex-shrink-0">
+                  <Badge variant="outline" className="text-xs ml-auto flex-shrink-0 font-semibold bg-slate-100 border-slate-300">
                     {section.items.length}
                   </Badge>
                 </button>
@@ -84,7 +89,7 @@ export function NavigationSidebar({
               
               {/* Section items */}
               {expandedSections.has(section.id) && (
-                <div className="border-t bg-gray-50">
+                <div className="border-t-2 border-slate-200 bg-gradient-to-b from-slate-50 to-white">
                   {section.items.map((item) => {
                     const isCurrentlyAnimating = 
                       isAnimating && 
@@ -94,36 +99,36 @@ export function NavigationSidebar({
                     const focusedNode = isFocused ? nodes.find(n => n.id === item.nodeId) : null;
                     
                     return (
-                      <div key={item.id} className="border-b last:border-b-0">
+                      <div key={item.id} className="border-b border-slate-200 last:border-b-0">
                         <button
                           onClick={() => onItemClick(section.id, item.nodeId)}
-                          className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-white transition-colors ${
-                            isCurrentlyAnimating ? 'bg-blue-100 border-l-4 border-l-blue-500' : ''
-                          }`}
+                          className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white transition-all group ${
+                            isCurrentlyAnimating ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-inner' : ''
+                          } ${isFocused ? 'bg-slate-50' : ''}`}
                         >
-                          <div className="flex-shrink-0 mt-0.5 opacity-70">
+                          <div className="flex-shrink-0 mt-0.5 opacity-75 group-hover:opacity-100 transition-opacity">
                             {item.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-xs leading-relaxed ${
-                              isCurrentlyAnimating ? 'font-semibold text-blue-900' : 'text-gray-700'
+                            <p className={`text-xs leading-relaxed font-medium ${
+                              isCurrentlyAnimating ? 'font-bold text-blue-900' : 'text-slate-700'
                             }`}>
                               {item.label}
                             </p>
                           </div>
                           {isCurrentlyAnimating && (
                             <div className="flex-shrink-0">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse shadow-lg shadow-blue-500/50" />
                             </div>
                           )}
                         </button>
                         
                         {/* Expanded description when focused */}
                         {isFocused && focusedNode && (
-                          <div className="px-3 py-3 bg-gradient-to-br from-blue-50 to-indigo-50 border-t border-blue-200 animate-in slide-in-from-top duration-300">
-                            <div className="space-y-2">
+                          <div className="px-4 py-4 bg-gradient-to-br from-blue-50/90 via-indigo-50/90 to-purple-50/90 border-t-2 border-blue-300 animate-in slide-in-from-top duration-300 shadow-inner">
+                            <div className="space-y-3">
                               {/* Description/Content */}
-                              <div className="text-xs text-gray-800 leading-relaxed">
+                              <div className="text-xs text-slate-800 leading-relaxed font-medium bg-white/60 p-3 rounded-lg">
                                 {focusedNode.type === 'beliefDriver' ? String(focusedNode.data.description || '') : null}
                                 {(focusedNode.type === 'origin' || focusedNode.type === 'evolution' || focusedNode.type === 'propagation') 
                                   ? String(focusedNode.data.label || '') : null}
@@ -133,18 +138,18 @@ export function NavigationSidebar({
                               
                               {/* Impact */}
                               {focusedNode.data.impact && typeof focusedNode.data.impact === 'string' ? (
-                                <div className="pt-2 border-t border-blue-200">
-                                  <p className="text-xs text-gray-600">
-                                    <span className="font-semibold">Impact:</span> {focusedNode.data.impact}
+                                <div className="pt-2 border-t border-blue-300">
+                                  <p className="text-xs text-slate-700 bg-white/60 p-3 rounded-lg">
+                                    <span className="font-bold text-slate-900">Impact:</span> {focusedNode.data.impact}
                                   </p>
                                 </div>
                               ) : null}
                               
                               {/* Credibility */}
                               {focusedNode.data.credibility !== undefined ? (
-                                <div className="pt-2 border-t border-blue-200 flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-gray-600">Credibility:</span>
-                                  <Badge variant={Number(focusedNode.data.credibility) >= 80 ? 'default' : 'secondary'} className="text-xs">
+                                <div className="pt-2 border-t border-blue-300 flex items-center justify-between bg-white/60 p-3 rounded-lg">
+                                  <span className="text-xs font-bold text-slate-900">Credibility:</span>
+                                  <Badge variant={Number(focusedNode.data.credibility) >= 80 ? 'default' : 'secondary'} className="text-xs font-bold shadow-sm">
                                     {String(focusedNode.data.credibility)}%
                                   </Badge>
                                 </div>
@@ -152,14 +157,14 @@ export function NavigationSidebar({
                               
                               {/* URL Link */}
                               {(focusedNode.data.url && typeof focusedNode.data.url === 'string') ? (
-                                <div className="pt-2 border-t border-blue-200">
+                                <div className="pt-2 border-t border-blue-300">
                                   <a
                                     href={focusedNode.data.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                    className="inline-flex items-center gap-2 text-xs text-blue-700 hover:text-blue-900 font-bold transition-colors bg-white/80 px-4 py-2 rounded-lg hover:shadow-md w-full justify-center"
                                   >
-                                    <ExternalLink className="h-3 w-3" />
+                                    <ExternalLink className="h-3.5 w-3.5" />
                                     View Source
                                   </a>
                                 </div>
@@ -167,16 +172,16 @@ export function NavigationSidebar({
                               
                               {/* References */}
                               {(focusedNode.data.references && Array.isArray(focusedNode.data.references) && focusedNode.data.references.length > 0) ? (
-                                <div className="pt-2 border-t border-blue-200">
-                                  <p className="text-xs font-semibold text-gray-600 mb-1">References:</p>
-                                  <div className="space-y-1">
+                                <div className="pt-2 border-t border-blue-300">
+                                  <p className="text-xs font-bold text-slate-900 mb-2">References:</p>
+                                  <div className="space-y-2">
                                     {focusedNode.data.references.slice(0, 3).map((ref: any, idx: number) => (
                                       <a
                                         key={idx}
                                         href={ref.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="block text-xs text-blue-600 hover:text-blue-800 truncate"
+                                        className="block text-xs text-blue-700 hover:text-blue-900 truncate font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all"
                                       >
                                         • {ref.title}
                                       </a>
@@ -198,24 +203,31 @@ export function NavigationSidebar({
         
         {/* Animation info */}
         {isAnimating && activeSection && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Play className="h-3 w-3 text-blue-600" />
-              <span className="text-xs font-medium text-blue-900">
+          <div className="mt-5 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-300 shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-blue-500 rounded-lg shadow-md">
+                <Play className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-bold text-blue-900 tracking-tight">
                 Auto-touring {navSections.find(s => s.id === activeSection)?.title}
               </span>
             </div>
-            <p className="text-xs text-blue-700">
-              {currentAnimationIndex + 1} of {animatingNodes.length}
-            </p>
+            <div className="flex items-center justify-between bg-white/70 px-3 py-2 rounded-lg">
+              <p className="text-xs font-semibold text-blue-800">
+                Progress:
+              </p>
+              <Badge className="bg-blue-500 text-white font-bold">
+                {currentAnimationIndex + 1} / {animatingNodes.length}
+              </Badge>
+            </div>
           </div>
         )}
         
         {/* Additional info in fullscreen */}
         {isFullscreen && (
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-xs text-gray-500 text-center">
-              Press ESC or click Exit Fullscreen to return
+          <div className="mt-5 pt-4 border-t-2 border-slate-200">
+            <p className="text-xs text-slate-600 text-center font-medium bg-slate-50 px-4 py-3 rounded-lg">
+              Press <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-800 font-mono text-xs shadow-sm">ESC</kbd> or click Exit Fullscreen to return
             </p>
           </div>
         )}
