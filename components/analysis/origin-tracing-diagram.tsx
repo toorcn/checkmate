@@ -55,6 +55,60 @@ const mobileStyles = `
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
   }
   
+  /* Node highlighting animations */
+  .react-flow__node {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s;
+    will-change: transform;
+  }
+  
+  .react-flow__node.node-highlighted {
+    z-index: 1000 !important;
+    transform: scale(1.15);
+    transform-origin: center center;
+  }
+  
+  .react-flow__node.node-highlighted > div {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 
+                0 0 20px rgba(59, 130, 246, 0.4),
+                0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    border-color: #3b82f6 !important;
+    border-width: 3px !important;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    will-change: box-shadow, border-color;
+  }
+  
+  .react-flow__node.node-highlighted > div::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border: 2px solid #3b82f6;
+    border-radius: 16px;
+    animation: pulse 2s ease-in-out infinite;
+    pointer-events: none;
+    opacity: 0;
+  }
+  
+  .react-flow__node.node-highlighted > div::before {
+    opacity: 1;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.05);
+    }
+  }
+  
   /* Controls positioning and sizing */
   .react-flow__controls {
     position: absolute !important;
@@ -955,6 +1009,7 @@ function OriginTracingDiagramInternal({
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationSpeed] = useState(2500); // ms per node
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isTransitioningRef = useRef(false);
   
   // Split panel resizing
   const [sidebarWidth, setSidebarWidth] = useState(30); // percentage
@@ -1362,7 +1417,7 @@ function OriginTracingDiagramInternal({
     return { nodes: optimizedNodes, edges };
   }, [originTracing, beliefDrivers, sources, verdict, content, allLinks]);
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(() => {
@@ -1448,23 +1503,68 @@ function OriginTracingDiagramInternal({
     }
     setIsAnimating(false);
     setCurrentAnimationIndex(0);
-  }, []);
+    
+    // Immediately remove all highlighting
+    setNodes(nds => 
+      nds.map(node => ({
+        ...node,
+        className: (node.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
+      }))
+    );
+  }, [setNodes]);
   
-  // Animation loop effect
+  // Update node highlighting when animation state changes
   useEffect(() => {
     if (!isAnimating || animatingNodes.length === 0) {
+      // Remove highlighting from all nodes when animation stops
+      setNodes(nds => 
+        nds.map(node => ({
+          ...node,
+          className: (node.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
+        }))
+      );
+      return;
+    }
+    
+    const currentNodeId = animatingNodes[currentAnimationIndex];
+    
+    // Update nodes to highlight ONLY the current one, remove from all others
+    setNodes(nds => 
+      nds.map(node => {
+        const baseClassName = (node.className || '').replace(/\s*node-highlighted\s*/g, '').trim();
+        return {
+          ...node,
+          className: node.id === currentNodeId 
+            ? `${baseClassName} node-highlighted`.trim()
+            : baseClassName,
+        };
+      })
+    );
+  }, [isAnimating, animatingNodes, currentAnimationIndex, setNodes]);
+  
+  // Animation loop effect - separate from node highlighting
+  useEffect(() => {
+    if (!isAnimating || animatingNodes.length === 0) {
+      isTransitioningRef.current = false;
       return;
     }
     
     const currentNodeId = animatingNodes[currentAnimationIndex];
     const currentNode = nodes.find(n => n.id === currentNodeId);
     
-    if (currentNode) {
-      // Center on the current node
+    if (currentNode && !isTransitioningRef.current) {
+      isTransitioningRef.current = true;
+      
+      // Center on the current node with faster animation
       setCenter(currentNode.position.x + 150, currentNode.position.y + 75, {
-        duration: 800,
+        duration: 500, // Reduced from 800ms to 500ms for snappier feel
         zoom: Math.max(getZoom(), 0.8),
       });
+      
+      // Reset transition flag after animation completes
+      setTimeout(() => {
+        isTransitioningRef.current = false;
+      }, 500);
     }
     
     // Schedule next animation
@@ -1500,18 +1600,18 @@ function OriginTracingDiagramInternal({
     const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
     const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
     
-    // Fit to bounds
+    // Fit to bounds with faster animation
     fitBounds(
       { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
-      { duration: 600, padding: 0.2 }
+      { duration: 500, padding: 0.2 }
     );
     
-    // Start animation after zoom
+    // Start animation after zoom with reduced delay
     setTimeout(() => {
       setAnimatingNodes(nodeIds);
       setCurrentAnimationIndex(0);
       setIsAnimating(true);
-    }, 700);
+    }, 550);
   }, [navSections, nodes, fitBounds, stopAnimation]);
   
   // Handle item click
@@ -1534,19 +1634,19 @@ function OriginTracingDiagramInternal({
     const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
     const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
     
-    // Fit to bounds
+    // Fit to bounds with faster animation
     fitBounds(
       { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
-      { duration: 600, padding: 0.2 }
+      { duration: 500, padding: 0.2 }
     );
     
-    // Start animation from the clicked item
+    // Start animation from the clicked item with reduced delay
     setTimeout(() => {
       const startIndex = nodeIds.indexOf(nodeId);
       setAnimatingNodes(nodeIds);
       setCurrentAnimationIndex(startIndex >= 0 ? startIndex : 0);
       setIsAnimating(true);
-    }, 700);
+    }, 550);
   }, [navSections, nodes, fitBounds, stopAnimation]);
   
   // Toggle section expansion
@@ -1592,8 +1692,10 @@ function OriginTracingDiagramInternal({
   
   // Stop animation when user interacts with graph
   const handlePaneClick = useCallback(() => {
-    stopAnimation();
-  }, [stopAnimation]);
+    if (isAnimating) {
+      stopAnimation();
+    }
+  }, [stopAnimation, isAnimating]);
 
   if (!originTracing?.hypothesizedOrigin && !beliefDrivers.length && !sources.length) {
     return null;
@@ -1735,34 +1837,35 @@ function OriginTracingDiagramInternal({
                     {navSections.map((section) => (
                       <div key={section.id} className="border rounded-lg overflow-hidden">
                         {/* Section header */}
-                        <button
-                          onClick={() => handleSectionClick(section.id)}
-                          className={`w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 transition-colors ${
-                            activeSection === section.id ? 'bg-blue-50' : ''
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleSection(section.id);
-                              }}
-                              className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded"
-                            >
-                              {expandedSections.has(section.id) ? (
-                                <ChevronDown className="h-3 w-3" />
-                              ) : (
-                                <ChevronRight className="h-3 w-3" />
-                              )}
-                            </button>
+                        <div className="flex items-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSection(section.id);
+                            }}
+                            className="flex-shrink-0 p-3 hover:bg-gray-100 transition-colors"
+                            aria-label={expandedSections.has(section.id) ? "Collapse section" : "Expand section"}
+                          >
+                            {expandedSections.has(section.id) ? (
+                              <ChevronDown className="h-3 w-3" />
+                            ) : (
+                              <ChevronRight className="h-3 w-3" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleSectionClick(section.id)}
+                            className={`flex-1 px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 transition-colors ${
+                              activeSection === section.id ? 'bg-blue-50' : ''
+                            }`}
+                          >
                             <span className={`text-sm font-medium ${section.color} truncate`}>
                               {section.title}
                             </span>
                             <Badge variant="outline" className="text-xs ml-auto flex-shrink-0">
                               {section.items.length}
                             </Badge>
-                          </div>
-                        </button>
+                          </button>
+                        </div>
                         
                         {/* Section items */}
                         {expandedSections.has(section.id) && (
