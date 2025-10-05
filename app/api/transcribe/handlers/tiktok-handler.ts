@@ -613,7 +613,9 @@ Please fact-check the claims from this TikTok video content, paying special atte
           success: factCheck.success,
           toolError: (factCheck as any)?.error || undefined,
           envHints: {
-            missingExaApiKey: !process.env.EXA_API_KEY,
+            // Note: With Secrets Manager, keys may not be in process.env
+            // Check the actual error message for API key issues
+            useSecretsManager: process.env.USE_SECRETS_MANAGER === 'true',
             missingBedrockModelId: !process.env.BEDROCK_MODEL_ID,
             awsRegionConfigured: !!(process.env.APP_REGION || process.env.AWS_REGION),
           },

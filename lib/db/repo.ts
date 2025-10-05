@@ -12,7 +12,12 @@ export async function upsertUser(u: {
 }) {
   // Intentionally logging for observability in dev; not considered a lint issue
   console.log("[db] upsertUser", { id: u.id, email: u.email });
-  await db
+  
+  // Use getDb() to ensure database is initialized
+  const { getDb } = await import("./index");
+  const database = await getDb();
+  
+  await database
     .insert(users)
     .values({
       id: u.id,

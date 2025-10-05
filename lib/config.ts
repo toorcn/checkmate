@@ -3,16 +3,17 @@ import { z } from "zod";
 // Environment configuration schema
 const baseSchema = z
   .object({
-    // API Keys
-    FIRECRAWL_API_KEY: z.string().min(1, "Firecrawl API key is required"),
+    // API Keys (optional - can be fetched from Secrets Manager)
+    FIRECRAWL_API_KEY: z.string().optional(),
+    EXA_API_KEY: z.string().optional(),
     // AWS / Bedrock
     APP_REGION: z.string().optional(),
     AWS_REGION: z.string().optional(),
     // Some platforms only allow lowercase keys; support `aws_region` as a source
     aws_region: z.string().optional(),
-    BEDROCK_MODEL_ID: z
-      .string()
-      .default("anthropic.claude-3-haiku-20240307-v1:0"),
+    // BEDROCK_MODEL_ID: z
+    //   .string()
+    //   .default("anthropic.claude-3-haiku-20240307-v1:0"),
     // DynamoDB (optional during migration)
     DDB_TABLE_ANALYSES: z.string().optional(),
     DDB_TABLE_CREATORS: z.string().optional(),

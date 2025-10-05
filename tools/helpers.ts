@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-transcribe";
 import { config } from "../lib/config";
 import { s3, transcribe } from "../lib/aws";
+import { getFirecrawlApiKey } from "../lib/secrets";
 
 /**
  * Helper function to transcribe a video directly from a given URL using OpenAI Whisper.
@@ -137,8 +138,18 @@ export async function scrapeWebContent(url: string) {
       };
     }
 
-    // Check if Firecrawl API key is available
-    if (!process.env.FIRECRAWL_API_KEY) {
+    // Get Firecrawl API key from Secrets Manager (or env fallback)
+    let firecrawlApiKey: string;
+    try {
+      firecrawlApiKey = await getFirecrawlApiKey();
+    } catch (error) {
+      return {
+        success: false,
+        error: "Firecrawl API key not configured",
+      };
+    }
+
+    if (!firecrawlApiKey) {
       return {
         success: false,
         error: "Firecrawl API key not configured",
@@ -146,7 +157,7 @@ export async function scrapeWebContent(url: string) {
     }
 
     // Initialize Firecrawl
-    const app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+    const app = new FirecrawlApp({ apiKey: firecrawlApiKey });
 
     // Scrape the URL
     const scrapeResult = await app.scrapeUrl(url, {

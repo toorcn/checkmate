@@ -9,6 +9,7 @@ import {
 } from "../../lib/ai";
 import { evaluateDomainCredibility } from "./domain-credibility";
 import { analyzeVerificationStatus } from "./verification-analysis";
+import { getExaApiKey } from "../../lib/secrets";
 
 /**
  * Represents a search result from the Exa Search API.
@@ -88,8 +89,18 @@ export const researchAndFactCheck = tool({
       .describe("Additional context about the video content"),
   }),
   execute: async ({ transcription, title, context }) => {
-    // Check if required API keys are available
-    if (!process.env.EXA_API_KEY) {
+    // Get Exa API key from Secrets Manager (or env fallback)
+    let exaApiKey: string;
+    try {
+      exaApiKey = await getExaApiKey();
+    } catch (error) {
+      return {
+        success: false,
+        error: "Exa API key not configured",
+      };
+    }
+
+    if (!exaApiKey) {
       return {
         success: false,
         error: "Exa API key not configured",
@@ -136,7 +147,7 @@ Return only the search query, nothing else.`;
       const searchResponse = await fetch("https://api.exa.ai/search", {
         method: "POST",
         headers: {
-          "x-api-key": process.env.EXA_API_KEY,
+          "x-api-key": exaApiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -173,7 +184,7 @@ Return only the search query, nothing else.`;
         const contentsResponse = await fetch("https://api.exa.ai/contents", {
           method: "POST",
           headers: {
-            "x-api-key": process.env.EXA_API_KEY,
+            "x-api-key": exaApiKey,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
