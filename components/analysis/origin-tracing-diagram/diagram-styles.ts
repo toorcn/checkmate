@@ -350,5 +350,149 @@ export const diagramStyles = `
       width: 12px;
     }
   }
+  
+  /* Navigation Sidebar Enhanced Animations */
+  
+  /* Hero card border glow animation */
+  @keyframes heroBorderGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3),
+                  0 0 40px rgba(59, 130, 246, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.5),
+                  0 0 60px rgba(59, 130, 246, 0.2);
+    }
+  }
+  
+  .hero-glow-border {
+    animation: heroBorderGlow 3s ease-in-out infinite;
+  }
+  
+  /* Gradient shimmer for section hovers */
+  @keyframes gradientShimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .section-card-shimmer {
+    background-size: 200% 200%;
+    animation: gradientShimmer 3s ease infinite;
+  }
+  
+  /* Connection line dash animation */
+  @keyframes dashAnimation {
+    to {
+      stroke-dashoffset: -20;
+    }
+  }
+  
+  .connection-line-animated {
+    animation: dashAnimation 2s linear infinite;
+  }
+  
+  /* Floating effect on hover */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+  
+  .section-card:hover {
+    animation: float 2s ease-in-out infinite;
+  }
+  
+  /* Stagger animation for list items */
+  @keyframes staggerFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .stagger-item {
+    animation: staggerFadeIn 0.3s ease-out;
+  }
+  
+  /* Spring-based expand/collapse */
+  .spring-expand {
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  /* Pulse animation for active indicators */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
+  }
+  
+  .pulse-indicator {
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  /* Masonry Grid Layout for Items */
+  .items-masonry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    .items-masonry-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) and (min-aspect-ratio: 16/9) {
+    .items-masonry-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* Item Card Styles */
+  .item-masonry-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .item-masonry-card button {
+    display: block;
+    width: 100%;
+  }
+  
+  /* Card hover glow effect */
+  .item-masonry-card button:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+                0 0 20px rgba(59, 130, 246, 0.15);
+  }
+  
+  /* Responsive adjustments for masonry */
+  @media (max-width: 640px) {
+    .items-masonry-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+  }
 `;
 

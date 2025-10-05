@@ -65,6 +65,8 @@ function OriginTracingDiagramInternal({
     toggleSection,
     handlePaneClick,
     handleNodeClick,
+    handleSectionMouseEnter,
+    handleSectionMouseLeave,
   } = useOriginTracingAnimation({
     nodes,
     navSections,
@@ -241,6 +243,8 @@ function OriginTracingDiagramInternal({
               onItemClick={handleItemClick}
               onItemMouseEnter={onSidebarItemMouseEnter}
               onItemMouseLeave={onSidebarItemMouseLeave}
+              onSectionMouseEnter={handleSectionMouseEnter}
+              onSectionMouseLeave={handleSectionMouseLeave}
             />
           </div>
         </div>

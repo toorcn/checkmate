@@ -1,10 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Node } from '@xyflow/react';
-import { ChevronDown, ChevronRight, Play, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronRight, Play } from 'lucide-react';
 import { Badge } from '../../../ui/badge';
 import { NavSection } from '../../../../types/origin-tracing';
+import { CurrentClaimHero } from './CurrentClaimHero';
+import { SectionPreview } from './SectionPreview';
+import { ConnectionLine } from './ConnectionLine';
+import { ItemCard } from './ItemCard';
+import { getCurrentClaimNode, getSectionStats, getSectionColor } from '../utils/navigationUtils';
 
 interface NavigationSidebarProps {
   navSections: NavSection[];
@@ -22,6 +27,8 @@ interface NavigationSidebarProps {
   onItemClick: (sectionId: string, nodeId: string) => void;
   onItemMouseEnter?: (nodeId: string) => void;
   onItemMouseLeave?: () => void;
+  onSectionMouseEnter?: (sectionId: string) => void;
+  onSectionMouseLeave?: () => void;
 }
 
 export function NavigationSidebar({
@@ -40,73 +47,157 @@ export function NavigationSidebar({
   onItemClick,
   onItemMouseEnter,
   onItemMouseLeave,
+  onSectionMouseEnter,
+  onSectionMouseLeave,
 }: NavigationSidebarProps) {
+  const [hoveredSection, setHoveredSection] = useState<string | null>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Get current claim node and count sources
+  const currentClaimNode = getCurrentClaimNode(nodes);
+  const sourcesSection = navSections.find(s => s.id.includes('source') || s.id.includes('fact'));
+  const totalSources = sourcesSection ? getSectionStats(sourcesSection, nodes).totalItems : 0;
+
+  // Get verdict from claim node or default
+  const verdict = String(currentClaimNode?.data.verdict || 'unverified');
+
+  // Calculate connection line positions
+  const [linePositions, setLinePositions] = useState<Map<string, { fromY: number; toY: number }>>(new Map());
+
+  useEffect(() => {
+    if (!heroRef.current) return;
+
+    const positions = new Map<string, { fromY: number; toY: number }>();
+    const heroRect = heroRef.current.getBoundingClientRect();
+    const heroBottom = heroRect.bottom - heroRect.top + 20; // Offset from hero bottom
+
+    navSections.forEach((section) => {
+      const sectionEl = sectionRefs.current.get(section.id);
+      if (sectionEl) {
+        const sectionRect = sectionEl.getBoundingClientRect();
+        const heroContainerRect = heroRef.current!.parentElement!.getBoundingClientRect();
+        const sectionTop = sectionRect.top - heroContainerRect.top;
+        
+        positions.set(section.id, {
+          fromY: heroBottom,
+          toY: sectionTop + 35, // Target middle of section header
+        });
+      }
+    });
+
+    setLinePositions(positions);
+  }, [navSections, expandedSections]);
+
+  // Helper to get section type
+  const getSectionType = (sectionId: string): 'evolution' | 'belief' | 'source' => {
+    if (sectionId.includes('evolution') || sectionId.includes('timeline')) return 'evolution';
+    if (sectionId.includes('belief') || sectionId.includes('driver')) return 'belief';
+    return 'source';
+  };
+
   return (
     <div 
-      className={isExpanded ? "expanded-sidebar overflow-y-auto" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto"}
+      className={isExpanded ? "expanded-sidebar overflow-y-auto relative" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto relative"}
       style={{ width: `${sidebarWidth}%` }}
     >
-      <div className="p-5">
-        <div className="mb-5 pb-4 border-b border-slate-200">
-          <h3 className="font-bold text-base mb-1 text-slate-900 tracking-tight">
-            Navigation
-          </h3>
-          <p className="text-xs text-slate-600 font-medium">
-            Explore the claim journey
-          </p>
+      <div className="p-5 relative">
+        {/* Hero Card */}
+        <div ref={heroRef}>
+          <CurrentClaimHero
+            claimNode={currentClaimNode}
+            verdict={verdict}
+            totalSources={totalSources}
+          />
+        </div>
+
+        {/* Connection Lines Layer */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+          {navSections.map((section) => {
+            const pos = linePositions.get(section.id);
+            if (!pos) return null;
+
+            return (
+              <ConnectionLine
+                key={section.id}
+                sectionId={section.id}
+                isActive={activeSection === section.id}
+                isHovered={hoveredSection === section.id}
+                fromY={pos.fromY}
+                toY={pos.toY}
+                containerWidth={300}
+              />
+            );
+          })}
         </div>
         
         {/* Navigation sections */}
-        <div className="space-y-3">
+        <div className="space-y-4 relative z-10">
           {navSections.map((section) => {
-            // Calculate total items for parent section
-            const totalItems = section.subsections 
-              ? section.subsections.reduce((sum, sub) => sum + sub.items.length, 0)
-              : section.items.length;
+            const stats = getSectionStats(section, nodes);
+            const sectionType = getSectionType(section.id);
+            const borderColor = getSectionColor(section.id);
             
             return (
-              <div key={section.id} className="border-2 border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all bg-white">
+              <div
+                key={section.id}
+                ref={(el) => {
+                  if (el) sectionRefs.current.set(section.id, el);
+                }}
+                onMouseEnter={() => setHoveredSection(section.id)}
+                onMouseLeave={() => setHoveredSection(null)}
+                className="section-card border-2 border-slate-200 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/60 backdrop-blur-lg"
+                style={{
+                  borderLeftWidth: '4px',
+                  borderLeftColor: activeSection === section.id ? borderColor : undefined,
+                }}
+              >
                 {/* Section header */}
-                <div className="flex items-center bg-gradient-to-r from-slate-50 to-white">
+                <div className="flex items-center bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleSection(section.id);
                     }}
-                    className="flex-shrink-0 p-3 hover:bg-slate-100 transition-colors rounded-l-xl"
+                    className="flex-shrink-0 p-3 hover:bg-slate-100 transition-colors rounded-l-xl spring-expand"
                     aria-label={expandedSections.has(section.id) ? "Collapse section" : "Expand section"}
                   >
                     {expandedSections.has(section.id) ? (
-                      <ChevronDown className="h-4 w-4 text-slate-700" />
+                      <ChevronDown className="h-4 w-4 text-slate-700 transition-transform duration-300" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-slate-700" />
+                      <ChevronRight className="h-4 w-4 text-slate-700 transition-transform duration-300" />
                     )}
                   </button>
                   <button
                     onClick={() => onSectionClick(section.id)}
-                    className={`flex-1 px-3 py-3 flex items-center justify-between text-left hover:bg-slate-50 transition-all ${
-                      activeSection === section.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    onMouseEnter={() => onSectionMouseEnter?.(section.id)}
+                    onMouseLeave={() => onSectionMouseLeave?.()}
+                    className={`flex-1 px-3 py-3 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
+                      activeSection === section.id ? 'bg-blue-50/70' : ''
                     }`}
                   >
                     <span className={`text-sm font-bold ${section.color} truncate tracking-tight`}>
                       {section.title}
                     </span>
-                    <Badge variant="outline" className="text-xs ml-auto flex-shrink-0 font-semibold bg-slate-100 border-slate-300">
-                      {totalItems}
-                    </Badge>
+                    <SectionPreview
+                      totalItems={stats.totalItems}
+                      avgCredibility={stats.avgCredibility}
+                      hasAlerts={stats.hasAlerts}
+                      sectionType={sectionType}
+                    />
                   </button>
                 </div>
                 
                 {/* Section content */}
                 {expandedSections.has(section.id) && (
-                  <div className="border-t-2 border-slate-200 bg-gradient-to-b from-slate-50 to-white">
+                  <div className="border-t-2 border-slate-200 bg-gradient-to-b from-slate-50/50 to-white/50 spring-expand">
                     {/* Render subsections if they exist */}
                     {section.subsections ? (
                       <div className="space-y-0">
                         {section.subsections.map((subsection) => (
                           <div key={subsection.id} className="border-b-2 border-slate-200 last:border-b-0">
                             {/* Subsection header */}
-                            <div className="flex items-center bg-gradient-to-r from-slate-100/50 to-white">
+                            <div className="flex items-center bg-gradient-to-r from-slate-100/50 to-white/50">
                               <div className="w-4 border-l-2 border-slate-300 ml-3" />
                               <button
                                 onClick={(e) => {
@@ -124,6 +215,8 @@ export function NavigationSidebar({
                               </button>
                               <button
                                 onClick={() => onSectionClick(subsection.id)}
+                                onMouseEnter={() => onSectionMouseEnter?.(subsection.id)}
+                                onMouseLeave={() => onSectionMouseLeave?.()}
                                 className={`flex-1 px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
                                   activeSection === subsection.id ? 'bg-blue-50/70' : ''
                                 }`}
@@ -139,115 +232,29 @@ export function NavigationSidebar({
                             
                             {/* Subsection items */}
                             {expandedSections.has(subsection.id) && (
-                              <div className="bg-slate-50/30">
-                                {subsection.items.map((item) => {
+                              <div className="items-masonry-grid bg-slate-50/30">
+                                {subsection.items.map((item, itemIdx) => {
                                   const isCurrentlyAnimating = 
                                     isAnimating && 
                                     activeSection === subsection.id && 
                                     animatingNodes[currentAnimationIndex] === item.nodeId;
                                   const isFocused = focusedNodeId === item.nodeId;
-                                  const focusedNode = isFocused ? nodes.find(n => n.id === item.nodeId) : null;
+                                  const itemNode = nodes.find(n => n.id === item.nodeId) || null;
+                                  const showConnection = itemIdx < subsection.items.length - 1 && subsection.id.includes('evolution');
                                   
                                   return (
-                                    <div key={item.id} className="border-b border-slate-200 last:border-b-0">
-                                      <div className="flex">
-                                        <div className="w-8 border-l-2 border-slate-300 ml-3 flex-shrink-0" />
-                                        <button
-                                          onClick={() => onItemClick(subsection.id, item.nodeId)}
+                                    <ItemCard
+                                      key={item.id}
+                                      item={item}
+                                      node={itemNode}
+                                      isAnimating={isCurrentlyAnimating}
+                                      isFocused={isFocused}
+                                      onItemClick={() => onItemClick(subsection.id, item.nodeId)}
                                           onMouseEnter={() => onItemMouseEnter?.(item.nodeId)}
                                           onMouseLeave={() => onItemMouseLeave?.()}
-                                          className={`flex-1 px-4 py-3 flex items-start gap-3 text-left hover:bg-white transition-all group ${
-                                            isCurrentlyAnimating ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-inner' : ''
-                                          } ${isFocused ? 'bg-slate-50' : ''}`}
-                                        >
-                                          <div className="flex-shrink-0 mt-0.5 opacity-75 group-hover:opacity-100 transition-opacity">
-                                            {item.icon}
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                            <p className={`text-xs leading-relaxed font-medium ${
-                                              isCurrentlyAnimating ? 'font-bold text-blue-900' : 'text-slate-700'
-                                            }`}>
-                                              {item.label}
-                                            </p>
-                                          </div>
-                                          {isCurrentlyAnimating && (
-                                            <div className="flex-shrink-0">
-                                              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse shadow-lg shadow-blue-500/50" />
-                                            </div>
-                                          )}
-                                        </button>
-                                      </div>
-                                      
-                                      {/* Expanded description when focused */}
-                                      {isFocused && focusedNode && (
-                                        <div className="ml-11 px-4 py-4 bg-gradient-to-br from-blue-50/90 via-indigo-50/90 to-purple-50/90 border-t-2 border-blue-300 animate-in slide-in-from-top duration-300 shadow-inner">
-                                          <div className="space-y-3">
-                                            {/* Description/Content */}
-                                            <div className="text-xs text-slate-800 leading-relaxed font-medium bg-white/60 p-3 rounded-lg">
-                                              {focusedNode.type === 'beliefDriver' ? String(focusedNode.data.description || '') : null}
-                                              {(focusedNode.type === 'origin' || focusedNode.type === 'evolution' || focusedNode.type === 'propagation') 
-                                                ? String(focusedNode.data.label || '') : null}
-                                              {focusedNode.type === 'source' ? String(focusedNode.data.label || '') : null}
-                                              {focusedNode.type === 'claim' ? String(focusedNode.data.label || '') : null}
-                                            </div>
-                                            
-                                            {/* Impact */}
-                                            {focusedNode.data.impact && typeof focusedNode.data.impact === 'string' ? (
-                                              <div className="pt-2 border-t border-blue-300">
-                                                <p className="text-xs text-slate-700 bg-white/60 p-3 rounded-lg">
-                                                  <span className="font-bold text-slate-900">Impact:</span> {focusedNode.data.impact}
-                                                </p>
-                                              </div>
-                                            ) : null}
-                                            
-                                            {/* Credibility */}
-                                            {focusedNode.data.credibility !== undefined ? (
-                                              <div className="pt-2 border-t border-blue-300 flex items-center justify-between bg-white/60 p-3 rounded-lg">
-                                                <span className="text-xs font-bold text-slate-900">Credibility:</span>
-                                                <Badge variant={Number(focusedNode.data.credibility) >= 80 ? 'default' : 'secondary'} className="text-xs font-bold shadow-sm">
-                                                  {String(focusedNode.data.credibility)}%
-                                                </Badge>
-                                              </div>
-                                            ) : null}
-                                            
-                                            {/* URL Link */}
-                                            {(focusedNode.data.url && typeof focusedNode.data.url === 'string') ? (
-                                              <div className="pt-2 border-t border-blue-300">
-                                                <a
-                                                  href={focusedNode.data.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="inline-flex items-center gap-2 text-xs text-blue-700 hover:text-blue-900 font-bold transition-colors bg-white/80 px-4 py-2 rounded-lg hover:shadow-md w-full justify-center"
-                                                >
-                                                  <ExternalLink className="h-3.5 w-3.5" />
-                                                  View Source
-                                                </a>
-                                              </div>
-                                            ) : null}
-                                            
-                                            {/* References */}
-                                            {(focusedNode.data.references && Array.isArray(focusedNode.data.references) && focusedNode.data.references.length > 0) ? (
-                                              <div className="pt-2 border-t border-blue-300">
-                                                <p className="text-xs font-bold text-slate-900 mb-2">References:</p>
-                                                <div className="space-y-2">
-                                                  {focusedNode.data.references.slice(0, 3).map((ref: any, idx: number) => (
-                                                    <a
-                                                      key={idx}
-                                                      href={ref.url}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                      className="block text-xs text-blue-700 hover:text-blue-900 font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all leading-relaxed"
-                                                    >
-                                                      • {ref.title}
-                                                    </a>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                            ) : null}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
+                                      showConnection={showConnection}
+                                      index={itemIdx}
+                                    />
                                   );
                                 })}
                               </div>
@@ -257,112 +264,29 @@ export function NavigationSidebar({
                       </div>
                     ) : (
                       /* Render regular section items */
-                      <div>
-                        {section.items.map((item) => {
+                      <div className="items-masonry-grid">
+                        {section.items.map((item, itemIdx) => {
                           const isCurrentlyAnimating = 
                             isAnimating && 
                             activeSection === section.id && 
                             animatingNodes[currentAnimationIndex] === item.nodeId;
                           const isFocused = focusedNodeId === item.nodeId;
-                          const focusedNode = isFocused ? nodes.find(n => n.id === item.nodeId) : null;
+                          const itemNode = nodes.find(n => n.id === item.nodeId) || null;
+                          const showConnection = itemIdx < section.items.length - 1 && section.id.includes('evolution');
                           
                           return (
-                            <div key={item.id} className="border-b border-slate-200 last:border-b-0">
-                              <button
-                                onClick={() => onItemClick(section.id, item.nodeId)}
+                            <ItemCard
+                              key={item.id}
+                              item={item}
+                              node={itemNode}
+                              isAnimating={isCurrentlyAnimating}
+                              isFocused={isFocused}
+                              onItemClick={() => onItemClick(section.id, item.nodeId)}
                                 onMouseEnter={() => onItemMouseEnter?.(item.nodeId)}
                                 onMouseLeave={() => onItemMouseLeave?.()}
-                                className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white transition-all group ${
-                                  isCurrentlyAnimating ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-inner' : ''
-                                } ${isFocused ? 'bg-slate-50' : ''}`}
-                              >
-                                <div className="flex-shrink-0 mt-0.5 opacity-75 group-hover:opacity-100 transition-opacity">
-                                  {item.icon}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`text-xs leading-relaxed font-medium ${
-                                    isCurrentlyAnimating ? 'font-bold text-blue-900' : 'text-slate-700'
-                                  }`}>
-                                    {item.label}
-                                  </p>
-                                </div>
-                                {isCurrentlyAnimating && (
-                                  <div className="flex-shrink-0">
-                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse shadow-lg shadow-blue-500/50" />
-                                  </div>
-                                )}
-                              </button>
-                              
-                              {/* Expanded description when focused */}
-                              {isFocused && focusedNode && (
-                                <div className="px-4 py-4 bg-gradient-to-br from-blue-50/90 via-indigo-50/90 to-purple-50/90 border-t-2 border-blue-300 animate-in slide-in-from-top duration-300 shadow-inner">
-                                  <div className="space-y-3">
-                                    {/* Description/Content */}
-                                    <div className="text-xs text-slate-800 leading-relaxed font-medium bg-white/60 p-3 rounded-lg">
-                                      {focusedNode.type === 'beliefDriver' ? String(focusedNode.data.description || '') : null}
-                                      {(focusedNode.type === 'origin' || focusedNode.type === 'evolution' || focusedNode.type === 'propagation') 
-                                        ? String(focusedNode.data.label || '') : null}
-                                      {focusedNode.type === 'source' ? String(focusedNode.data.label || '') : null}
-                                      {focusedNode.type === 'claim' ? String(focusedNode.data.label || '') : null}
-                                    </div>
-                                    
-                                    {/* Impact */}
-                                    {focusedNode.data.impact && typeof focusedNode.data.impact === 'string' ? (
-                                      <div className="pt-2 border-t border-blue-300">
-                                        <p className="text-xs text-slate-700 bg-white/60 p-3 rounded-lg">
-                                          <span className="font-bold text-slate-900">Impact:</span> {focusedNode.data.impact}
-                                        </p>
-                                      </div>
-                                    ) : null}
-                                    
-                                    {/* Credibility */}
-                                    {focusedNode.data.credibility !== undefined ? (
-                                      <div className="pt-2 border-t border-blue-300 flex items-center justify-between bg-white/60 p-3 rounded-lg">
-                                        <span className="text-xs font-bold text-slate-900">Credibility:</span>
-                                        <Badge variant={Number(focusedNode.data.credibility) >= 80 ? 'default' : 'secondary'} className="text-xs font-bold shadow-sm">
-                                          {String(focusedNode.data.credibility)}%
-                                        </Badge>
-                                      </div>
-                                    ) : null}
-                                    
-                                    {/* URL Link */}
-                                    {(focusedNode.data.url && typeof focusedNode.data.url === 'string') ? (
-                                      <div className="pt-2 border-t border-blue-300">
-                                        <a
-                                          href={focusedNode.data.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-2 text-xs text-blue-700 hover:text-blue-900 font-bold transition-colors bg-white/80 px-4 py-2 rounded-lg hover:shadow-md w-full justify-center"
-                                        >
-                                          <ExternalLink className="h-3.5 w-3.5" />
-                                          View Source
-                                        </a>
-                                      </div>
-                                    ) : null}
-                                    
-                                    {/* References */}
-                                    {(focusedNode.data.references && Array.isArray(focusedNode.data.references) && focusedNode.data.references.length > 0) ? (
-                                      <div className="pt-2 border-t border-blue-300">
-                                        <p className="text-xs font-bold text-slate-900 mb-2">References:</p>
-                                        <div className="space-y-2">
-                                          {focusedNode.data.references.slice(0, 3).map((ref: any, idx: number) => (
-                                            <a
-                                              key={idx}
-                                              href={ref.url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="block text-xs text-blue-700 hover:text-blue-900 font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all leading-relaxed"
-                                            >
-                                              • {ref.title}
-                                            </a>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ) : null}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                              showConnection={showConnection}
+                              index={itemIdx}
+                            />
                           );
                         })}
                       </div>
@@ -376,9 +300,9 @@ export function NavigationSidebar({
         
         {/* Animation info */}
         {isAnimating && activeSection && (
-          <div className="mt-5 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-300 shadow-lg">
+          <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-300 shadow-lg spring-expand">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-blue-500 rounded-lg shadow-md">
+              <div className="p-2 bg-blue-500 rounded-lg shadow-md pulse-indicator">
                 <Play className="h-4 w-4 text-white" />
               </div>
               <span className="text-sm font-bold text-blue-900 tracking-tight">
@@ -396,9 +320,9 @@ export function NavigationSidebar({
           </div>
         )}
         
-        {/* Additional info when expanded */}
+        {/* Footer help text */}
         {isExpanded && (
-          <div className="mt-5 pt-4 border-t-2 border-slate-200">
+          <div className="mt-6 pt-4 border-t-2 border-slate-200">
             <p className="text-xs text-slate-600 text-center font-medium bg-slate-50 px-4 py-3 rounded-lg">
               Expanded to full width • Scroll away to collapse
             </p>
@@ -408,4 +332,3 @@ export function NavigationSidebar({
     </div>
   );
 }
-

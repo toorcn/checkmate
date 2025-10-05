@@ -272,58 +272,33 @@ export function useOriginTracingAnimation({
     }, 550);
   }, [navSections, nodes, fitBounds, stopAnimation]);
   
-  // Handle item click
+  // Handle item click - just focus the node, no auto-panning
   const handleItemClick = useCallback((sectionId: string, nodeId: string) => {
-    // Find the section (could be a top-level section or a subsection)
-    let section: NavSection | undefined;
+    stopAnimation();
+    setFocusedNodeId(nodeId);
     
-    // First, check if it's a direct section
-    section = navSections.find(s => s.id === sectionId);
-    
-    // If not found, check if it's a subsection
-    if (!section) {
-      for (const parentSec of navSections) {
-        if (parentSec.subsections) {
-          const foundSubsection = parentSec.subsections.find(sub => sub.id === sectionId);
-          if (foundSubsection) {
-            section = foundSubsection;
-            break;
-          }
-        }
+    // Find which section this node belongs to and expand it
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      const sectionsToExpand: string[] = [];
+      
+      if (node.type === 'origin') {
+        sectionsToExpand.push('evolution', 'evolution-origin');
+      } else if (node.type === 'evolution' || node.type === 'propagation') {
+        sectionsToExpand.push('evolution', 'evolution-steps');
+      } else if (node.type === 'claim') {
+        sectionsToExpand.push('evolution', 'evolution-claim');
+      } else if (node.type === 'beliefDriver') {
+        sectionsToExpand.push('beliefs');
+      } else if (node.type === 'source') {
+        sectionsToExpand.push('sources');
+      }
+      
+      if (sectionsToExpand.length > 0) {
+        setExpandedSections(new Set(sectionsToExpand));
       }
     }
-    
-    if (!section) return;
-    
-    stopAnimation();
-    setActiveSection(sectionId);
-    
-    const nodeIds = section.items.map(item => item.nodeId);
-    const sectionNodes = nodes.filter(n => nodeIds.includes(n.id));
-    
-    if (sectionNodes.length === 0) return;
-    
-    // Calculate bounding box for section
-    const padding = 100;
-    const minX = Math.min(...sectionNodes.map(n => n.position.x)) - padding;
-    const minY = Math.min(...sectionNodes.map(n => n.position.y)) - padding;
-    const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
-    const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
-    
-    // Fit to bounds with faster animation
-    fitBounds(
-      { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
-      { duration: 500, padding: 0.2 }
-    );
-    
-    // Start animation from the clicked item with reduced delay
-    setTimeout(() => {
-      const startIndex = nodeIds.indexOf(nodeId);
-      setAnimatingNodes(nodeIds);
-      setCurrentAnimationIndex(startIndex >= 0 ? startIndex : 0);
-      setIsAnimating(true);
-    }, 550);
-  }, [navSections, nodes, fitBounds, stopAnimation]);
+  }, [nodes, stopAnimation]);
   
   // Toggle section expansion
   const toggleSection = useCallback((sectionId: string) => {
@@ -439,6 +414,69 @@ export function useOriginTracingAnimation({
       zoom: Math.max(getZoom(), 0.8),
     });
   }, [isAnimating, stopAnimation, setNodes, setCenter, getZoom]);
+  
+  // Handle section header hover - highlight all nodes in the section
+  const handleSectionMouseEnter = useCallback((sectionId: string) => {
+    // Don't interfere if animation is running
+    if (isAnimating) return;
+    
+    // First check if it's a top-level section
+    let section = navSections.find(s => s.id === sectionId);
+    
+    // If not found, check if it's a subsection
+    if (!section) {
+      for (const parentSec of navSections) {
+        if (parentSec.subsections) {
+          const foundSubsection = parentSec.subsections.find(sub => sub.id === sectionId);
+          if (foundSubsection) {
+            section = foundSubsection;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!section) return;
+    
+    // Collect all node IDs in this section
+    let nodeIds: string[] = [];
+    if (section.subsections && section.subsections.length > 0) {
+      nodeIds = section.subsections.flatMap(subsection => 
+        subsection.items.map(item => item.nodeId)
+      );
+    } else {
+      nodeIds = section.items.map(item => item.nodeId);
+    }
+    
+    if (nodeIds.length === 0) return;
+    
+    // Highlight all nodes in this section
+    setNodes(nds => 
+      nds.map(n => {
+        const baseClassName = (n.className || '').replace(/\s*node-highlighted\s*/g, '').trim();
+        return {
+          ...n,
+          className: nodeIds.includes(n.id)
+            ? `${baseClassName} node-highlighted`.trim()
+            : baseClassName,
+        };
+      })
+    );
+  }, [isAnimating, navSections, setNodes]);
+  
+  // Handle section header hover leave - remove highlights
+  const handleSectionMouseLeave = useCallback(() => {
+    // Don't interfere if animation is running
+    if (isAnimating) return;
+    
+    // Remove all highlights
+    setNodes(nds => 
+      nds.map(n => ({
+        ...n,
+        className: (n.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
+      }))
+    );
+  }, [isAnimating, setNodes]);
 
   return {
     // State
@@ -457,6 +495,8 @@ export function useOriginTracingAnimation({
     toggleSection,
     handlePaneClick,
     handleNodeClick,
+    handleSectionMouseEnter,
+    handleSectionMouseLeave,
   };
 }
 
