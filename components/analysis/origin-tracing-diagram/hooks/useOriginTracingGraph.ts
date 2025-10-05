@@ -221,7 +221,7 @@ export function useOriginTracingGraph({
           sourceHandle: 'right',
           target: stepNodeId,
           targetHandle: 'left',
-          type: 'default',
+          type: 'smoothstep',
           animated: index === 0, // Only animate first connection
           markerEnd: { type: MarkerType.ArrowClosed },
           label: index === 0 ? 'evolves' : '',
@@ -257,7 +257,7 @@ export function useOriginTracingGraph({
         sourceHandle: 'right',
         target: currentClaimNodeId,
         targetHandle: 'left',
-        type: 'default',
+        type: 'smoothstep',
         animated: true,
         markerEnd: { type: MarkerType.ArrowClosed },
         label: 'becomes',
@@ -294,7 +294,7 @@ export function useOriginTracingGraph({
         sourceHandle: 'bottom',
         target: currentClaimNodeId,
         targetHandle: 'top',
-        type: 'default',
+        type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         label: index === 0 ? 'influences' : '',
         style: { 
@@ -338,7 +338,7 @@ export function useOriginTracingGraph({
         sourceHandle: 'bottom',
         target: sourceNodeId,
         targetHandle: 'top',
-        type: 'default',
+        type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         label: index === 0 ? 'fact-checked by' : '',
         style: { 
@@ -391,7 +391,7 @@ export function useOriginTracingGraph({
         sourceHandle: 'bottom',
         target: linkNodeId,
         targetHandle: 'top',
-        type: 'default',
+        type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
         label: index === 0 ? 'references' : '',
         style: { 

@@ -20,6 +20,8 @@ interface NavigationSidebarProps {
   onToggleSection: (sectionId: string) => void;
   onSectionClick: (sectionId: string) => void;
   onItemClick: (sectionId: string, nodeId: string) => void;
+  onItemMouseEnter?: (nodeId: string) => void;
+  onItemMouseLeave?: () => void;
 }
 
 export function NavigationSidebar({
@@ -36,6 +38,8 @@ export function NavigationSidebar({
   onToggleSection,
   onSectionClick,
   onItemClick,
+  onItemMouseEnter,
+  onItemMouseLeave,
 }: NavigationSidebarProps) {
   return (
     <div 
@@ -150,6 +154,8 @@ export function NavigationSidebar({
                                         <div className="w-8 border-l-2 border-slate-300 ml-3 flex-shrink-0" />
                                         <button
                                           onClick={() => onItemClick(subsection.id, item.nodeId)}
+                                          onMouseEnter={() => onItemMouseEnter?.(item.nodeId)}
+                                          onMouseLeave={() => onItemMouseLeave?.()}
                                           className={`flex-1 px-4 py-3 flex items-start gap-3 text-left hover:bg-white transition-all group ${
                                             isCurrentlyAnimating ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-inner' : ''
                                           } ${isFocused ? 'bg-slate-50' : ''}`}
@@ -264,6 +270,8 @@ export function NavigationSidebar({
                             <div key={item.id} className="border-b border-slate-200 last:border-b-0">
                               <button
                                 onClick={() => onItemClick(section.id, item.nodeId)}
+                                onMouseEnter={() => onItemMouseEnter?.(item.nodeId)}
+                                onMouseLeave={() => onItemMouseLeave?.()}
                                 className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white transition-all group ${
                                   isCurrentlyAnimating ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 shadow-inner' : ''
                                 } ${isFocused ? 'bg-slate-50' : ''}`}

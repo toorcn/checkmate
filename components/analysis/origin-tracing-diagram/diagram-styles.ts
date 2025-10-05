@@ -138,6 +138,47 @@ export const diagramStyles = `
     }
   }
   
+  /* Highlighted Edge Styles (when connected to hovered node) */
+  .react-flow__edge.edge-highlighted .react-flow__edge-path {
+    stroke-width: 3.5px !important;
+    opacity: 1 !important;
+    filter: drop-shadow(0 3px 8px rgba(59, 130, 246, 0.4));
+    animation: edgeHighlightPulse 2s ease-in-out infinite;
+  }
+  
+  .react-flow__edge.edge-highlighted marker path {
+    fill: currentColor;
+    opacity: 1 !important;
+  }
+  
+  @keyframes edgeHighlightPulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+  
+  /* Dimmed edges when another node is hovered */
+  .react-flow__edge.edge-dimmed .react-flow__edge-path {
+    opacity: 0.15 !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+  }
+  
+  /* Connected node highlighting (dimmed non-connected nodes) */
+  .react-flow__node.node-dimmed {
+    opacity: 0.3;
+    filter: grayscale(0.5);
+    transition: opacity 0.2s ease, filter 0.2s ease;
+  }
+  
+  .react-flow__node.node-connected {
+    opacity: 1;
+    filter: none;
+    transition: opacity 0.2s ease, filter 0.2s ease;
+  }
+  
   /* Enhanced edge text background */
   .react-flow__edge-textbg {
     fill: white;
