@@ -261,9 +261,16 @@ export async function recordCreatorAnalysis(input: {
 }
 
 export async function listTopCreatorsByCredibility(
-  platform: string,
+  platform?: string | null,
   limit = 10
 ) {
+  if (!platform) {
+    return db
+      .select()
+      .from(creators)
+      .orderBy(desc(creators.credibilityRating))
+      .limit(limit);
+  }
   return db
     .select()
     .from(creators)
@@ -273,9 +280,16 @@ export async function listTopCreatorsByCredibility(
 }
 
 export async function listBottomCreatorsByCredibility(
-  platform: string,
+  platform?: string | null,
   limit = 10
 ) {
+  if (!platform) {
+    return db
+      .select()
+      .from(creators)
+      .orderBy(creators.credibilityRating)
+      .limit(limit);
+  }
   return db
     .select()
     .from(creators)
