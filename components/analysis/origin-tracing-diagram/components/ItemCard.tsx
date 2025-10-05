@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Node } from '@xyflow/react';
 import { Badge } from '../../../ui/badge';
-import { ExternalLink, ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, Eye } from 'lucide-react';
 import { getCredibilityColor } from '../utils/navigationUtils';
 
 interface ItemCardProps {
@@ -15,7 +15,7 @@ interface ItemCardProps {
   };
   node: Node | null;
   isAnimating: boolean;
-  isFocused: boolean;
+  isSelected: boolean;
   onItemClick: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -27,7 +27,7 @@ export const ItemCard = React.memo(({
   item,
   node,
   isAnimating,
-  isFocused,
+  isSelected,
   onItemClick,
   onMouseEnter,
   onMouseLeave,
@@ -38,44 +38,16 @@ export const ItemCard = React.memo(({
   const credibility = node?.data.credibility !== undefined ? Number(node.data.credibility) : null;
   const colors = credibility !== null ? getCredibilityColor(credibility) : null;
   
-  // Auto-scroll to card when it becomes focused/expanded
+  // Scroll into view when selected
   useEffect(() => {
-    if (isFocused && cardRef.current) {
-      // Delay to allow expansion animation to complete (matches spring-expand timing)
-      const scrollTimer = setTimeout(() => {
-        if (!cardRef.current) return;
-        
-        // Get the parent scrollable container
-        const scrollContainer = cardRef.current.closest('.overflow-y-auto');
-        if (!scrollContainer) {
-          // Fallback to standard scrollIntoView
-          cardRef.current.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-          });
-          return;
-        }
-        
-        // Calculate positions
-        const cardRect = cardRef.current.getBoundingClientRect();
-        const containerRect = scrollContainer.getBoundingClientRect();
-        
-        // Check if the bottom of the card is below the visible area
-        const cardBottom = cardRect.bottom;
-        const containerBottom = containerRect.bottom;
-        
-        if (cardBottom > containerBottom || cardRect.top < containerRect.top) {
-          // Scroll to show the entire card with some padding
-          cardRef.current.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-          });
-        }
-      }, 300); // Wait for spring-expand animation (500ms) to mostly complete
-      
-      return () => clearTimeout(scrollTimer);
+    if (isSelected && cardRef.current && !isAnimating) {
+      cardRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
     }
-  }, [isFocused]);
+  }, [isSelected, isAnimating]);
   
   // Get credibility tier label
   const getCredibilityTier = () => {
@@ -109,18 +81,28 @@ export const ItemCard = React.memo(({
         onClick={onItemClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        className={`w-full text-left transition-all duration-300 border-2 p-4 group relative overflow-hidden ${
+        className={`w-full text-left transition-all duration-300 rounded-xl border-2 p-4 group relative overflow-hidden ${
           isAnimating 
-            ? `${colors?.gradient ? `bg-gradient-to-br ${colors.gradient}` : 'bg-gradient-to-br from-blue-50 to-indigo-50'} ${colors?.border || 'border-blue-400'} shadow-lg scale-105 rounded-xl` 
-            : isFocused
-            ? `bg-white ${colors?.border || 'border-blue-400'} shadow-xl ${isFocused ? 'rounded-t-xl' : 'rounded-xl'}`
-            : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-lg hover:-translate-y-1 rounded-xl'
+            ? `${colors?.gradient ? `bg-gradient-to-br ${colors.gradient}` : 'bg-gradient-to-br from-blue-50 to-indigo-50'} ${colors?.border || 'border-blue-400'} shadow-lg scale-105` 
+            : isSelected
+            ? `bg-blue-50/80 ${colors?.border || 'border-blue-500'} shadow-lg ring-2 ring-blue-400 ring-offset-1`
+            : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-lg hover:-translate-y-1'
         }`}
       >
         {/* Animated pulse indicator for active item */}
         {isAnimating && (
           <div className="absolute top-2 right-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full pulse-indicator shadow-lg shadow-blue-500/50" />
+          </div>
+        )}
+        
+        {/* Selection indicator */}
+        {isSelected && !isAnimating && (
+          <div className="absolute top-2 right-2">
+            <div className="flex items-center gap-1 bg-blue-500 text-white px-2 py-1 rounded-full shadow-lg">
+              <Eye className="w-3 h-3" />
+              <span className="text-xs font-bold">Viewing</span>
+            </div>
           </div>
         )}
 
@@ -201,109 +183,22 @@ export const ItemCard = React.memo(({
         )}
 
         {/* Connection indicator */}
-        {showConnection && !isFocused && (
+        {showConnection && (
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium pt-2 border-t border-slate-200">
             <ArrowRight className="w-3 h-3" />
             <span>Evolved to next</span>
           </div>
         )}
 
-        {/* Expand indicator - subtle visual cue */}
-        {!isFocused && (
-          <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-slate-200/60 text-slate-400 group-hover:text-blue-500 transition-colors">
-            <ChevronDown className="w-4 h-4" />
-          </div>
-        )}
-      </button>
-
-      {/* Expanded details - integrated within card container */}
-      {isFocused && node && (
-        <div className={`px-4 pb-4 pt-1 spring-expand bg-white border-2 ${colors?.border || 'border-blue-400'} border-t-0 rounded-b-xl shadow-xl`}>
-          {/* Divider */}
-          <div className={`w-full h-0.5 bg-gradient-to-r ${colors?.gradient || 'from-blue-300 via-indigo-300 to-purple-300'} mb-4 mt-3`} />
-          
-          <div className="space-y-3">
-            {/* Full Description */}
-            <div className="text-sm text-slate-800 leading-relaxed">
-              <p className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <span className={`w-1 h-5 bg-gradient-to-b ${colors?.gradient || 'from-blue-500 to-indigo-500'} rounded-full`} />
-                Full Details
-              </p>
-              <div className="text-slate-700 bg-slate-50/80 p-3 rounded-lg">
-                {node.type === 'beliefDriver' && node.data.description ? (
-                  <span>{String(node.data.description)}</span>
-                ) : null}
-                {(node.type === 'origin' || node.type === 'evolution' || node.type === 'propagation') && node.data.label ? (
-                  <span>{String(node.data.label)}</span>
-                ) : null}
-                {node.type === 'source' && node.data.label ? (
-                  <span>{String(node.data.label)}</span>
-                ) : null}
-                {node.type === 'claim' && node.data.label ? (
-                  <span>{String(node.data.label)}</span>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Impact */}
-            {node.data.impact && typeof node.data.impact === 'string' ? (
-              <div className="text-sm text-slate-800 leading-relaxed">
-                <p className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full" />
-                  Impact
-                </p>
-                <div className="text-slate-700 bg-amber-50/80 p-3 rounded-lg">
-                  {String(node.data.impact)}
-                </div>
-              </div>
-            ) : null}
-
-            {/* URL Link */}
-            {node.data.url && typeof node.data.url === 'string' ? (
-              <div className="pt-2">
-                <a
-                  href={node.data.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-2 text-sm ${colors?.text || 'text-blue-700'} hover:text-blue-900 font-semibold transition-all bg-slate-50 hover:bg-slate-100 px-4 py-2.5 rounded-lg border-2 border-slate-200 hover:border-slate-300 w-full justify-center`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  View Source
-                </a>
-              </div>
-            ) : null}
-
-            {/* References */}
-            {node.data.references && Array.isArray(node.data.references) && node.data.references.length > 0 ? (
-              <div className="text-sm">
-                <p className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full" />
-                  References
-                </p>
-                <div className="space-y-2">
-                  {node.data.references.slice(0, 3).map((ref: any, idx: number) => (
-                    <a
-                      key={idx}
-                      href={ref.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-start gap-2 text-sm ${colors?.text || 'text-blue-700'} hover:text-blue-900 font-medium bg-slate-50 hover:bg-slate-100 p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-all`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                      <span className="flex-1">{ref.title}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
+        {/* Click hint */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-2 right-2">
+          <span className="text-xs text-blue-600 font-semibold">
+            Click for details
+          </span>
         </div>
-      )}
+      </button>
     </div>
   );
 });
 
 ItemCard.displayName = 'ItemCard';
-

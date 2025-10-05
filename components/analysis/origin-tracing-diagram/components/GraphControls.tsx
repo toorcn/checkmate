@@ -2,22 +2,26 @@
 
 import React from 'react';
 import { Button } from '../../../ui/button';
-import { Pause, X as XIcon, Maximize } from 'lucide-react';
+import { Pause, X as XIcon, Maximize, PanelRightClose } from 'lucide-react';
 
 interface GraphControlsProps {
   isExpanded: boolean;
   isAnimating: boolean;
+  sidebarVisible: boolean;
   onPauseAnimation: () => void;
   onStopAnimation: () => void;
   onFitView: () => void;
+  onCloseSidebar: () => void;
 }
 
 export function GraphControls({
   isExpanded,
   isAnimating,
+  sidebarVisible,
   onPauseAnimation,
   onStopAnimation,
   onFitView,
+  onCloseSidebar,
 }: GraphControlsProps) {
   return (
     <div className={isExpanded ? "p-5 border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-white shadow-sm" : "p-4 border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-white"}>
@@ -66,6 +70,18 @@ export function GraphControls({
             <Maximize className="h-3.5 w-3.5 mr-1.5" />
             Fit View
           </Button>
+          {sidebarVisible && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onCloseSidebar}
+              className="h-8 text-xs font-semibold shadow-md hover:shadow-lg transition-all border-slate-400 bg-white hover:bg-slate-50 text-slate-900"
+              title="Close sidebar"
+            >
+              <PanelRightClose className="h-3.5 w-3.5 mr-1.5" />
+              Close Panel
+            </Button>
+          )}
         </div>
       </div>
     </div>

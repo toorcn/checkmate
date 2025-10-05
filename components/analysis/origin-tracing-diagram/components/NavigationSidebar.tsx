@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Node } from '@xyflow/react';
-import { ChevronDown, ChevronRight, Play } from 'lucide-react';
+import { ChevronDown, ChevronRight, Play, X } from 'lucide-react';
 import { Badge } from '../../../ui/badge';
 import { NavSection } from '../../../../types/origin-tracing';
 import { CurrentClaimHero } from './CurrentClaimHero';
@@ -18,17 +18,19 @@ interface NavigationSidebarProps {
   animatingNodes: string[];
   currentAnimationIndex: number;
   isAnimating: boolean;
-  focusedNodeId: string | null;
   nodes: Node[];
   isExpanded: boolean;
-  sidebarWidth: number;
+  selectedNodeId: string | null;
   onToggleSection: (sectionId: string) => void;
   onSectionClick: (sectionId: string) => void;
-  onItemClick: (sectionId: string, nodeId: string) => void;
+  onItemDetailClick: (nodeId: string, item: any) => void;
   onItemMouseEnter?: (nodeId: string) => void;
   onItemMouseLeave?: () => void;
   onSectionMouseEnter?: (sectionId: string) => void;
   onSectionMouseLeave?: () => void;
+  onEvolutionTimelineMouseEnter?: () => void;
+  onEvolutionTimelineMouseLeave?: () => void;
+  onClose: () => void;
 }
 
 export function NavigationSidebar({
@@ -38,17 +40,19 @@ export function NavigationSidebar({
   animatingNodes,
   currentAnimationIndex,
   isAnimating,
-  focusedNodeId,
   nodes,
   isExpanded,
-  sidebarWidth,
+  selectedNodeId,
   onToggleSection,
   onSectionClick,
-  onItemClick,
+  onItemDetailClick,
   onItemMouseEnter,
   onItemMouseLeave,
   onSectionMouseEnter,
   onSectionMouseLeave,
+  onEvolutionTimelineMouseEnter,
+  onEvolutionTimelineMouseLeave,
+  onClose,
 }: NavigationSidebarProps) {
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -98,10 +102,18 @@ export function NavigationSidebar({
 
   return (
     <div 
-      className={isExpanded ? "expanded-sidebar overflow-y-auto relative" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto relative"}
-      style={{ width: `${sidebarWidth}%` }}
+      className={isExpanded ? "expanded-sidebar overflow-y-auto relative h-full" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto relative h-full w-full"}
     >
       <div className="p-5 relative">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 p-2 bg-white/80 hover:bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all"
+          aria-label="Close sidebar"
+        >
+          <X className="w-4 h-4 text-slate-600 hover:text-slate-900" />
+        </button>
+
         {/* Hero Card */}
         <div ref={heroRef}>
           <CurrentClaimHero
@@ -137,6 +149,7 @@ export function NavigationSidebar({
             const stats = getSectionStats(section, nodes);
             const sectionType = getSectionType(section.id);
             const borderColor = getSectionColor(section.id);
+            const isEvolutionTimeline = section.id === 'evolution';
             
             return (
               <div
@@ -144,8 +157,18 @@ export function NavigationSidebar({
                 ref={(el) => {
                   if (el) sectionRefs.current.set(section.id, el);
                 }}
-                onMouseEnter={() => setHoveredSection(section.id)}
-                onMouseLeave={() => setHoveredSection(null)}
+                onMouseEnter={() => {
+                  setHoveredSection(section.id);
+                  if (isEvolutionTimeline) {
+                    onEvolutionTimelineMouseEnter?.();
+                  }
+                }}
+                onMouseLeave={() => {
+                  setHoveredSection(null);
+                  if (isEvolutionTimeline) {
+                    onEvolutionTimelineMouseLeave?.();
+                  }
+                }}
                 className="section-card border-2 border-slate-200 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/60 backdrop-blur-lg"
                 style={{
                   borderLeftWidth: '4px',
@@ -215,8 +238,18 @@ export function NavigationSidebar({
                               </button>
                               <button
                                 onClick={() => onSectionClick(subsection.id)}
-                                onMouseEnter={() => onSectionMouseEnter?.(subsection.id)}
-                                onMouseLeave={() => onSectionMouseLeave?.()}
+                                onMouseEnter={() => {
+                                  onSectionMouseEnter?.(subsection.id);
+                                  if (isEvolutionTimeline) {
+                                    onEvolutionTimelineMouseEnter?.();
+                                  }
+                                }}
+                                onMouseLeave={() => {
+                                  onSectionMouseLeave?.();
+                                  if (isEvolutionTimeline) {
+                                    onEvolutionTimelineMouseLeave?.();
+                                  }
+                                }}
                                 className={`flex-1 px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
                                   activeSection === subsection.id ? 'bg-blue-50/70' : ''
                                 }`}
@@ -238,7 +271,6 @@ export function NavigationSidebar({
                                     isAnimating && 
                                     activeSection === subsection.id && 
                                     animatingNodes[currentAnimationIndex] === item.nodeId;
-                                  const isFocused = focusedNodeId === item.nodeId;
                                   const itemNode = nodes.find(n => n.id === item.nodeId) || null;
                                   const showConnection = itemIdx < subsection.items.length - 1 && subsection.id.includes('evolution');
                                   
@@ -248,10 +280,24 @@ export function NavigationSidebar({
                                       item={item}
                                       node={itemNode}
                                       isAnimating={isCurrentlyAnimating}
-                                      isFocused={isFocused}
-                                      onItemClick={() => onItemClick(subsection.id, item.nodeId)}
-                                          onMouseEnter={() => onItemMouseEnter?.(item.nodeId)}
-                                          onMouseLeave={() => onItemMouseLeave?.()}
+                                      isSelected={selectedNodeId === item.nodeId}
+                                      onItemClick={() => onItemDetailClick(item.nodeId, item)}
+                                      onMouseEnter={() => {
+                                        // For evolution timeline, only trigger sequential highlight, not individual hover
+                                        if (isEvolutionTimeline) {
+                                          onEvolutionTimelineMouseEnter?.();
+                                        } else {
+                                          onItemMouseEnter?.(item.nodeId);
+                                        }
+                                      }}
+                                      onMouseLeave={() => {
+                                        // For evolution timeline, only stop sequential highlight, not individual hover
+                                        if (isEvolutionTimeline) {
+                                          onEvolutionTimelineMouseLeave?.();
+                                        } else {
+                                          onItemMouseLeave?.();
+                                        }
+                                      }}
                                       showConnection={showConnection}
                                       index={itemIdx}
                                     />
@@ -270,7 +316,6 @@ export function NavigationSidebar({
                             isAnimating && 
                             activeSection === section.id && 
                             animatingNodes[currentAnimationIndex] === item.nodeId;
-                          const isFocused = focusedNodeId === item.nodeId;
                           const itemNode = nodes.find(n => n.id === item.nodeId) || null;
                           const showConnection = itemIdx < section.items.length - 1 && section.id.includes('evolution');
                           
@@ -280,8 +325,8 @@ export function NavigationSidebar({
                               item={item}
                               node={itemNode}
                               isAnimating={isCurrentlyAnimating}
-                              isFocused={isFocused}
-                              onItemClick={() => onItemClick(section.id, item.nodeId)}
+                              isSelected={selectedNodeId === item.nodeId}
+                              onItemClick={() => onItemDetailClick(item.nodeId, item)}
                                 onMouseEnter={() => onItemMouseEnter?.(item.nodeId)}
                                 onMouseLeave={() => onItemMouseLeave?.()}
                               showConnection={showConnection}

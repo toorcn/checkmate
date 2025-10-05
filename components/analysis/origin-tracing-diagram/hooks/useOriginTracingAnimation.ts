@@ -130,16 +130,16 @@ export function useOriginTracingAnimation({
     if (currentNode && !isTransitioningRef.current) {
       isTransitioningRef.current = true;
       
-      // Center on the current node with faster animation
+      // Center on the current node with snappier animation
       setCenter(currentNode.position.x + 150, currentNode.position.y + 75, {
-        duration: 400,
+        duration: 300, // Reduced from 400ms for snappier transitions
         zoom: Math.max(getZoom(), 0.75),
       });
       
       // Reset transition flag after animation completes
       setTimeout(() => {
         isTransitioningRef.current = false;
-      }, 400);
+      }, 300); // Match the duration
     }
     
     // Check if this is the last node in the sequence
@@ -410,7 +410,7 @@ export function useOriginTracingAnimation({
     
     // Center on the clicked node
     setCenter(node.position.x + 150, node.position.y + 75, {
-      duration: 500,
+      duration: 300, // Reduced from 500ms for snappier transitions
       zoom: Math.max(getZoom(), 0.8),
     });
   }, [isAnimating, stopAnimation, setNodes, setCenter, getZoom]);
@@ -450,6 +450,11 @@ export function useOriginTracingAnimation({
     
     if (nodeIds.length === 0) return;
     
+    // Get the actual nodes for this section
+    const sectionNodes = nodes.filter(n => nodeIds.includes(n.id));
+    
+    if (sectionNodes.length === 0) return;
+    
     // Highlight all nodes in this section
     setNodes(nds => 
       nds.map(n => {
@@ -462,9 +467,22 @@ export function useOriginTracingAnimation({
         };
       })
     );
-  }, [isAnimating, navSections, setNodes]);
+    
+    // Zoom canvas to fit all nodes in this section
+    const padding = 100;
+    const minX = Math.min(...sectionNodes.map(n => n.position.x)) - padding;
+    const minY = Math.min(...sectionNodes.map(n => n.position.y)) - padding;
+    const maxX = Math.max(...sectionNodes.map(n => n.position.x + 300)) + padding;
+    const maxY = Math.max(...sectionNodes.map(n => n.position.y + 150)) + padding;
+    
+    // Fit to bounds with smooth animation
+    fitBounds(
+      { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+      { duration: 600, padding: 0.2 }
+    );
+  }, [isAnimating, navSections, nodes, setNodes, fitBounds]);
   
-  // Handle section header hover leave - remove highlights
+  // Handle section header hover leave - remove highlights and zoom out
   const handleSectionMouseLeave = useCallback(() => {
     // Don't interfere if animation is running
     if (isAnimating) return;
@@ -476,7 +494,16 @@ export function useOriginTracingAnimation({
         className: (n.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
       }))
     );
-  }, [isAnimating, setNodes]);
+    
+    // Zoom out to show the entire diagram
+    fitView({
+      padding: 0.15,
+      includeHiddenNodes: false,
+      minZoom: 0.2,
+      maxZoom: 1.2,
+      duration: 600, // Smooth animation matching the zoom-in duration
+    });
+  }, [isAnimating, setNodes, fitView]);
 
   return {
     // State

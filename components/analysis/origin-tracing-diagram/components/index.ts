@@ -11,4 +11,5 @@ export { CurrentClaimHero } from './CurrentClaimHero';
 export { SectionPreview } from './SectionPreview';
 export { ConnectionLine } from './ConnectionLine';
 export { ItemCard } from './ItemCard';
+export { DetailOverlay } from './DetailOverlay';
 

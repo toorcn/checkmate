@@ -76,20 +76,20 @@ export const CurrentClaimHero = React.memo(({ claimNode, verdict, totalSources =
         {/* Claim content */}
         <div className="mb-4">
           <p className={`text-sm font-bold ${colors.text} leading-relaxed line-clamp-3`}>
-            {claimNode.data.label || 'No claim text available'}
+            {claimNode.data.label ? String(claimNode.data.label) : 'No claim text available'}
           </p>
         </div>
 
         {/* Stats row */}
         <div className="flex items-center gap-4 pt-3 border-t-2 border-white/50">
-          {claimNode.data.credibility !== undefined && (
+          {claimNode.data.credibility !== undefined ? (
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-600">Credibility:</span>
               <Badge variant="outline" className="bg-white/80 font-bold text-xs">
-                {claimNode.data.credibility}%
+                {Number(claimNode.data.credibility)}%
               </Badge>
             </div>
-          )}
+          ) : null}
           {totalSources > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-600">Sources:</span>

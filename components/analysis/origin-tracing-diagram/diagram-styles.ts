@@ -449,6 +449,95 @@ export const diagramStyles = `
     animation: pulse 2s ease-in-out infinite;
   }
   
+  /* Detail Overlay Animations */
+  @keyframes slideUpFade {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-slide-up-fade {
+    animation: slideUpFade 300ms ease-out forwards;
+  }
+  
+  .detail-overlay-container {
+    will-change: transform, opacity;
+  }
+  
+  /* Responsive positioning for detail overlay */
+  @media (max-width: 640px) {
+    .detail-overlay-container {
+      max-height: min(280px, 45vh) !important;
+      bottom: 8px !important;
+      margin-left: 8px !important;
+      margin-right: 8px !important;
+      width: calc(100% - 16px) !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .detail-overlay-container {
+      max-height: min(250px, 40vh) !important;
+    }
+  }
+  
+  /* Sidebar Slide Animations */
+  .sidebar-slide-in {
+    animation: slideInFromRight 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .sidebar-slide-out {
+    animation: slideOutToRight 300ms cubic-bezier(0.6, 0, 0.8, 0.2) forwards;
+  }
+  
+  @keyframes slideInFromRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOutToRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+  
+  /* Graph panel transition */
+  .graph-panel {
+    transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  /* Reopen button slide in animation */
+  .reopen-button-slide-in {
+    animation: reopenButtonSlideIn 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  @keyframes reopenButtonSlideIn {
+    from {
+      transform: translateX(-100px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
   /* Masonry Grid Layout for Items */
   .items-masonry-grid {
     display: grid;

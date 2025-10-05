@@ -4,7 +4,7 @@
  * Manages node hover state and highlights connected edges/nodes
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Node, Edge } from '@xyflow/react';
 
 type HighlightMode = 'all' | 'incoming' | 'self';
@@ -26,6 +26,8 @@ interface UseNodeHoverHighlightResult {
   onSidebarItemMouseEnter: (nodeId: string) => void;
   onSidebarItemMouseLeave: () => void;
   setHoveredNodeId: (nodeId: string | null) => void;
+  startSequentialHighlight: (nodeIds: string[]) => void;
+  stopSequentialHighlight: () => void;
 }
 
 /**
@@ -54,9 +56,17 @@ export function useNodeHoverHighlight({
   highlightMode = 'all',
 }: UseNodeHoverHighlightProps): UseNodeHoverHighlightResult {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [sequentialNodeIds, setSequentialNodeIds] = useState<string[]>([]);
+  const [currentSequentialIndex, setCurrentSequentialIndex] = useState<number>(-1);
+  const sequentialTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Use forced node ID when provided (during animation), otherwise use hovered node ID
-  const effectiveNodeId = forcedNodeId || hoveredNodeId;
+  // Track if we're in sequential mode (to differentiate from direct node hover)
+  const isSequentialMode = currentSequentialIndex >= 0 && sequentialNodeIds.length > 0 && !forcedNodeId;
+  
+  // Use forced node ID when provided (during animation), otherwise use sequential or hovered node ID
+  const effectiveNodeId = forcedNodeId || 
+    (currentSequentialIndex >= 0 && sequentialNodeIds[currentSequentialIndex]) || 
+    hoveredNodeId;
 
   // Build adjacency map for quick lookups
   // Separate incoming and outgoing connections for directional highlighting
@@ -154,6 +164,37 @@ export function useNodeHoverHighlight({
 
   // Calculate highlighted edges and nodes based on effective node and highlight mode
   const { highlightedEdges, highlightedNodes } = useMemo(() => {
+    // Special case: Sequential mode - highlight all nodes from start to current index
+    if (isSequentialMode) {
+      const cumulativeNodes = new Set<string>();
+      const cumulativeEdges = new Set<string>();
+      
+      // Add all nodes from start up to current index
+      for (let i = 0; i <= currentSequentialIndex; i++) {
+        const nodeId = sequentialNodeIds[i];
+        if (nodeId) {
+          cumulativeNodes.add(nodeId);
+          
+          // Add edges connecting to the previous node in sequence
+          if (i > 0) {
+            const prevNodeId = sequentialNodeIds[i - 1];
+            // Find edge connecting prevNodeId to nodeId
+            const connectingEdge = edges.find(
+              e => e.source === prevNodeId && e.target === nodeId
+            );
+            if (connectingEdge) {
+              cumulativeEdges.add(connectingEdge.id);
+            }
+          }
+        }
+      }
+      
+      return {
+        highlightedEdges: cumulativeEdges,
+        highlightedNodes: cumulativeNodes,
+      };
+    }
+    
     if (!effectiveNodeId) {
       return {
         highlightedEdges: new Set<string>(),
@@ -175,7 +216,8 @@ export function useNodeHoverHighlight({
     const isOriginNode = currentNode?.type === 'origin';
     
     // Special case: Origin node highlights entire path to claim
-    if (isOriginNode) {
+    // This only applies when directly hovering over the node in the graph (not in sequential mode)
+    if (isOriginNode && !isSequentialMode) {
       const pathResult = findPathToClaim(effectiveNodeId);
       return {
         highlightedEdges: pathResult.edges,
@@ -219,20 +261,21 @@ export function useNodeHoverHighlight({
           highlightedNodes: allNodes,
         };
     }
-  }, [effectiveNodeId, adjacencyMap, highlightMode, nodes, findPathToClaim]);
+  }, [effectiveNodeId, adjacencyMap, highlightMode, nodes, findPathToClaim, isSequentialMode, currentSequentialIndex, sequentialNodeIds, edges]);
 
-  // Event handlers for graph nodes - disabled when panning or when forced node is set
+  // Event handlers for graph nodes - disabled when panning, forced node, or sequential mode
+  // Sequential mode takes precedence over direct graph node hover
   const onNodeMouseEnter = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (!disabled && !forcedNodeId) {
+    if (!disabled && !forcedNodeId && !isSequentialMode) {
       setHoveredNodeId(node.id);
     }
-  }, [disabled, forcedNodeId]);
+  }, [disabled, forcedNodeId, isSequentialMode]);
 
   const onNodeMouseLeave = useCallback(() => {
-    if (!disabled && !forcedNodeId) {
+    if (!disabled && !forcedNodeId && !isSequentialMode) {
       setHoveredNodeId(null);
     }
-  }, [disabled, forcedNodeId]);
+  }, [disabled, forcedNodeId, isSequentialMode]);
 
   // Event handlers for sidebar items - disabled when panning or when forced node is set
   const onSidebarItemMouseEnter = useCallback((nodeId: string) => {
@@ -247,6 +290,67 @@ export function useNodeHoverHighlight({
     }
   }, [disabled, forcedNodeId]);
 
+  // Sequential highlight functions
+  const startSequentialHighlight = useCallback((nodeIds: string[]) => {
+    if (disabled || forcedNodeId || nodeIds.length === 0) return;
+    
+    // Clear any existing timer
+    if (sequentialTimerRef.current) {
+      clearTimeout(sequentialTimerRef.current);
+    }
+    
+    setSequentialNodeIds(nodeIds);
+    setCurrentSequentialIndex(0);
+  }, [disabled, forcedNodeId]);
+
+  const stopSequentialHighlight = useCallback(() => {
+    // Clear timer
+    if (sequentialTimerRef.current) {
+      clearTimeout(sequentialTimerRef.current);
+      sequentialTimerRef.current = null;
+    }
+    
+    setSequentialNodeIds([]);
+    setCurrentSequentialIndex(-1);
+  }, []);
+
+  // Effect to advance sequential highlighting
+  useEffect(() => {
+    if (currentSequentialIndex < 0 || currentSequentialIndex >= sequentialNodeIds.length) {
+      return;
+    }
+
+    const nextIndex = currentSequentialIndex + 1;
+    // Longer delay when looping back to start, shorter delay for regular transitions
+    const isLooping = nextIndex >= sequentialNodeIds.length;
+    const delay = isLooping ? 1200 : 450; // 1200ms pause between loops, 450ms between nodes
+
+    // Set timer for next node
+    sequentialTimerRef.current = setTimeout(() => {
+      if (nextIndex < sequentialNodeIds.length) {
+        setCurrentSequentialIndex(nextIndex);
+      } else {
+        // Completed the sequence, loop back to start after longer pause
+        setCurrentSequentialIndex(0);
+      }
+    }, delay);
+
+    return () => {
+      if (sequentialTimerRef.current) {
+        clearTimeout(sequentialTimerRef.current);
+      }
+    };
+  }, [currentSequentialIndex, sequentialNodeIds]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (sequentialTimerRef.current) {
+        clearTimeout(sequentialTimerRef.current);
+      }
+    };
+  }, []);
+
   return {
     hoveredNodeId: effectiveNodeId,
     highlightedEdges,
@@ -256,6 +360,8 @@ export function useNodeHoverHighlight({
     onSidebarItemMouseEnter,
     onSidebarItemMouseLeave,
     setHoveredNodeId,
+    startSequentialHighlight,
+    stopSequentialHighlight,
   };
 }
 

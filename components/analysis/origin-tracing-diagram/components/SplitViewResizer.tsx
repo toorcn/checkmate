@@ -24,7 +24,7 @@ export function SplitViewResizer({
       
       const containerRect = containerRef.current.getBoundingClientRect();
       const newWidth = ((containerRect.right - e.clientX) / containerRect.width) * 100;
-      const clampedWidth = Math.max(20, Math.min(50, newWidth)); // Between 20% and 50%
+      const clampedWidth = Math.max(40, Math.min(50, newWidth)); // Between 40% and 50%
       onSidebarWidthChange(clampedWidth);
     };
     

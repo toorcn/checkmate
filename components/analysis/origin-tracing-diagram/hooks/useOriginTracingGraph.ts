@@ -332,6 +332,7 @@ export function useOriginTracingGraph({
 
       // Connect all sources with visual emphasis on top credible ones
       const isPrimary = index < 4;
+      const isHighCredibility = source.credibility !== undefined && source.credibility >= 80;
       edges.push({
         id: `${currentClaimNodeId}-${sourceNodeId}`,
         source: currentClaimNodeId,
@@ -343,8 +344,8 @@ export function useOriginTracingGraph({
         label: index === 0 ? 'fact-checked by' : '',
         style: { 
           stroke: '#10b981', 
-          strokeWidth: isPrimary && source.credibility >= 80 ? 2 : isPrimary ? 1.5 : 1,
-          opacity: isPrimary && source.credibility >= 80 ? 0.7 : isPrimary ? 0.5 : 0.3,
+          strokeWidth: isPrimary && isHighCredibility ? 2 : isPrimary ? 1.5 : 1,
+          opacity: isPrimary && isHighCredibility ? 0.7 : isPrimary ? 0.5 : 0.3,
           strokeDasharray: isPrimary ? undefined : '5,5'
         },
       });
@@ -366,7 +367,7 @@ export function useOriginTracingGraph({
       );
       
       const matchingSource = sources.find(source => source.url === link.url);
-      const credibility = matchingSource?.credibility ?? 0.5;
+      const credibility = matchingSource?.credibility;
       const sourceName = matchingSource?.source || new URL(link.url).hostname.replace('www.', '');
       
       nodes.push({
@@ -379,7 +380,7 @@ export function useOriginTracingGraph({
         data: {
           label: link.title || link.url,
           sourceName: sourceName,
-          credibility: Math.round(credibility * 100),
+          credibility: credibility !== undefined ? Math.round(credibility * 100) : undefined,
           url: link.url,
         },
       });

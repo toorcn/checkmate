@@ -28,7 +28,7 @@ export interface FactCheckSource {
   url: string;
   title: string;
   source?: string;
-  credibility: number;
+  credibility?: number;
 }
 
 export interface OriginTracingDiagramProps {

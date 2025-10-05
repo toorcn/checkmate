@@ -9,8 +9,8 @@ import { getPlatformIcon } from '../../../../lib/analysis/origin-tracing-icons';
 import { formatMultilineText, formatNodeText } from '../../../../lib/analysis/origin-tracing-utils';
 
 export function SourceNode({ data }: { data: NodeData }) {
-  const credibility = data.credibility ?? 50;
-  const credibilityColor = credibility >= 80 ? 'emerald' : credibility >= 60 ? 'teal' : 'slate';
+  const credibility = data.credibility !== undefined ? Number(data.credibility) : null;
+  const credibilityColor = credibility !== null && credibility >= 80 ? 'emerald' : credibility !== null && credibility >= 60 ? 'teal' : 'slate';
   
   return (
     <div className={`relative px-6 py-5 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border-2 border-emerald-300 rounded-2xl shadow-lg min-w-[220px] max-w-[320px] transition-all duration-300 backdrop-blur-sm`}>
@@ -31,12 +31,14 @@ export function SourceNode({ data }: { data: NodeData }) {
           <div className="font-bold text-emerald-900 text-sm mb-2 tracking-tight">
             {data.sourceName ? formatNodeText(data.sourceName, 30) : 'Fact-Check Source'}
           </div>
-          <Badge 
-            variant="outline" 
-            className={`text-xs font-semibold bg-${credibilityColor}-100 text-${credibilityColor}-800 border-${credibilityColor}-300 shadow-sm`}
-          >
-            {credibility}% credible
-          </Badge>
+          {credibility !== null && (
+            <Badge 
+              variant="outline" 
+              className={`text-xs font-semibold bg-${credibilityColor}-100 text-${credibilityColor}-800 border-${credibilityColor}-300 shadow-sm`}
+            >
+              {credibility}% credible
+            </Badge>
+          )}
         </div>
       </div>
       <div className="text-sm text-emerald-900/90 mb-4 leading-relaxed break-words font-medium">
