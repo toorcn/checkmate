@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchCheck, Newspaper, Menu, Sun, Moon } from "lucide-react";
+import { SearchCheck, Newspaper, Menu, Sun, Moon, Users } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "next-themes";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -127,6 +127,21 @@ export function Header() {
           <Link href="/news" className="inline-flex items-center">
             <Newspaper className="h-4 w-4 mr-2" />
             {t.getNews}
+          </Link>
+        </Button>
+      )}
+      {pathname !== "/crowdsource" && (
+        <Button
+          variant="outline"
+          size="sm"
+          className={
+            mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
+          }
+          asChild
+        >
+          <Link href="/crowdsource" className="inline-flex items-center">
+            <Users className="h-4 w-4 mr-2" />
+            {t.voteOnNews}
           </Link>
         </Button>
       )}

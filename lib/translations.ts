@@ -162,6 +162,11 @@ export interface Translations {
   verifiedTrue: string;
   needsVerification: string;
   claim: string;
+
+  // Crowdsource Page
+  crowdsourceNews: string;
+  voteOnNews: string;
+  communityVerification: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -338,6 +343,11 @@ export const translations: Record<Language, Translations> = {
     verifiedTrue: "Verified True",
     needsVerification: "Needs Verification",
     claim: "Claim:",
+
+    // Crowdsource Page
+    crowdsourceNews: "Community News Verification",
+    voteOnNews: "Vote on News",
+    communityVerification: "Community Verification",
   },
 
   ms: {
@@ -519,6 +529,11 @@ export const translations: Record<Language, Translations> = {
     verifiedTrue: "Disahkan Benar",
     needsVerification: "Perlu Pengesahan",
     claim: "Dakwaan:",
+
+    // Crowdsource Page
+    crowdsourceNews: "Pengesahan Berita Komuniti",
+    voteOnNews: "Undi Berita",
+    communityVerification: "Pengesahan Komuniti",
   },
 
   zh: {
@@ -685,5 +700,10 @@ export const translations: Record<Language, Translations> = {
     verifiedTrue: "已验证为真",
     needsVerification: "需要验证",
     claim: "声明：",
+
+    // Crowdsource Page
+    crowdsourceNews: "社区新闻验证",
+    voteOnNews: "新闻投票",
+    communityVerification: "社区验证",
   },
 };
