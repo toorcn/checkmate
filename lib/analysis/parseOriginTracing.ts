@@ -17,7 +17,7 @@ export interface FactCheckSource {
   url: string;
   title: string;
   source?: string;
-  credibility: number;
+  credibility?: number;
 }
 
 export interface OriginTracingResult {
@@ -36,7 +36,7 @@ function getHostnameFromUrl(url: string): string | null {
   }
 }
 
-export function computeCredibilityFromUrl(url: string): number {
+export function computeCredibilityFromUrl(url: string): number | undefined {
   const host = getHostnameFromUrl(url) || "";
   const h = host.toLowerCase();
   const high: string[] = [
@@ -54,6 +54,7 @@ export function computeCredibilityFromUrl(url: string): number {
     "nature.com",
     "sciencemag.org",
   ];
+  // Only assign credibility for sources we can reliably assess
   if (
     h.endsWith(".gov") ||
     h.endsWith(".gov.uk") ||
@@ -65,16 +66,9 @@ export function computeCredibilityFromUrl(url: string): number {
     return 95;
   }
   if (high.some((d) => h.endsWith(d))) return 92;
-  if (h.includes("medium.com") || h.includes("substack.com")) return 65;
-  if (
-    h.includes("twitter.com") ||
-    h.includes("x.com") ||
-    h.includes("facebook.com") ||
-    h.includes("tiktok.com") ||
-    h.includes("youtube.com")
-  )
-    return 55;
-  return 60;
+  // For all other sources (including social media, blogs, and unknown sources),
+  // omit credibility rather than showing an arbitrary score
+  return undefined;
 }
 
 function extractMarkdownLinks(text: string): Array<{ title: string; url: string }> {
@@ -207,11 +201,14 @@ export function parseOriginTracing(content: string): OriginTracingResult {
   if (linkPool.length === 0) {
     linkPool = extractMarkdownLinks(content);
   }
-  const sources = linkPool.map((l) => ({
-    url: l.url,
-    title: l.title,
-    credibility: computeCredibilityFromUrl(l.url),
-  }));
+  const sources = linkPool.map((l) => {
+    const credibility = computeCredibilityFromUrl(l.url);
+    return {
+      url: l.url,
+      title: l.title,
+      ...(credibility !== undefined && { credibility }),
+    };
+  });
 
   // Belief drivers: lines like - **Name:** description
   const beliefDrivers: Array<{
