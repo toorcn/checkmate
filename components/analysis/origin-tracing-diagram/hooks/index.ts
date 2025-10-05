@@ -7,4 +7,5 @@
 export { useOriginTracingGraph } from './useOriginTracingGraph';
 export { useOriginTracingAnimation } from './useOriginTracingAnimation';
 export { useFullscreen } from './useFullscreen';
+export { useScrollExpansion } from './useScrollExpansion';
 

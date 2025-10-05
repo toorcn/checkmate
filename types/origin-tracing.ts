@@ -72,5 +72,13 @@ export interface OriginTracingGraphResult {
   nodes: Node[];
   edges: any[];
   navSections: NavSection[];
+  clusters: Array<{
+    id: string;
+    nodeIds: string[];
+    centerX: number;
+    centerY: number;
+    width: number;
+    height: number;
+  }>;
 }
 

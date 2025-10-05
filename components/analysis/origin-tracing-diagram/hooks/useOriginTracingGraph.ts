@@ -14,7 +14,7 @@ import {
   OriginTracingGraphResult 
 } from '../../../../types/origin-tracing';
 import { extractClaimContent, formatNodeText } from '../../../../lib/analysis/origin-tracing-utils';
-import { createLogicalFlow } from '../../../../lib/analysis/origin-tracing-layout';
+import { createClusteredLayout } from '../../../../lib/analysis/origin-tracing-layout';
 import { getPlatformIcon, getBiasIcon } from '../../../../lib/analysis/origin-tracing-icons';
 
 interface UseOriginTracingGraphProps {
@@ -34,7 +34,7 @@ export function useOriginTracingGraph({
   content,
   allLinks,
 }: UseOriginTracingGraphProps): OriginTracingGraphResult {
-  const { nodes, edges } = useMemo(() => {
+  const { nodes, edges, clusters } = useMemo(() => {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     let nodeId = 0;
@@ -221,14 +221,14 @@ export function useOriginTracingGraph({
           sourceHandle: 'right',
           target: stepNodeId,
           targetHandle: 'left',
-          type: 'smoothstep',
-          animated: index < 2, // Animate only first connections
+          type: 'default',
+          animated: index === 0, // Only animate first connection
           markerEnd: { type: MarkerType.ArrowClosed },
-          label: index === 0 ? 'evolves' : '', // Only label first connection
+          label: index === 0 ? 'evolves' : '',
           style: { 
             stroke: step.type === 'timeline' ? '#0ea5e9' : '#f97316', 
-            strokeWidth: 2.5,
-            opacity: 0.85
+            strokeWidth: 2,
+            opacity: 0.7
           },
         });
       }
@@ -257,11 +257,11 @@ export function useOriginTracingGraph({
         sourceHandle: 'right',
         target: currentClaimNodeId,
         targetHandle: 'left',
-        type: 'smoothstep',
+        type: 'default',
         animated: true,
         markerEnd: { type: MarkerType.ArrowClosed },
         label: 'becomes',
-        style: { stroke: '#dc2626', strokeWidth: 3 },
+        style: { stroke: '#dc2626', strokeWidth: 2.5, opacity: 0.8 },
       });
     }
 
@@ -286,20 +286,22 @@ export function useOriginTracingGraph({
         },
       });
 
-      // Connect ALL belief drivers with varying opacity for visual hierarchy
+      // Connect all belief drivers with visual emphasis on top ones
+      const isPrimary = index < 3;
       edges.push({
         id: `${driverNodeId}-${currentClaimNodeId}`,
         source: driverNodeId,
         sourceHandle: 'bottom',
         target: currentClaimNodeId,
         targetHandle: 'top',
-        type: 'smoothstep',
+        type: 'default',
         markerEnd: { type: MarkerType.ArrowClosed },
         label: index === 0 ? 'influences' : '',
         style: { 
           stroke: '#a855f7', 
-          strokeWidth: index < 2 ? 2.5 : 2, // Primary connections thicker
-          opacity: index < 2 ? 0.7 : 0.4 // Secondary connections more subtle
+          strokeWidth: index === 0 ? 2 : isPrimary ? 1.5 : 1,
+          opacity: index === 0 ? 0.7 : isPrimary ? 0.4 : 0.25,
+          strokeDasharray: isPrimary ? undefined : '5,5'
         },
       });
     });
@@ -328,20 +330,22 @@ export function useOriginTracingGraph({
         },
       });
 
-      // Connect ALL sources with varying visual weight based on credibility
+      // Connect all sources with visual emphasis on top credible ones
+      const isPrimary = index < 4;
       edges.push({
         id: `${currentClaimNodeId}-${sourceNodeId}`,
         source: currentClaimNodeId,
         sourceHandle: 'bottom',
         target: sourceNodeId,
         targetHandle: 'top',
-        type: 'smoothstep',
+        type: 'default',
         markerEnd: { type: MarkerType.ArrowClosed },
         label: index === 0 ? 'fact-checked by' : '',
         style: { 
           stroke: '#10b981', 
-          strokeWidth: source.credibility >= 80 ? 2.5 : 2, // High credibility thicker
-          opacity: source.credibility >= 80 ? 0.8 : 0.5 // High credibility more visible
+          strokeWidth: isPrimary && source.credibility >= 80 ? 2 : isPrimary ? 1.5 : 1,
+          opacity: isPrimary && source.credibility >= 80 ? 0.7 : isPrimary ? 0.5 : 0.3,
+          strokeDasharray: isPrimary ? undefined : '5,5'
         },
       });
     });
@@ -379,10 +383,28 @@ export function useOriginTracingGraph({
           url: link.url,
         },
       });
+
+      // Connect all links to claim node for reference context
+      edges.push({
+        id: `${currentClaimNodeId}-${linkNodeId}`,
+        source: currentClaimNodeId,
+        sourceHandle: 'bottom',
+        target: linkNodeId,
+        targetHandle: 'top',
+        type: 'default',
+        markerEnd: { type: MarkerType.ArrowClosed },
+        label: index === 0 ? 'references' : '',
+        style: { 
+          stroke: '#64748b', 
+          strokeWidth: 1,
+          opacity: 0.3,
+          strokeDasharray: '5,5'
+        },
+      });
     });
 
-    // Apply logical flow layout and overlap resolution
-    const optimizedNodes = createLogicalFlow(
+    // Apply clustered layout with force-directed positioning
+    const { nodes: optimizedNodes, clusters } = createClusteredLayout(
       originNodeId,
       evolutionNodes,
       claimNodeId,
@@ -392,7 +414,7 @@ export function useOriginTracingGraph({
       nodes
     );
     
-    return { nodes: optimizedNodes, edges };
+    return { nodes: optimizedNodes, edges, clusters };
   }, [originTracing, beliefDrivers, sources, verdict, content, allLinks]);
 
   // Build navigation sections from nodes
@@ -499,6 +521,6 @@ export function useOriginTracingGraph({
     return sections;
   }, [nodes]);
 
-  return { nodes, edges, navSections };
+  return { nodes, edges, navSections, clusters };
 }
 

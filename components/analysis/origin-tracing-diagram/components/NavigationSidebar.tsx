@@ -230,7 +230,7 @@ export function NavigationSidebar({
                                                       href={ref.url}
                                                       target="_blank"
                                                       rel="noopener noreferrer"
-                                                      className="block text-xs text-blue-700 hover:text-blue-900 truncate font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all"
+                                                      className="block text-xs text-blue-700 hover:text-blue-900 font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all leading-relaxed"
                                                     >
                                                       • {ref.title}
                                                     </a>
@@ -343,7 +343,7 @@ export function NavigationSidebar({
                                               href={ref.url}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="block text-xs text-blue-700 hover:text-blue-900 truncate font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all"
+                                              className="block text-xs text-blue-700 hover:text-blue-900 font-medium bg-white/80 px-3 py-2 rounded-lg hover:shadow-md transition-all leading-relaxed"
                                             >
                                               • {ref.title}
                                             </a>

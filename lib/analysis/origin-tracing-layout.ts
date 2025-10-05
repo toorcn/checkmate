@@ -1,86 +1,73 @@
 /**
  * Origin Tracing Layout Algorithms
  * 
- * Functions for calculating node positions and resolving overlaps
+ * Functions for calculating node positions with force-directed clustering
  */
 
 import { Node } from '@xyflow/react';
 
+export interface ClusterConfig {
+  id: string;
+  nodeIds: string[];
+  centerX: number;
+  centerY: number;
+  width: number;
+  height: number;
+}
+
 /**
- * Detect and resolve node overlaps with multiple passes
- * Enhanced with better spacing and collision detection
+ * Cluster-aware overlap resolution
+ * Only resolves overlaps within same or adjacent clusters
  */
-export function resolveOverlaps(nodes: Node[]): Node[] {
+export function resolveOverlaps(nodes: Node[], clusters: ClusterConfig[]): Node[] {
   const resolvedNodes = [...nodes];
-  const nodeSpacing = 380; // Increased minimum horizontal spacing
-  const verticalSpacing = 260; // Increased minimum vertical spacing
-  const gridSize = 20; // Finer grid for smoother positioning
+  const gridSize = 20;
   
-  // Multiple passes to resolve all overlaps thoroughly
-  for (let pass = 0; pass < 5; pass++) {
+  // Create cluster lookup map
+  const nodeToCluster = new Map<string, string>();
+  clusters.forEach(cluster => {
+    cluster.nodeIds.forEach(nodeId => {
+      nodeToCluster.set(nodeId, cluster.id);
+    });
+  });
+  
+  // Multiple passes with aggressive separation
+  for (let pass = 0; pass < 3; pass++) {
     for (let i = 0; i < resolvedNodes.length; i++) {
       for (let j = i + 1; j < resolvedNodes.length; j++) {
         const nodeA = resolvedNodes[i];
         const nodeB = resolvedNodes[j];
         
-        const horizontalDistance = Math.abs(nodeA.position.x - nodeB.position.x);
-        const verticalDistance = Math.abs(nodeA.position.y - nodeB.position.y);
+        // Check overlaps within same cluster AND across all nodes
+        const clusterA = nodeToCluster.get(nodeA.id);
+        const clusterB = nodeToCluster.get(nodeB.id);
         
-        // Calculate actual node dimensions for more accurate collision
-        const nodeAWidth = 320; // Max node width
-        const nodeAHeight = 140; // Max node height
-        const nodeBWidth = 320;
-        const nodeBHeight = 140;
+        const dx = nodeB.position.x - nodeA.position.x;
+        const dy = nodeB.position.y - nodeA.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Check for actual overlap
-        const overlapX = (nodeAWidth / 2 + nodeBWidth / 2) - horizontalDistance;
-        const overlapY = (nodeAHeight / 2 + nodeBHeight / 2) - verticalDistance;
+        // Stricter minimum distance for same cluster, looser for different clusters
+        const minDistance = clusterA === clusterB ? 380 : 340;
         
-        // If nodes overlap or are too close
-        if (overlapX > 0 && overlapY > 0) {
-          // Resolve by moving in the direction of least overlap
-          if (overlapX < overlapY) {
-            // Move horizontally
-            const adjustment = overlapX + 60;
-            if (nodeA.position.x < nodeB.position.x) {
-              nodeB.position.x += adjustment;
-            } else {
-              nodeA.position.x += adjustment;
-            }
-          } else {
-            // Move vertically
-            const adjustment = overlapY + 60;
-            if (nodeA.position.y < nodeB.position.y) {
-              nodeB.position.y += adjustment;
-            } else {
-              nodeA.position.y += adjustment;
-            }
-          }
-        }
-        
-        // Additional check: ensure minimum spacing even without overlap
-        if (verticalDistance < 150 && horizontalDistance < nodeSpacing) {
-          const adjustment = nodeSpacing - horizontalDistance + 80;
-          if (nodeA.position.x < nodeB.position.x) {
-            nodeB.position.x += adjustment;
-          } else {
-            nodeA.position.x += adjustment;
-          }
-        }
-        
-        if (horizontalDistance < 150 && verticalDistance < verticalSpacing) {
-          const adjustment = verticalSpacing - verticalDistance + 80;
-          if (nodeA.position.y < nodeB.position.y) {
-            nodeB.position.y += adjustment;
-          } else {
-            nodeA.position.y += adjustment;
-          }
+        // If too close, push apart
+        if (distance < minDistance && distance > 0) {
+          const pushDistance = ((minDistance - distance) / 2) + 30;
+          const angle = Math.atan2(dy, dx);
+          
+          // Push nodes apart in opposite directions
+          const pushX = Math.cos(angle) * pushDistance;
+          const pushY = Math.sin(angle) * pushDistance;
+          
+          nodeA.position.x -= pushX;
+          nodeA.position.y -= pushY;
+          nodeB.position.x += pushX;
+          nodeB.position.y += pushY;
         }
       }
     }
   }
   
-  // Snap all nodes to grid for cleaner layout
+  // Snap to grid
   resolvedNodes.forEach(node => {
     node.position.x = Math.round(node.position.x / gridSize) * gridSize;
     node.position.y = Math.round(node.position.y / gridSize) * gridSize;
@@ -90,9 +77,9 @@ export function resolveOverlaps(nodes: Node[]): Node[] {
 }
 
 /**
- * Create logical flow layout for nodes with improved spacing and clarity
+ * Create clustered layout with hierarchical flow and force-directed positioning
  */
-export function createLogicalFlow(
+export function createClusteredLayout(
   originNodeId: string | null,
   evolutionNodes: string[],
   claimNodeId: string,
@@ -100,121 +87,144 @@ export function createLogicalFlow(
   sourceNodes: string[],
   linkNodes: string[],
   nodes: Node[]
-): Node[] {
-  const centerX = 1400; // Moved right for more space
-  const centerY = 500; // Moved down for better balance
+): { nodes: Node[], clusters: ClusterConfig[] } {
+  const centerX = 800; // Increased horizontal space
+  const centerY = 450;
   
-  // Create a clear, hierarchical flow pattern with ample spacing
-  const flowLayout = {
-    // Origin on far left with more space
-    origin: { x: centerX - 1100, y: centerY },
-    
-    // Evolution chain with significantly increased spacing
-    evolution: {
-      startX: centerX - 1000,
-      endX: centerX - 400,
-      y: centerY,
-      spacing: Math.max(350, 800 / Math.max(evolutionNodes.length, 1))
-    },
-    
-    // Claim at center (destination of flow)
-    claim: { x: centerX, y: centerY },
-    
-    // Belief drivers above in wider arc formation
-    beliefs: {
-      centerX: centerX - 200,
-      y: centerY - 450, // More vertical separation
-      radius: 600, // Larger radius to spread out
-      startAngle: -Math.PI / 2.2,
-      endAngle: Math.PI / 2.2
-    },
-    
-    // Sources below in wider arc formation
-    sources: {
-      centerX: centerX,
-      y: centerY + 450, // More vertical separation
-      radius: 600, // Larger radius
-      startAngle: Math.PI / 3.5,
-      endAngle: Math.PI - Math.PI / 3.5
-    },
-    
-    // Links on the right side with better spacing
-    links: {
-      x: centerX + 650, // More horizontal separation
-      startY: centerY - 400,
-      spacing: 220 // Increased vertical spacing
-    }
-  };
+  // Define cluster regions - much larger to prevent overlaps
+  const clusters: ClusterConfig[] = [];
   
-  const updatedNodes = nodes.map(node => {
-    // Update origin position
-    if (node.id === originNodeId) {
-      return { ...node, position: flowLayout.origin };
-    }
+  // Evolution Timeline cluster (left side)
+  const evolutionClusterNodes = [
+    ...(originNodeId ? [originNodeId] : []),
+    ...evolutionNodes
+  ];
+  if (evolutionClusterNodes.length > 0) {
+    // Dynamic sizing based on number of nodes - ensure enough space for sequential layout
+    const nodesPerRow = Math.ceil(evolutionClusterNodes.length / 2);
+    const rows = evolutionClusterNodes.length <= 3 ? 1 : 2;
     
-    // Update evolution nodes with improved vertical distribution
-    const evolutionIndex = evolutionNodes.indexOf(node.id);
-    if (evolutionIndex !== -1) {
-      const progress = evolutionNodes.length > 1 ? evolutionIndex / (evolutionNodes.length - 1) : 0;
-      const x = flowLayout.evolution.startX + (flowLayout.evolution.endX - flowLayout.evolution.startX) * progress;
-      
-      // Better vertical stagger pattern to avoid overlaps
-      let yOffset = 0;
-      if (evolutionNodes.length > 3) {
-        // For many nodes, use sine wave pattern for smooth distribution
-        yOffset = Math.sin(progress * Math.PI * 2) * 150;
-      } else {
-        // For few nodes, use simple alternating pattern
-        yOffset = (evolutionIndex % 3 - 1) * 180;
-      }
-      
-      return { ...node, position: { x, y: flowLayout.evolution.y + yOffset } };
-    }
+    // 380px per node + extra padding
+    const evolutionWidth = Math.max(800, nodesPerRow * 380 + 200);
+    const evolutionHeight = rows * 260 + 140; // 260px per row + padding
     
-    // Update claim position
-    if (node.id === claimNodeId) {
-      return { ...node, position: flowLayout.claim };
-    }
-    
-    // Update belief driver positions in wider arc
-    const beliefIndex = beliefDriverNodes.indexOf(node.id);
-    if (beliefIndex !== -1 && beliefDriverNodes.length > 0) {
-      const angle = beliefDriverNodes.length === 1 
-        ? 0 
-        : flowLayout.beliefs.startAngle + (flowLayout.beliefs.endAngle - flowLayout.beliefs.startAngle) * (beliefIndex / (beliefDriverNodes.length - 1));
-      const x = flowLayout.beliefs.centerX + Math.cos(angle) * flowLayout.beliefs.radius;
-      const y = flowLayout.beliefs.y + Math.sin(angle) * (flowLayout.beliefs.radius * 0.4); // Flatter arc
-      return { ...node, position: { x, y } };
-    }
-    
-    // Update source positions in wider arc
-    const sourceIndex = sourceNodes.indexOf(node.id);
-    if (sourceIndex !== -1 && sourceNodes.length > 0) {
-      const angle = sourceNodes.length === 1 
-        ? Math.PI / 2 
-        : flowLayout.sources.startAngle + (flowLayout.sources.endAngle - flowLayout.sources.startAngle) * (sourceIndex / (sourceNodes.length - 1));
-      const x = flowLayout.sources.centerX + Math.cos(angle) * flowLayout.sources.radius;
-      const y = flowLayout.sources.y + Math.sin(angle) * (flowLayout.sources.radius * 0.35); // Flatter arc
-      return { ...node, position: { x, y } };
-    }
-    
-    // Update link positions in column with better spacing
-    const linkIndex = linkNodes.indexOf(node.id);
-    if (linkIndex !== -1) {
-      // Stagger links horizontally slightly to avoid strict column
-      const xOffset = (linkIndex % 2) * 100;
-      return { 
-        ...node, 
-        position: { 
-          x: flowLayout.links.x + xOffset, 
-          y: flowLayout.links.startY + linkIndex * flowLayout.links.spacing 
-        } 
-      };
-    }
-    
-    return node;
+    clusters.push({
+      id: 'evolution',
+      nodeIds: evolutionClusterNodes,
+      centerX: centerX - 600,
+      centerY: centerY,
+      width: evolutionWidth,
+      height: evolutionHeight
+    });
+  }
+  
+  // Claim cluster (center)
+  clusters.push({
+    id: 'claim',
+    nodeIds: [claimNodeId],
+    centerX: centerX + 200,
+    centerY: centerY,
+    width: 400,
+    height: 220
   });
   
-  return resolveOverlaps(updatedNodes);
+  // Belief Drivers cluster (top-center)
+  if (beliefDriverNodes.length > 0) {
+    const cols = Math.min(3, beliefDriverNodes.length);
+    const rows = Math.ceil(beliefDriverNodes.length / cols);
+    
+    const beliefWidth = cols * 380 + 200; // 380px per column + padding
+    const beliefHeight = rows * 240 + 160; // 240px per row + padding
+    
+    clusters.push({
+      id: 'beliefs',
+      nodeIds: beliefDriverNodes,
+      centerX: centerX + 200,
+      centerY: centerY - 450,
+      width: beliefWidth,
+      height: beliefHeight
+    });
+  }
+  
+  // Sources cluster (bottom-center)
+  if (sourceNodes.length > 0) {
+    const allSourceNodes = [...sourceNodes, ...linkNodes];
+    const cols = Math.min(3, allSourceNodes.length);
+    const rows = Math.ceil(allSourceNodes.length / cols);
+    
+    const sourceWidth = cols * 380 + 200; // 380px per column + padding
+    const sourceHeight = rows * 240 + 160; // 240px per row + padding
+    
+    clusters.push({
+      id: 'sources',
+      nodeIds: allSourceNodes,
+      centerX: centerX + 200,
+      centerY: centerY + 450,
+      width: sourceWidth,
+      height: sourceHeight
+    });
+  }
+  
+  // Position nodes with proper grid spacing and guaranteed minimum distances
+  const updatedNodes = nodes.map(node => {
+    // Find which cluster this node belongs to
+    const cluster = clusters.find(c => c.nodeIds.includes(node.id));
+    if (!cluster) return node;
+    
+    const nodesInCluster = cluster.nodeIds;
+    const nodeIndex = nodesInCluster.indexOf(node.id);
+    const totalInCluster = nodesInCluster.length;
+    
+    let x = cluster.centerX;
+    let y = cluster.centerY;
+    
+    if (cluster.id === 'evolution') {
+      // Sequential left-to-right flow for evolution timeline
+      // Each node gets guaranteed 380px horizontal spacing
+      const horizontalSpacing = 380;
+      const startX = cluster.centerX - cluster.width / 2 + 200;
+      
+      if (totalInCluster <= 3) {
+        // Single row for few nodes
+        x = startX + nodeIndex * horizontalSpacing;
+        y = cluster.centerY;
+      } else {
+        // Two-row layout for many nodes - sequential wrapping
+        const nodesPerRow = Math.ceil(totalInCluster / 2);
+        const row = Math.floor(nodeIndex / nodesPerRow);
+        const col = nodeIndex % nodesPerRow;
+        
+        x = startX + col * horizontalSpacing;
+        y = cluster.centerY - 130 + row * 260; // 260px vertical spacing
+      }
+    } else if (cluster.id === 'claim') {
+      // Single node at center
+      x = cluster.centerX;
+      y = cluster.centerY;
+    } else if (cluster.id === 'beliefs' || cluster.id === 'sources') {
+      // Grid layout with guaranteed spacing
+      const cols = Math.min(3, totalInCluster);
+      const rows = Math.ceil(totalInCluster / cols);
+      const col = nodeIndex % cols;
+      const row = Math.floor(nodeIndex / cols);
+      
+      // Fixed spacing: 380px horizontal, 240px vertical
+      const colSpacing = 380;
+      const rowSpacing = 240;
+      
+      x = cluster.centerX - (cols - 1) * colSpacing / 2 + col * colSpacing;
+      y = cluster.centerY - (rows - 1) * rowSpacing / 2 + row * rowSpacing;
+    }
+    
+    return { ...node, position: { x, y } };
+  });
+  
+  // Skip force-directed refinement - it's causing overlaps
+  // Just do final overlap check with minimal adjustment
+  const finalNodes = resolveOverlaps(updatedNodes, clusters);
+  
+  return { nodes: finalNodes, clusters };
 }
+
+// Removed force-directed refinement function - was causing overlaps
 

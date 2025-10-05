@@ -19,7 +19,7 @@ export function useOriginTracingAnimation({
   navSections,
   setNodes,
 }: UseOriginTracingAnimationProps) {
-  const { fitBounds, setCenter, getZoom } = useReactFlow();
+  const { fitBounds, setCenter, getZoom, fitView } = useReactFlow();
   
   // State management for navigation and animation
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -27,10 +27,11 @@ export function useOriginTracingAnimation({
   const [animatingNodes, setAnimatingNodes] = useState<string[]>([]);
   const [currentAnimationIndex, setCurrentAnimationIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [animationSpeed] = useState(2500); // ms per node
+  const [animationSpeed] = useState(1800); // ms per node - faster for auto-play
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isTransitioningRef = useRef(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const hasAutoPlayedRef = useRef(false); // Track if auto-play has happened
   
   // Stop animation
   const stopAnimation = useCallback(() => {
@@ -131,28 +132,53 @@ export function useOriginTracingAnimation({
       
       // Center on the current node with faster animation
       setCenter(currentNode.position.x + 150, currentNode.position.y + 75, {
-        duration: 500,
-        zoom: Math.max(getZoom(), 0.8),
+        duration: 400,
+        zoom: Math.max(getZoom(), 0.75),
       });
       
       // Reset transition flag after animation completes
       setTimeout(() => {
         isTransitioningRef.current = false;
-      }, 500);
+      }, 400);
     }
     
-    // Schedule next animation
-    animationTimerRef.current = setTimeout(() => {
-      const nextIndex = (currentAnimationIndex + 1) % animatingNodes.length;
-      setCurrentAnimationIndex(nextIndex);
-    }, animationSpeed);
+    // Check if this is the last node in the sequence
+    const isLastNode = currentAnimationIndex === animatingNodes.length - 1;
+    
+    if (isLastNode) {
+      // On last node, pause briefly then zoom out to show full diagram
+      animationTimerRef.current = setTimeout(() => {
+        setIsAnimating(false);
+        setCurrentAnimationIndex(0);
+        setFocusedNodeId(null);
+        
+        // Remove all highlighting
+        setNodes(nds => 
+          nds.map(node => ({
+            ...node,
+            className: (node.className || '').replace(/\s*node-highlighted\s*/g, '').trim(),
+          }))
+        );
+        
+        // Zoom out to show entire diagram after brief pause
+        setTimeout(() => {
+          fitView({ duration: 800, padding: 0.15 });
+        }, 500);
+      }, animationSpeed);
+    } else {
+      // Schedule next animation
+      animationTimerRef.current = setTimeout(() => {
+        const nextIndex = currentAnimationIndex + 1;
+        setCurrentAnimationIndex(nextIndex);
+      }, animationSpeed);
+    }
     
     return () => {
       if (animationTimerRef.current) {
         clearTimeout(animationTimerRef.current);
       }
     };
-  }, [isAnimating, animatingNodes, currentAnimationIndex, nodes, setCenter, getZoom, animationSpeed]);
+  }, [isAnimating, animatingNodes, currentAnimationIndex, nodes, setCenter, getZoom, animationSpeed, fitView, setNodes]);
   
   // Handle section click
   const handleSectionClick = useCallback((sectionId: string) => {
@@ -318,6 +344,52 @@ export function useOriginTracingAnimation({
       stopAnimation();
     }
   }, [stopAnimation, isAnimating]);
+  
+  // Auto-play animation on mount (runs once)
+  useEffect(() => {
+    // Only run once and only if we have nodes
+    if (hasAutoPlayedRef.current || nodes.length === 0 || navSections.length === 0) {
+      return;
+    }
+    
+    // Find the evolution timeline section
+    const evolutionSection = navSections.find(s => s.id === 'evolution');
+    
+    if (!evolutionSection || !evolutionSection.subsections || evolutionSection.subsections.length === 0) {
+      return;
+    }
+    
+    // Collect node IDs from evolution timeline subsections in order: origin → steps → claim
+    const subsectionGroups = evolutionSection.subsections.map(subsection => ({
+      id: subsection.id,
+      nodeIds: subsection.items.map(item => item.nodeId)
+    }));
+    
+    // Filter out empty groups and flatten to get all node IDs
+    const allNodeIds = subsectionGroups
+      .filter(group => group.nodeIds.length > 0)
+      .flatMap(group => group.nodeIds);
+    
+    if (allNodeIds.length === 0) {
+      return;
+    }
+    
+    // Mark that auto-play has been triggered
+    hasAutoPlayedRef.current = true;
+    
+    // Start the animation after a brief delay to let the component settle
+    const autoPlayTimer = setTimeout(() => {
+      setActiveSection('evolution');
+      setExpandedSections(new Set(['evolution', 'evolution-origin', 'evolution-steps', 'evolution-claim']));
+      setAnimatingNodes(allNodeIds);
+      setCurrentAnimationIndex(0);
+      setIsAnimating(true);
+    }, 800); // Brief delay before starting
+    
+    return () => {
+      clearTimeout(autoPlayTimer);
+    };
+  }, [nodes.length, navSections]); // Only depend on counts, not full arrays
   
   // Handle node click to focus it
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
