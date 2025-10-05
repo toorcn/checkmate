@@ -13,6 +13,7 @@ import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
 import { extractTweetId } from "../../../../lib/validation";
 import { logger } from "../../../../lib/logger";
+import { analyzeSentiment } from "../../../../lib/sentiment-analysis";
 
 /**
  * Twitter-specific data extracted from the platform
@@ -295,6 +296,13 @@ Please fact-check the claims from this Twitter/X post content, paying special at
           `Twitter/X content analysis from user: ${twitterData?.username || 'unknown'}`
         );
 
+        // Perform sentiment analysis using AWS Comprehend
+        const sentimentAnalysis = await analyzeSentiment(
+          textToFactCheck,
+          transcription?.language || "en",
+          context.requestId
+        );
+
         const factCheckResult: FactCheckResult = {
           verdict:
             (resultData.overallStatus as FactCheckResult["verdict"]) ||
@@ -305,8 +313,18 @@ Please fact-check the claims from this Twitter/X post content, paying special at
             textToFactCheck.substring(0, 500) +
             (textToFactCheck.length > 500 ? "..." : ""),
           sources: resultData.sources || [],
-          flags: [],
+          flags: sentimentAnalysis?.flags || [],
           politicalBias: politicalBiasAnalysis,
+          sentimentAnalysis: sentimentAnalysis
+            ? {
+                overall: sentimentAnalysis.overall,
+                scores: sentimentAnalysis.scores,
+                keyPhrases: sentimentAnalysis.keyPhrases,
+                entities: sentimentAnalysis.entities,
+                emotionalIntensity: sentimentAnalysis.emotionalIntensity,
+                flags: sentimentAnalysis.flags,
+              }
+            : undefined,
         };
 
         logger.info("Fact-check completed", {

@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
 import { CreatorCredibilityDisplay } from "@/components/creator-credibility-display";
+import { SentimentDisplay } from "@/components/analysis/sentiment-display";
 import { useLanguage } from "@/components/language-provider";
 
 const getStatusIcon = (status: string) => {
@@ -293,6 +294,15 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                 </span>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Sentiment Analysis */}
+        {(analysis.factCheck as any)?.sentimentAnalysis && (
+          <div className="mt-6">
+            <SentimentDisplay
+              sentiment={(analysis.factCheck as any).sentimentAnalysis}
+            />
           </div>
         )}
 

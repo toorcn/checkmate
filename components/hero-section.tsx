@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { useLanguage } from "@/components/language-provider";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
+import { SentimentDisplay } from "@/components/analysis/sentiment-display";
 import Link from "next/link";
 
 interface HeroSectionProps {
@@ -1171,6 +1172,15 @@ This claim appears to have originated from legitimate news sources around early 
                                 </div>
                               </CardContent>
                             </Card>
+
+                            {/* Sentiment Analysis Section */}
+                            {(currentData.factCheck as any)?.sentimentAnalysis && (
+                              <div className="mt-6">
+                                <SentimentDisplay 
+                                  sentiment={(currentData.factCheck as any).sentimentAnalysis}
+                                />
+                              </div>
+                            )}
 
                             {/* Origin Tracing Diagram - Moved here from detailed analysis */}
                             {((

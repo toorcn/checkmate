@@ -64,6 +64,23 @@ export interface FactCheckResult {
     biasIndicators: string[];
     politicalTopics: string[];
   };
+  // Sentiment analysis from AWS Comprehend
+  sentimentAnalysis?: {
+    overall: string; // POSITIVE, NEGATIVE, NEUTRAL, MIXED
+    scores: {
+      positive: number;
+      negative: number;
+      neutral: number;
+      mixed: number;
+    };
+    keyPhrases: string[];
+    entities?: Array<{
+      text: string;
+      type: string;
+    }>;
+    emotionalIntensity: number; // 0-1 scale
+    flags: string[]; // Warning flags for inflammatory/manipulative content
+  };
 }
 
 /**
