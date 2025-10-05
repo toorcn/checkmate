@@ -11,11 +11,13 @@ import { signOut } from "@/lib/better-auth-client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
+import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
 
 export function Header() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const { isExpanded } = useDiagramExpansion();
 
   // Inline LanguageToggle for mobile
   const MobileLanguageToggle = () => {
@@ -144,7 +146,7 @@ export function Header() {
   );
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <header className={`border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-400 ${isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}`}>
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">

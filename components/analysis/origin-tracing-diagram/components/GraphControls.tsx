@@ -2,27 +2,25 @@
 
 import React from 'react';
 import { Button } from '../../../ui/button';
-import { Pause, X as XIcon, Minimize2, Maximize2, Maximize } from 'lucide-react';
+import { Pause, X as XIcon, Maximize } from 'lucide-react';
 
 interface GraphControlsProps {
-  isFullscreen: boolean;
+  isExpanded: boolean;
   isAnimating: boolean;
-  onToggleFullscreen: () => void;
   onPauseAnimation: () => void;
   onStopAnimation: () => void;
   onFitView: () => void;
 }
 
 export function GraphControls({
-  isFullscreen,
+  isExpanded,
   isAnimating,
-  onToggleFullscreen,
   onPauseAnimation,
   onStopAnimation,
   onFitView,
 }: GraphControlsProps) {
   return (
-    <div className={isFullscreen ? "p-5 border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-white shadow-sm" : "p-4 border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-white"}>
+    <div className={isExpanded ? "p-5 border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-white shadow-sm" : "p-4 border-b border-slate-200 bg-gradient-to-r from-white via-slate-50 to-white"}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
@@ -42,7 +40,7 @@ export function GraphControls({
                 size="sm"
                 variant="outline"
                 onClick={onPauseAnimation}
-                className="h-8 text-xs font-semibold shadow-sm hover:shadow-md transition-all border-slate-300 bg-white hover:bg-slate-50"
+                className="h-8 text-xs font-semibold shadow-md hover:shadow-lg transition-all border-slate-400 bg-white hover:bg-slate-50 text-slate-900"
               >
                 <Pause className="h-3.5 w-3.5 mr-1.5" />
                 Pause
@@ -51,7 +49,7 @@ export function GraphControls({
                 size="sm"
                 variant="outline"
                 onClick={onStopAnimation}
-                className="h-8 text-xs font-semibold shadow-sm hover:shadow-md transition-all border-slate-300 bg-white hover:bg-slate-50"
+                className="h-8 text-xs font-semibold shadow-md hover:shadow-lg transition-all border-slate-400 bg-white hover:bg-slate-50 text-slate-900"
               >
                 <XIcon className="h-3.5 w-3.5 mr-1.5" />
                 Stop
@@ -62,30 +60,11 @@ export function GraphControls({
             size="sm"
             variant="outline"
             onClick={onFitView}
-            className="h-8 text-xs font-semibold shadow-sm hover:shadow-md transition-all border-slate-300 bg-white hover:bg-slate-50"
+            className="h-8 text-xs font-semibold shadow-md hover:shadow-lg transition-all border-slate-400 bg-white hover:bg-slate-50 text-slate-900"
             title="Fit graph to view"
           >
             <Maximize className="h-3.5 w-3.5 mr-1.5" />
             Fit View
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onToggleFullscreen}
-            className="h-8 text-xs font-semibold shadow-sm hover:shadow-md transition-all border-slate-300 bg-white hover:bg-slate-50"
-            title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-          >
-            {isFullscreen ? (
-              <>
-                <Minimize2 className="h-3.5 w-3.5 mr-1.5" />
-                Exit Fullscreen
-              </>
-            ) : (
-              <>
-                <Maximize2 className="h-3.5 w-3.5 mr-1.5" />
-                Fullscreen
-              </>
-            )}
           </Button>
         </div>
       </div>

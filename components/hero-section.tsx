@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { useLanguage } from "@/components/language-provider";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
+import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
 import Link from "next/link";
 
 interface HeroSectionProps {
@@ -69,6 +70,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [isMockLoading, setIsMockLoading] = useState(false);
+  const { isExpanded: isDiagramExpanded } = useDiagramExpansion();
   const [mockResult, setMockResult] = useState<{
     success: boolean;
     data: {
@@ -869,7 +871,7 @@ This claim appears to have originated from legitimate news sources around early 
         {/* Results */}
         {(result || mockResult) && (
           <div className="mx-auto max-w-7xl mt-8 px-2 sm:px-4">
-            <Card className="overflow-hidden">
+            <Card className={isDiagramExpanded ? "overflow-visible" : "overflow-hidden"}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   {result?.success || mockResult?.success ? (

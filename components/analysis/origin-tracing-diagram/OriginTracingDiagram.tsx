@@ -13,7 +13,7 @@ import '@xyflow/react/dist/style.css';
 
 import { OriginTracingDiagramProps } from '../../../types/origin-tracing';
 import { nodeTypes } from './nodes';
-import { useOriginTracingGraph, useOriginTracingAnimation, useFullscreen, useNodeHoverHighlight } from './hooks';
+import { useOriginTracingGraph, useOriginTracingAnimation, useScrollExpansion, useNodeHoverHighlight } from './hooks';
 import { GraphControls, NavigationSidebar, SplitViewResizer } from './components';
 import { diagramStyles } from './diagram-styles';
 
@@ -33,8 +33,8 @@ function OriginTracingDiagramInternal({
   const [isPanning, setIsPanning] = useState(false); // Track panning state
   const { fitView } = useReactFlow();
   
-  // Fullscreen management
-  const { isFullscreen, toggleFullscreen } = useFullscreen(containerRef);
+  // Scroll-triggered expansion management
+  const { isExpanded } = useScrollExpansion(containerRef);
   
   // Graph initialization
   const { nodes: initialNodes, edges: initialEdges, navSections } = useOriginTracingGraph({
@@ -148,17 +148,16 @@ function OriginTracingDiagramInternal({
       <div
         ref={containerRef}
         className={
-          isFullscreen 
-            ? "react-flow-fullscreen-container"
+          isExpanded 
+            ? "react-flow-expanded-container"
             : "h-[700px] sm:h-[600px] md:h-[700px] shadow-2xl mb-6 bg-white border-2 border-slate-200 rounded-2xl overflow-hidden"
         }
       >
         <div className="h-full flex flex-col">
           {/* Header Controls */}
           <GraphControls
-            isFullscreen={isFullscreen}
+            isExpanded={isExpanded}
             isAnimating={isAnimating}
-            onToggleFullscreen={toggleFullscreen}
             onPauseAnimation={() => setIsAnimating(false)}
             onStopAnimation={stopAnimation}
             onFitView={handleFitView}
@@ -235,7 +234,7 @@ function OriginTracingDiagramInternal({
               isAnimating={isAnimating}
               focusedNodeId={focusedNodeId}
               nodes={nodes}
-              isFullscreen={isFullscreen}
+              isExpanded={isExpanded}
               sidebarWidth={sidebarWidth}
               onToggleSection={toggleSection}
               onSectionClick={handleSectionClick}

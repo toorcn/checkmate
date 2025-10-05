@@ -17,26 +17,41 @@ export const diagramStyles = `
     height: 100% !important;
   }
   
-  /* Fullscreen Styles */
-  .react-flow-fullscreen-container {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 9999 !important;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  /* Expanded Styles - Scroll-triggered full width expansion */
+  .react-flow-expanded-container {
+    position: relative !important;
     width: 100vw !important;
-    height: 100vh !important;
+    height: 700px !important;
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 100 !important;
   }
   
-  .react-flow-fullscreen-container .react-flow__viewport {
+  .react-flow-expanded-container .react-flow__viewport {
     width: 100% !important;
     height: 100% !important;
   }
   
-  /* Fullscreen Sidebar */
-  .fullscreen-sidebar {
+  @media (min-width: 640px) {
+    .react-flow-expanded-container {
+      height: 600px !important;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .react-flow-expanded-container {
+      height: 700px !important;
+    }
+  }
+  
+  /* Expanded Sidebar */
+  .expanded-sidebar {
     border-left: 1px solid #e2e8f0;
     background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
     box-shadow: -4px 0 16px rgba(0, 0, 0, 0.06);

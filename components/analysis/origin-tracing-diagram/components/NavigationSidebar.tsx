@@ -15,7 +15,7 @@ interface NavigationSidebarProps {
   isAnimating: boolean;
   focusedNodeId: string | null;
   nodes: Node[];
-  isFullscreen: boolean;
+  isExpanded: boolean;
   sidebarWidth: number;
   onToggleSection: (sectionId: string) => void;
   onSectionClick: (sectionId: string) => void;
@@ -33,7 +33,7 @@ export function NavigationSidebar({
   isAnimating,
   focusedNodeId,
   nodes,
-  isFullscreen,
+  isExpanded,
   sidebarWidth,
   onToggleSection,
   onSectionClick,
@@ -43,7 +43,7 @@ export function NavigationSidebar({
 }: NavigationSidebarProps) {
   return (
     <div 
-      className={isFullscreen ? "fullscreen-sidebar overflow-y-auto" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto"}
+      className={isExpanded ? "expanded-sidebar overflow-y-auto" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto"}
       style={{ width: `${sidebarWidth}%` }}
     >
       <div className="p-5">
@@ -396,11 +396,11 @@ export function NavigationSidebar({
           </div>
         )}
         
-        {/* Additional info in fullscreen */}
-        {isFullscreen && (
+        {/* Additional info when expanded */}
+        {isExpanded && (
           <div className="mt-5 pt-4 border-t-2 border-slate-200">
             <p className="text-xs text-slate-600 text-center font-medium bg-slate-50 px-4 py-3 rounded-lg">
-              Press <kbd className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-800 font-mono text-xs shadow-sm">ESC</kbd> or click Exit Fullscreen to return
+              Expanded to full width • Scroll away to collapse
             </p>
           </div>
         )}
