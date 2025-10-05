@@ -8,6 +8,12 @@ import { textModel, DEFAULT_CLASSIFY_MAX_TOKENS, DEFAULT_CLASSIFY_TEMPERATURE } 
  * - Verification status (verified/misleading/unverifiable)
  * - Confidence level (0.0 to 1.0)
  *
+ * **Important**: The analysis prioritizes PRIMARY claims over SECONDARY details. Content
+ * is marked as "verified" if the core factual assertion is true, even if embellishments
+ * or superlatives (e.g., "first ever", "only one") are inaccurate. This ensures the
+ * fact-check focuses on the substantive claim rather than getting sidetracked by minor
+ * exaggerations.
+ *
  * The function includes intelligent fallbacks for when API keys are unavailable,
  * using keyword-based analysis as a backup method.
  *
@@ -18,11 +24,11 @@ import { textModel, DEFAULT_CLASSIFY_MAX_TOKENS, DEFAULT_CLASSIFY_TEMPERATURE } 
  * @example
  * ```typescript
  * const result = await analyzeVerificationStatus(
- *   "Vaccines cause autism in children",
- *   "CDC research shows no link between vaccines and autism..."
+ *   "Australia provides free education and is the first country ever to do so",
+ *   "Research shows Australia does provide free education, but other countries did it first..."
  * );
  *
- * console.log(result.status); // "misleading"
+ * console.log(result.status); // "verified" (core claim is true)
  * console.log(result.confidence); // 0.85
  * ```
  */
@@ -74,9 +80,18 @@ Based on the research evidence, determine:
 2. Confidence Level: A number from 0.0 to 1.0 representing how confident you are in this assessment
 
 Guidelines:
-- "verified": Clear evidence supports the claim and it is accurate
-- "misleading": Claim has some truth but lacks important context or is presented in a misleading way
-- "unverifiable": Insufficient credible evidence to make a determination
+- "verified": The PRIMARY/CORE claim is accurate and supported by evidence
+  * Use this even if minor secondary details (like superlatives "first ever", "only one") are inaccurate
+  * Focus on whether the main factual assertion is true
+  * Example: "Australia offers free education" (verified) vs "first country to do so" (secondary detail)
+  
+- "misleading": The PRIMARY claim itself is substantially false, lacks critical context, or is deceptive
+  * Use this when the core fact is wrong or presented in a way that creates false impressions
+  * Do NOT use this just because embellishments or secondary details are inaccurate
+  
+- "unverifiable": Insufficient credible evidence to make a determination about the primary claim
+
+**IMPORTANT**: Base your verdict on the PRIMARY claim, not embellishments or secondary details.
 
 Respond in this exact JSON format:
 {"status": "status_here", "confidence": 0.0}`;
