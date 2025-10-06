@@ -60,6 +60,12 @@ interface ExaContentResult {
  * 4. Analyzing content with AI for verification
  * 5. Determining overall truthfulness and confidence
  *
+ * **Claim Prioritization**: The tool distinguishes between PRIMARY claims (core facts)
+ * and SECONDARY details (embellishments, superlatives). Verdicts are based on the
+ * primary claim's accuracy. If the main fact is true but minor details are exaggerated
+ * (e.g., "first country to do X"), the content is marked as "verified" with notes about
+ * the inaccurate secondary details.
+ *
  * @requires EXA_API_KEY environment variable
  * @requires AWS_REGION environment variable (for Bedrock)
  *
@@ -309,15 +315,35 @@ ${context ? `Context: ${context}` : ""}
 Credible sources found:
 ${searchContent}
 
+**CRITICAL INSTRUCTION - CLAIM PRIORITIZATION:**
+When analyzing content, you MUST distinguish between:
+1. **PRIMARY CLAIMS**: The main factual assertion being made (e.g., "Australia provides free education")
+2. **SECONDARY DETAILS**: Embellishments, superlatives, or contextual details (e.g., "first country ever", "only nation to do this")
+
+**Your verdict should be based primarily on the PRIMARY claim, NOT secondary details.**
+
+If the PRIMARY claim is TRUE but SECONDARY details are false/exaggerated:
+- Mark as "verified" if the core fact is accurate
+- In your analysis, note which secondary details are inaccurate but emphasize that the main claim is true
+- Do NOT mark content as "misleading" solely because of minor embellishments if the central fact is correct
+
+Example:
+- Content: "Australia provides free university education and is the first country ever to do so"
+- PRIMARY CLAIM: Australia provides free university education
+- SECONDARY DETAIL: "first country ever to do so"
+- If Australia DOES provide free education but ISN'T the first: Mark as "verified" and note the secondary detail is inaccurate
+
 Please provide a comprehensive fact-check analysis structured as follows:
 
 **FOR THE DETAILED ANALYSIS SECTION (displayed first):**
-1. Overall verification status (verified/misleading/unverifiable)
-2. Evidence from the credible sources provided
-3. Specific claims that are accurate or inaccurate
-4. Reasoning behind your assessment
-5. Any biases or credibility concerns
-6. Comprehensive analysis of the evidence
+1. **Identify the PRIMARY claim(s)** - What is the core factual assertion?
+2. **Verify the PRIMARY claim(s) first** - Is the main fact true or false?
+3. Overall verification status (verified/misleading/unverifiable) - Based PRIMARILY on the main claim
+4. Evidence from the credible sources provided
+5. Note any inaccurate SECONDARY details separately (but don't let them override the main verdict)
+6. Reasoning behind your assessment
+7. Any biases or credibility concerns
+8. Comprehensive analysis of the evidence
 
 **FOR THE ORIGIN TRACING SECTION (displayed after sources):**
 If the content is false, misleading, or contains dubious claims, provide detailed:
@@ -335,7 +361,10 @@ Psychology/science-backed reasons why people might believe this content:
 - Academic references where possible
 
 Format your response clearly with these sections:
-- **Conclusion and Summary** (for Detailed Analysis section)
+- **Primary Claim Identification** (identify the core fact being asserted)
+- **Primary Claim Verification** (verify the main claim with evidence)
+- **Conclusion and Summary** (for Detailed Analysis section - based on primary claim)
+- **Secondary Details Analysis** (note any inaccurate embellishments separately)
 - **Evidence Analysis** (for Detailed Analysis section)
 - **Source Credibility Assessment** (for Detailed Analysis section)
 - **Reasoning and Methodology** (for Detailed Analysis section)
