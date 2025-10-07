@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, Send } from "lucide-react";
 import React, { useState } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 /**
  * Props for the CreatorComments component
@@ -40,18 +41,8 @@ export const CreatorComments = ({
   className,
 }: CreatorCommentsProps) => {
   const { t } = useLanguage();
-  const [userEmail, setUserEmail] = React.useState<string | null>(null);
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setUserEmail(data?.user?.email ?? null);
-        }
-      } catch {}
-    })();
-  }, []);
+  const { user } = useAuth();
+  const userEmail = user?.email ?? null;
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 

@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function Header() {
   const pathname = usePathname();
@@ -206,32 +207,15 @@ function AuthButtons({
   mobile?: boolean;
 }) {
   const { t } = useLanguage();
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
-  const [email, setEmail] = React.useState<string>("");
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setIsSignedIn(!!data?.user);
-          setEmail(data?.user?.email || "");
-        } else {
-          setIsSignedIn(false);
-        }
-      } catch {
-        setIsSignedIn(false);
-      }
-    })();
-  }, []);
+  const { user, signOut: authSignOut } = useAuth();
 
   const goSignOut = async () => {
     await signOut();
-    setIsSignedIn(false);
+    await authSignOut();
     onClickDone?.();
   };
 
-  if (!isSignedIn) {
+  if (!user) {
     return (
       <div className="flex items-center gap-2">
         <Button variant="default" size="sm" className=" justify-start" asChild>
@@ -243,7 +227,7 @@ function AuthButtons({
 
   return mobile ? (
     <div className="w-full flex items-center justify-between">
-      <span className="truncate max-w-[10rem]">{email || t.checkmate}</span>
+      <span className="truncate max-w-[10rem]">{user.email || t.checkmate}</span>
       <Button variant="outline" size="sm" onClick={goSignOut} className="ml-2">
         Sign out
       </Button>
@@ -256,22 +240,11 @@ function AuthButtons({
 }
 
 function SignedInEmailBadge() {
-  const [email, setEmail] = React.useState<string>("");
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setEmail(data?.user?.email || "");
-        }
-      } catch {}
-    })();
-  }, []);
-  if (!email) return null;
+  const { user } = useAuth();
+  if (!user?.email) return null;
   return (
     <span className="text-sm text-muted-foreground truncate max-w-[16rem]">
-      {email}
+      {user.email}
     </span>
   );
 }

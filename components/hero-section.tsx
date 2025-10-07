@@ -34,6 +34,7 @@ import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagr
 import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
 import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 import Link from "next/link";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 interface HeroSectionProps {
   initialUrl?: string;
@@ -138,17 +139,8 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
     stopProgress,
     resetProgress,
   } = useAnimatedProgress({ duration: 20000 }); // 30 seconds
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        setIsSignedIn(res.ok && (await res.json())?.user != null);
-      } catch {
-        setIsSignedIn(false);
-      }
-    })();
-  }, []);
+  const { user } = useAuth();
+  const isSignedIn = !!user;
 
   const saveTikTokAnalysisWithCredibility =
     useSaveTikTokAnalysisWithCredibility();

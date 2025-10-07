@@ -27,9 +27,26 @@ export async function POST(req: Request) {
   } catch {}
 
   const res = new NextResponse(null, { status: 204 });
+  
+  // Clear session cookie
   res.headers.append(
     "Set-Cookie",
     `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`
   );
+  
+  // Clear OAuth cookies (if present)
+  res.headers.append(
+    "Set-Cookie",
+    `accessToken=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`
+  );
+  res.headers.append(
+    "Set-Cookie",
+    `idToken=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`
+  );
+  res.headers.append(
+    "Set-Cookie",
+    `refreshToken=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`
+  );
+  
   return res;
 }

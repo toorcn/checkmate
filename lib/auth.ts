@@ -43,6 +43,31 @@ export async function createSessionJWT(payload: {
 
 export async function getAuthContext(): Promise<AuthContext | null> {
   const c = await cookies();
+  
+  // First, check for OAuth tokens (from Google, etc.)
+  const idToken = c.get("idToken")?.value;
+  if (idToken) {
+    try {
+      // Decode Cognito ID token (no signature verification needed for now)
+      const jwt = await import("jsonwebtoken");
+      const decoded = jwt.decode(idToken) as any;
+      
+      if (decoded && decoded.email && decoded.sub) {
+        return {
+          provider: "local", // Keep as "local" for compatibility
+          subject: decoded.sub,
+          userId: decoded.sub,
+          email: decoded.email,
+          sessionId: undefined, // OAuth doesn't use session IDs
+        };
+      }
+    } catch (error) {
+      console.error("Error decoding OAuth ID token:", error);
+      // Fall through to check session token
+    }
+  }
+  
+  // Fall back to session-based auth (email/password login)
   const token = c.get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
