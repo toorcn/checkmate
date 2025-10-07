@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,9 @@ import {
   ShieldIcon,
   SearchIcon,
   SmileIcon,
+  CopyIcon,
+  Share2Icon,
+  ClipboardIcon,
 } from "lucide-react";
 import { useTikTokAnalysis } from "@/lib/hooks/use-tiktok-analysis";
 import { useSaveTikTokAnalysisWithCredibility } from "@/lib/hooks/use-saved-analyses";
@@ -147,6 +150,119 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const router = useRouter();
   const { t } = useLanguage();
 
+  // Improved UX state
+  const [urlTouched, setUrlTouched] = useState(false);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+  const [phase, setPhase] = useState<string>("");
+
+  const isValidUrl = useMemo(() => {
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    try {
+      const u = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
+      // Accept common hosts (tiktok, twitter/x) and generic web for demo
+      return Boolean(u.hostname);
+    } catch {
+      return false;
+    }
+  }, [url]);
+
+  const urlError = useMemo(() => {
+    if (!urlTouched) return "";
+    if (!url.trim()) return "Please enter a URL";
+    if (!isValidUrl) return "Enter a valid URL (e.g., https://tiktok.com/...)";
+    return "";
+  }, [urlTouched, url, isValidUrl]);
+
+  // Loading phase label derived from progress
+  useEffect(() => {
+    if (!isAnimating) return;
+    const pct = Math.round(progress);
+    if (pct < 30) setPhase("Transcribing media");
+    else if (pct < 60) setPhase("Detecting news content");
+    else if (pct < 85) setPhase("Fact-checking claims");
+    else setPhase("Building origin tracing & credibility");
+  }, [progress, isAnimating]);
+
+  // Auto-scroll to results when available
+  useEffect(() => {
+    if ((result?.success && result.data) || (mockResult?.success && mockResult.data)) {
+      queueMicrotask(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [result, mockResult]);
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setUrl(text);
+        setUrlTouched(true);
+      } else {
+        toast.info("Clipboard is empty");
+      }
+    } catch {
+      toast.error("Unable to read clipboard");
+    }
+  };
+
+  const handleClearUrl = () => {
+    setUrl("");
+    setUrlTouched(false);
+  };
+
+  const handleSelectSample = (sampleUrl: string) => {
+    setUrl(sampleUrl);
+    setUrlTouched(true);
+  };
+
+  const buildSummaryText = (data: any) => {
+    try {
+      const fc = data?.factCheck as unknown as FactCheckResult | undefined;
+      const title = data?.metadata?.title || "Checkmate Analysis";
+      const verdict = fc?.verdict ? `Verdict: ${fc.verdict}` : "";
+      const confidence = fc?.confidence != null ? `Confidence: ${fc.confidence}%` : "";
+      const summary = fc ? getAnalysisSummary(fc) : data?.newsDetection?.contentType || "";
+      const link = data?.metadata?.originalUrl || "";
+      return [title, verdict, confidence, summary, link].filter(Boolean).join("\n");
+    } catch {
+      return "Checkmate analysis summary";
+    }
+  };
+
+  const handleCopySummary = async () => {
+    const dataSource = result?.success && result.data ? result.data : mockResult?.success && mockResult.data ? mockResult.data : null;
+    if (!dataSource) return;
+    try {
+      await navigator.clipboard.writeText(buildSummaryText(dataSource));
+      toast.success("Summary copied to clipboard");
+    } catch {
+      toast.error("Failed to copy summary");
+    }
+  };
+
+  const handleShare = async () => {
+    const dataSource = result?.success && result.data ? result.data : mockResult?.success && mockResult.data ? mockResult.data : null;
+    if (!dataSource) return;
+    const text = buildSummaryText(dataSource);
+    const shareUrl = dataSource?.metadata?.originalUrl || window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Checkmate Analysis", text, url: shareUrl });
+        return;
+      } catch {
+        // fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+      toast.success("Share text copied to clipboard");
+    } catch {
+      toast.error("Failed to share");
+    }
+  };
+
   useEffect(() => {
     setUrl(initialUrl);
   }, [initialUrl]);
@@ -164,6 +280,11 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const handleAnalyze = async () => {
     if (!url.trim()) {
       toast.error(t.enterUrl);
+      return;
+    }
+    setUrlTouched(true);
+    if (!isValidUrl) {
+      toast.error("Please enter a valid URL");
       return;
     }
 
@@ -765,61 +886,101 @@ This claim appears to have originated from legitimate news sources around early 
     <section className="py-24 md:py-32 relative">
       {/* Analysis Loading Overlay */}
       {(isLoading || isMockLoading) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <Card className="w-full max-w-md mx-auto shadow-2xl border-primary border-2 animate-in fade-in-0 zoom-in-95">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-primary">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" aria-busy="true" aria-live="polite">
+          <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm animate-in fade-in-0 zoom-in-95">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="flex items-center justify-center gap-3 text-primary text-xl">
                 <LoaderIcon className="h-6 w-6 animate-spin" />
                 Analyzing Content...
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Progress value={progress} />
-              <div className="text-base text-muted-foreground text-center">
-                <p>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Progress value={progress} className="h-2" />
+                <p className="text-sm text-muted-foreground text-center">
+                  {Math.round(progress)}% complete
+                </p>
+                {phase && (
+                  <p className="text-xs text-center text-gray-600 dark:text-gray-300">{phase}</p>
+                )}
+              </div>
+              <div className="text-sm text-muted-foreground text-center space-y-3">
+                <p className="font-medium">
                   We are transcribing the video, detecting news content, and
                   fact-checking claims using AI.
                 </p>
-                <p className="mt-2">
-                  This may take up to a minute for longer videos. Please don’t
+                <p>
+                  This may take up to a minute for longer videos. Please don't
                   close this tab.
                 </p>
-                <p className="mt-4 text-xs text-gray-400">
-                  Checkmate is verifying sources, analyzing credibility, and
-                  summarizing results for you.
-                </p>
+                <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
+                  <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  <span className="ml-2">Verifying sources and analyzing credibility</span>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
       )}
       <div className="text-center">
-        <Badge variant="secondary" className="mb-4">
+        <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
           AI-Powered Fact Checking
         </Badge>
         <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
           {t.heroTitle}
         </h1>
-        <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
+        <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
           {t.heroSubtitle}
         </p>
-        <div className="mx-auto max-w-2xl space-y-4 px-2 sm:px-4">
+        <div className="mx-auto max-w-2xl space-y-5 px-2 sm:px-4">
           <form
             onSubmit={handleSubmit}
             className="flex gap-3 items-center justify-center"
           >
             <Input
               placeholder={t.urlPlaceholder}
-              className="flex-1 h-12 text-base min-w-0 break-words"
+              className={`flex-1 h-12 text-base min-w-0 break-words border-2 focus:border-primary/50 transition-colors duration-200 ${urlTouched && !isValidUrl ? "border-red-400 focus:border-red-500" : ""}`}
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => { setUrl(e.target.value); if (!urlTouched) setUrlTouched(true); }}
+              onBlur={() => setUrlTouched(true)}
               disabled={isLoading || isMockLoading}
+              aria-label="Content URL"
+              aria-invalid={Boolean(urlTouched && !isValidUrl)}
+              aria-describedby="url-help"
+              autoFocus
             />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="px-3 h-10 shrink-0"
+              onClick={handlePasteFromClipboard}
+              disabled={isLoading || isMockLoading}
+              aria-label="Paste URL from clipboard"
+            >
+              <ClipboardIcon className="h-4 w-4 mr-1" />
+              Paste
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="px-3 h-10 shrink-0"
+              onClick={handleClearUrl}
+              disabled={isLoading || isMockLoading || !url}
+              aria-label="Clear URL"
+            >
+              <XCircleIcon className="h-4 w-4 mr-1" />
+              Clear
+            </Button>
             <Button
               type="submit"
               size="lg"
-              className="px-6 h-12 shrink-0"
-              disabled={isLoading || isMockLoading || !url.trim()}
+              className="px-6 h-12 shrink-0 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+              disabled={isLoading || isMockLoading || !isValidUrl}
+              aria-label="Analyze URL"
             >
               {isLoading ? (
                 <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
@@ -830,22 +991,40 @@ This claim appears to have originated from legitimate news sources around early 
             </Button>
           </form>
 
+          {/* Helper text & validation */}
+          <div id="url-help" className="text-left">
+            {urlError ? (
+              <p className="text-xs text-red-600 mt-1">{urlError}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">Paste a TikTok or Twitter(X) link. Example: https://www.tiktok.com/@user/video/123</p>
+            )}
+          </div>
+
           {/* Mock Analysis Button */}
           <div className="flex justify-center">
             <Button
               onClick={handleMockAnalysis}
               variant="outline"
-              size="lg"
-              className="px-6 h-12 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-dashed border-purple-300 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-600"
-              disabled={isLoading || isMockLoading || !url.trim()}
+              size="sm"
+              className="px-4 h-9 text-sm bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-200"
+              disabled={isLoading || isMockLoading || !isValidUrl}
+              aria-label="Run demo analysis"
             >
               {isMockLoading ? (
-                <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                <LoaderIcon className="h-3 w-3 mr-1.5 animate-spin" />
               ) : (
-                <ShieldIcon className="h-4 w-4 mr-2" />
+                <ShieldIcon className="h-3 w-3 mr-1.5" />
               )}
-              {isMockLoading ? "Running Mock..." : "Try Mock Demo (Free!)"}
+              {isMockLoading ? "Running..." : "Try Demo"}
             </Button>
+          </div>
+
+          {/* Quick samples */}
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs mt-2">
+            <span className="text-muted-foreground">Try a sample:</span>
+            <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://www.tiktok.com/@scout2015/video/6718335390845095173")}>TikTok</Button>
+            <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://x.com/3dom13/status/1630577536877961217")}>Twitter/X</Button>
+            <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://example.com/article")}>Web</Button>
           </div>
 
           <p className="text-sm text-muted-foreground text-center">
@@ -854,16 +1033,15 @@ This claim appears to have originated from legitimate news sources around early 
 
           {/* Mock Demo Description */}
           <div className="text-center">
-            <p className="text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-4 py-2 rounded-lg inline-block">
-              The mock demo simulates the full analysis process with realistic
-              data—perfect for testing without API costs!
+            <p className="text-xs text-purple-600 dark:text-purple-400 bg-purple-50/80 dark:bg-purple-900/20 px-3 py-1.5 rounded-md inline-block border border-purple-200/50 dark:border-purple-800/50">
+              Demo simulates full analysis with realistic data—no API costs!
             </p>
           </div>
         </div>
 
         {/* Results */}
         {(result || mockResult) && (
-          <div className="mx-auto max-w-7xl mt-8 px-2 sm:px-4">
+          <div ref={resultsRef} className="mx-auto max-w-7xl mt-8 px-2 sm:px-4">
             <Card className={isDiagramExpanded ? "overflow-visible" : "overflow-hidden"}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1462,6 +1640,13 @@ This claim appears to have originated from legitimate news sources around early 
                                     : t.saveAnalysis}
                               </Button>
                             )}
+
+                            <Button variant="outline" onClick={handleCopySummary} aria-label="Copy summary">
+                              <CopyIcon className="h-4 w-4 mr-2" /> Copy summary
+                            </Button>
+                            <Button variant="outline" onClick={handleShare} aria-label="Share analysis">
+                              <Share2Icon className="h-4 w-4 mr-2" /> Share
+                            </Button>
 
                             {/* Download after save */}
                             {isSignedIn && isSaved && savedId && (
