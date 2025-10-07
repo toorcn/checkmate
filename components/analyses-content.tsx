@@ -30,6 +30,7 @@ import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
 import { CreatorCredibilityDisplay } from "@/components/creator-credibility-display";
 import { useLanguage } from "@/components/language-provider";
+import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -492,6 +493,19 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                               )}
                           </ul>
                         </div>
+                      )}
+
+                    {/* Political Bias Meter - Only for Malaysia Political Content */}
+                    {analysis.factCheck.politicalBias?.isMalaysiaPolitical &&
+                      analysis.factCheck.politicalBias?.malaysiaBiasScore !== undefined && (
+                        <PoliticalBiasMeter
+                          biasScore={analysis.factCheck.politicalBias.malaysiaBiasScore}
+                          explanation={analysis.factCheck.politicalBias.explanation}
+                          keyQuote={analysis.factCheck.politicalBias.keyQuote}
+                          confidence={analysis.factCheck.politicalBias.confidence}
+                          biasIndicators={analysis.factCheck.politicalBias.biasIndicators}
+                          politicalTopics={analysis.factCheck.politicalBias.politicalTopics}
+                        />
                       )}
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">

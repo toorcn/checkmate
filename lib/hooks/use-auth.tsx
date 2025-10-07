@@ -100,6 +100,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     refreshUser().finally(() => setLoading(false));
+
+    // Check if user just logged in via OAuth
+    const oauthLogin = document.cookie.includes('oauth_login=true');
+    if (oauthLogin) {
+      // Clear the flag
+      document.cookie = 'oauth_login=; path=/; max-age=0';
+      // Refresh user data
+      setTimeout(() => refreshUser(), 100);
+    }
   }, []);
 
   const value: AuthContextType = {

@@ -86,3 +86,13 @@ export async function resendVerificationCode(email: string): Promise<void> {
 export async function signOut(): Promise<void> {
   await fetch("/api/auth/sign-out", { method: "POST" });
 }
+
+export function signInWithGoogle(): void {
+  const redirectUri = `${window.location.origin}/api/auth/callback`;
+  const params = new URLSearchParams({
+    redirect_uri: redirectUri,
+  });
+  
+  // Redirect to our API endpoint which will generate the Cognito URL
+  window.location.href = `/api/auth/google?${params}`;
+}
