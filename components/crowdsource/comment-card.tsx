@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 
 interface CommentCardProps {
   comment: Comment;
-  onVote: (commentId: string, voteType: "like" | "dislike") => void;
+  onVote: (commentId: string, voteType: "likes" | "dislikes") => void;
   onReply: (parentId: string, author: string, content: string) => void;
   level?: number;
 }
@@ -45,7 +45,7 @@ export const CommentCard = ({
   const [replyAuthor, setReplyAuthor] = useState("");
   const [hasVoted, setHasVoted] = useState(false);
 
-  const handleVote = (voteType: "like" | "dislike") => {
+  const handleVote = (voteType: "likes" | "dislikes") => {
     if (!hasVoted) {
       onVote(comment.id, voteType);
       setHasVoted(true);
@@ -121,7 +121,7 @@ export const CommentCard = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleVote("like")}
+                  onClick={() => handleVote("likes")}
                   disabled={hasVoted}
                   className={cn(
                     "h-8 px-2 gap-1 text-xs",
@@ -134,7 +134,7 @@ export const CommentCard = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleVote("dislike")}
+                  onClick={() => handleVote("dislikes")}
                   disabled={hasVoted}
                   className={cn(
                     "h-8 px-2 gap-1 text-xs",

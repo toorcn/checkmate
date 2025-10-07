@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!["like", "dislike"].includes(voteType)) {
+    if (!["likes", "dislikes"].includes(voteType)) {
       return NextResponse.json(
         { error: "Invalid vote type" },
         { status: 400 }

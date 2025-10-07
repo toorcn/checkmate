@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Get existing comments for article
+    // eslint-disable-next-line prefer-const
     let articleComments = comments.get(articleId) || [];
 
     if (parentId) {

@@ -110,7 +110,7 @@ export const CommentsSection = ({ articleId }: CommentsSectionProps) => {
     }
   };
 
-  const handleVote = async (commentId: string, voteType: "like" | "dislike") => {
+  const handleVote = async (commentId: string, voteType: "likes" | "dislikes") => {
     try {
       const response = await fetch("/api/crowdsource/comments/vote", {
         method: "POST",

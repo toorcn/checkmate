@@ -3,13 +3,12 @@
  */
 
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { ArticlePageContent } from "@/components/crowdsource";
 
 interface ArticlePageProps {
-  params: {
+  params: Promise<{
     articleId: string;
-  };
+  }>;
 }
 
 /**
