@@ -61,8 +61,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
           sessionId: undefined, // OAuth doesn't use session IDs
         };
       }
-    } catch (error) {
-      console.error("Error decoding OAuth ID token:", error);
+    } catch {
       // Fall through to check session token
     }
   }

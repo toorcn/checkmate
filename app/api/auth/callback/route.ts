@@ -25,19 +25,14 @@ export async function GET(request: NextRequest) {
         const redirectUri = `${request.nextUrl.origin}/api/auth/callback`;
         const tokens = await exchangeOAuthCode(code, redirectUri);
 
-        console.log("✅ Tokens received successfully");
-
         // Get user info from ID token (more reliable for OAuth)
         const user = await getUserFromIdToken(tokens.idToken);
 
         if (!user) {
-            console.error("❌ Could not extract user from ID token");
             return NextResponse.redirect(
                 new URL("/sign-in?error=user_not_found", request.url)
             );
         }
-
-        console.log("✅ User info extracted:", { email: user.email, id: user.id });
 
         // Set auth cookies
         const cookieStore = await cookies();
@@ -64,8 +59,6 @@ export async function GET(request: NextRequest) {
             path: "/",
             maxAge: 10, // Short-lived, just for the redirect
         });
-
-        console.log("✅ Redirecting to homepage with auth cookies set");
 
         // Redirect to home page
         return NextResponse.redirect(new URL("/", request.url));

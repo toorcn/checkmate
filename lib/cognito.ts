@@ -415,11 +415,8 @@ export async function getUserFromIdToken(idToken: string): Promise<CognitoUser |
         const decoded = jwt.decode(idToken) as any;
 
         if (!decoded) {
-            console.error("Failed to decode ID token");
             return null;
         }
-
-        console.log("🔍 Decoded ID token:", decoded);
 
         return {
             id: decoded.sub || decoded["cognito:username"] || "",
@@ -448,12 +445,6 @@ export function getGoogleOAuthUrl(redirectUri: string): string {
 
     const cognitoRegion = process.env.COGNITO_REGION || process.env.APP_REGION || "us-east-1";
     
-    console.log("🔧 Building OAuth URL:");
-    console.log("  - COGNITO_DOMAIN:", COGNITO_DOMAIN);
-    console.log("  - Region:", cognitoRegion);
-    console.log("  - CLIENT_ID:", CLIENT_ID);
-    console.log("  - Redirect URI:", redirectUri);
-    
     const params = new URLSearchParams({
         client_id: CLIENT_ID!,
         response_type: "code",
@@ -462,10 +453,7 @@ export function getGoogleOAuthUrl(redirectUri: string): string {
         identity_provider: "Google",
     });
 
-    const finalUrl = `https://${COGNITO_DOMAIN}.auth.${cognitoRegion}.amazoncognito.com/oauth2/authorize?${params}`;
-    console.log("  - Final URL:", finalUrl);
-    
-    return finalUrl;
+    return `https://${COGNITO_DOMAIN}.auth.${cognitoRegion}.amazoncognito.com/oauth2/authorize?${params}`;
 }
 
 /**

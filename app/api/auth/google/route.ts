@@ -6,12 +6,7 @@ export async function GET(request: NextRequest) {
         const redirectUri = request.nextUrl.searchParams.get("redirect_uri") || 
                           `${request.nextUrl.origin}/api/auth/callback`;
 
-        console.log("🔍 OAuth Debug Info:");
-        console.log("  - Redirect URI:", redirectUri);
-        console.log("  - Origin:", request.nextUrl.origin);
-        
         const authUrl = getGoogleOAuthUrl(redirectUri);
-        console.log("  - Generated Auth URL:", authUrl);
 
         return NextResponse.redirect(authUrl);
     } catch (error: any) {
