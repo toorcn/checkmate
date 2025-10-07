@@ -32,6 +32,7 @@ import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { useLanguage } from "@/components/language-provider";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
 import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
+import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 import Link from "next/link";
 
 interface HeroSectionProps {
@@ -1398,9 +1399,9 @@ This claim appears to have originated from legitimate news sources around early 
                                     )}
 
                                   {/* Belief Drivers - Text summary after diagram */}
-                                  {(
-                                    currentData.factCheck as unknown as FactCheckResult
-                                  ).beliefDrivers &&
+                                    {(
+                                      currentData.factCheck as unknown as FactCheckResult
+                                    ).beliefDrivers &&
                                     (
                                       currentData.factCheck as unknown as FactCheckResult
                                     ).beliefDrivers!.length > 0 && (
@@ -1426,6 +1427,21 @@ This claim appears to have originated from legitimate news sources around early 
                                         </div>
                                       </div>
                                     )}
+
+                                    {/* Political Bias Meter - Only for Malaysia Political Content */}
+                                    {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
+                                      (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (
+                                        <div className="mt-4">
+                                          <PoliticalBiasMeter
+                                            biasScore={(currentData.factCheck as any).politicalBias.malaysiaBiasScore}
+                                            explanation={(currentData.factCheck as any).politicalBias.explanation}
+                                            keyQuote={(currentData.factCheck as any).politicalBias.keyQuote}
+                                            confidence={(currentData.factCheck as any).politicalBias.confidence}
+                                            biasIndicators={(currentData.factCheck as any).politicalBias.biasIndicators}
+                                            politicalTopics={(currentData.factCheck as any).politicalBias.politicalTopics}
+                                          />
+                                        </div>
+                                      )}
                                 </div>
                               )}
                             </div>
