@@ -5,9 +5,17 @@
 
 import { NextResponse } from "next/server";
 
-// Free news API - GNews (you can also use NewsAPI, TheNewsAPI, etc.)
-const GNEWS_API_KEY = process.env.GNEWS_API_KEY || "demo"; // Use 'demo' for testing
-const GNEWS_API_URL = "https://gnews.io/api/v4/top-headlines";
+// Free news API - NewsAPI (free tier: 1000 requests/day)
+const NEWS_API_KEY = process.env.NEWS_API_KEY || "your-newsapi-key-here";
+const NEWS_API_URL = "https://newsapi.org/v2/top-headlines";
+
+// Fallback: Guardian API (free, no key required for limited requests)
+const GUARDIAN_API_URL = "https://content.guardianapis.com/search";
+
+// Cache for articles to maintain stable IDs
+let cachedArticles: any[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Generate fake analysis for a news article
@@ -66,35 +74,115 @@ function generateFakeAnalysis() {
  */
 export async function GET() {
   try {
-    // Using GNews API - you can also use NewsAPI or any other free news API
-    // For production, use environment variable: process.env.GNEWS_API_KEY
-    const url = `${GNEWS_API_URL}?token=${GNEWS_API_KEY}&lang=en&max=10`;
+    // Check if we have cached articles that are still valid
+    const now = Date.now();
+    if (cachedArticles && (now - cacheTimestamp) < CACHE_DURATION) {
+      return NextResponse.json({
+        articles: cachedArticles,
+        total: cachedArticles.length,
+      });
+    }
+
+    // Using NewsAPI - free tier with 1000 requests/day
+    // Get your free API key at: https://newsapi.org/register
+    const url = `${NEWS_API_URL}?apiKey=${NEWS_API_KEY}&country=us&pageSize=10`;
+
+    console.log("Fetching news from:", url.replace(NEWS_API_KEY, "***"));
 
     const response = await fetch(url, {
       next: { revalidate: 300 }, // Cache for 5 minutes
     });
 
+    console.log("NewsAPI response status:", response.status);
+
     if (!response.ok) {
-      // If GNews fails, return mock data for demo purposes
+      console.log("NewsAPI failed, trying Guardian API as fallback");
+      
+      // Try Guardian API as fallback
+      try {
+        const guardianUrl = `${GUARDIAN_API_URL}?api-key=${process.env.GUARDIAN_API_KEY || 'test'}&page-size=10&show-fields=thumbnail,trailText`;
+        console.log("Trying Guardian API:", guardianUrl.replace(process.env.GUARDIAN_API_KEY || 'test', '***'));
+        
+        const guardianResponse = await fetch(guardianUrl);
+        
+        if (guardianResponse.ok) {
+          const guardianData = await guardianResponse.json();
+          console.log("Guardian API response:", guardianData);
+          
+          if (guardianData.response && guardianData.response.results) {
+            const articles = guardianData.response.results.map((article: any, index: number) => ({
+              id: `article-${Buffer.from(article.webTitle + article.webUrl).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 16)}-${index}`,
+              title: article.webTitle,
+              description: article.fields?.trailText || article.webTitle,
+              url: article.webUrl,
+              urlToImage: article.fields?.thumbnail,
+              source: {
+                id: "guardian",
+                name: "The Guardian",
+              },
+              author: "The Guardian",
+              publishedAt: article.webPublicationDate,
+              content: article.fields?.trailText || article.webTitle,
+              votes: {
+                credible: Math.floor(Math.random() * 100) + 20,
+                notCredible: Math.floor(Math.random() * 50) + 5,
+                unsure: Math.floor(Math.random() * 30) + 10,
+              },
+              analysis: generateFakeAnalysis(),
+            }));
+            
+            console.log("Guardian articles count:", articles.length);
+            
+            // Cache the articles
+            cachedArticles = articles;
+            cacheTimestamp = now;
+            
+            return NextResponse.json({
+              articles,
+              total: articles.length,
+            });
+          }
+        }
+      } catch (guardianError) {
+        console.log("Guardian API also failed:", guardianError);
+      }
+      
+      // If both APIs fail, return empty array
+      cachedArticles = [];
+      cacheTimestamp = now;
+      
       return NextResponse.json({
-        articles: generateMockArticles(),
+        articles: [],
+        total: 0,
       });
     }
 
     const data = await response.json();
+    console.log("NewsAPI response data:", data);
+
+    if (!data.articles || data.articles.length === 0) {
+      console.log("No articles found in response");
+      cachedArticles = [];
+      cacheTimestamp = now;
+      
+      return NextResponse.json({
+        articles: [],
+        total: 0,
+      });
+    }
 
     // Transform articles to include voting data and fake analysis
     const articles = data.articles.map((article: any, index: number) => ({
-      id: `article-${Date.now()}-${index}`,
+      id: `article-${Buffer.from(article.title + article.url).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 16)}-${index}`,
       title: article.title,
       description: article.description,
       url: article.url,
-      urlToImage: article.image,
+      urlToImage: article.urlToImage,
       source: {
-        id: article.source.name.toLowerCase().replace(/\s+/g, "-"),
-        name: article.source.name,
+        id: article.source?.id || article.source?.name?.toLowerCase().replace(/\s+/g, "-") || "unknown",
+        name: article.source?.name || "Unknown Source",
       },
-      author: article.source.name,
+      author: article.author,
       publishedAt: article.publishedAt,
       content: article.content,
       votes: {
@@ -105,6 +193,12 @@ export async function GET() {
       analysis: generateFakeAnalysis(),
     }));
 
+    console.log("Transformed articles count:", articles.length);
+
+    // Cache the articles
+    cachedArticles = articles;
+    cacheTimestamp = now;
+
     return NextResponse.json({
       articles,
       total: articles.length,
@@ -112,88 +206,22 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching news:", error);
     
-    // Return mock data as fallback
+    // Return cached articles if available, otherwise empty array
+    if (cachedArticles) {
+      return NextResponse.json({
+        articles: cachedArticles,
+        total: cachedArticles.length,
+      });
+    }
+    
+    // Return empty array as fallback
+    cachedArticles = [];
+    cacheTimestamp = Date.now();
+    
     return NextResponse.json({
-      articles: generateMockArticles(),
+      articles: [],
+      total: 0,
     });
   }
 }
 
-/**
- * Generate mock articles for demo/fallback
- */
-function generateMockArticles() {
-  return [
-    {
-      id: "mock-1",
-      title: "Tech Giants Announce New AI Safety Standards",
-      description:
-        "Major technology companies have agreed on new safety standards for artificial intelligence development and deployment.",
-      url: "https://example.com/article-1",
-      urlToImage: "https://picsum.photos/seed/tech1/400/300",
-      source: { id: "tech-news", name: "Tech News Daily" },
-      author: "Sarah Johnson",
-      publishedAt: new Date(Date.now() - 3600000).toISOString(),
-      content:
-        "Leading technology companies have announced a joint initiative...",
-      votes: { credible: 87, notCredible: 12, unsure: 23 },
-      analysis: generateFakeAnalysis(),
-    },
-    {
-      id: "mock-2",
-      title: "Climate Summit Reaches Historic Agreement",
-      description:
-        "World leaders at the climate summit have reached a landmark agreement on reducing carbon emissions.",
-      url: "https://example.com/article-2",
-      urlToImage: "https://picsum.photos/seed/climate1/400/300",
-      source: { id: "world-news", name: "World News Network" },
-      author: "Michael Chen",
-      publishedAt: new Date(Date.now() - 7200000).toISOString(),
-      content: "After days of intense negotiations, world leaders have...",
-      votes: { credible: 124, notCredible: 8, unsure: 15 },
-      analysis: generateFakeAnalysis(),
-    },
-    {
-      id: "mock-3",
-      title: "Breakthrough in Renewable Energy Storage",
-      description:
-        "Scientists have developed a new battery technology that could revolutionize renewable energy storage.",
-      url: "https://example.com/article-3",
-      urlToImage: "https://picsum.photos/seed/energy1/400/300",
-      source: { id: "science-daily", name: "Science Daily" },
-      author: "Dr. Emily Rodriguez",
-      publishedAt: new Date(Date.now() - 10800000).toISOString(),
-      content: "A team of researchers has announced a major breakthrough...",
-      votes: { credible: 156, notCredible: 5, unsure: 19 },
-      analysis: generateFakeAnalysis(),
-    },
-    {
-      id: "mock-4",
-      title: "Global Markets React to Economic Policy Changes",
-      description:
-        "Stock markets worldwide show mixed reactions to new economic policies announced by central banks.",
-      url: "https://example.com/article-4",
-      urlToImage: "https://picsum.photos/seed/finance1/400/300",
-      source: { id: "financial-times", name: "Financial Times" },
-      author: "Robert Williams",
-      publishedAt: new Date(Date.now() - 14400000).toISOString(),
-      content: "Global financial markets experienced volatility today...",
-      votes: { credible: 98, notCredible: 23, unsure: 34 },
-      analysis: generateFakeAnalysis(),
-    },
-    {
-      id: "mock-5",
-      title: "New Study Reveals Impact of Social Media on Mental Health",
-      description:
-        "Researchers publish comprehensive study on the effects of social media usage on adolescent mental health.",
-      url: "https://example.com/article-5",
-      urlToImage: "https://picsum.photos/seed/health1/400/300",
-      source: { id: "health-news", name: "Health News Today" },
-      author: "Dr. Amanda Lee",
-      publishedAt: new Date(Date.now() - 18000000).toISOString(),
-      content: "A new study published in a leading medical journal...",
-      votes: { credible: 134, notCredible: 18, unsure: 28 },
-      analysis: generateFakeAnalysis(),
-    },
-  ];
-}
