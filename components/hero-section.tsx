@@ -29,8 +29,9 @@ import { useAnimatedProgress } from "@/lib/hooks/use-animated-progress";
 import React from "react";
 import { toast } from "sonner";
 import { AnalysisRenderer } from "@/components/analysis-renderer";
-import { useLanguage } from "@/components/language-provider";
+import { useGlobalTranslation } from "@/components/global-translation-provider";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
+import { SentimentDisplay } from "@/components/analysis/sentiment-display";
 import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
 import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 import Link from "next/link";
@@ -145,7 +146,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const saveTikTokAnalysisWithCredibility =
     useSaveTikTokAnalysisWithCredibility();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, translateCurrentPage, enableAutoTranslation, language } = useGlobalTranslation();
 
   useEffect(() => {
     setUrl(initialUrl);
@@ -154,12 +155,18 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   useEffect(() => {
     if (result) {
       if (result.success) {
-        toast.success(t.analysisComplete);
+        // Trigger translation if auto-translation is enabled and language is not English
+        if (enableAutoTranslation && language !== "en") {
+          // Small delay to allow DOM to update with new content
+          setTimeout(() => {
+            translateCurrentPage();
+          }, 500);
+        }
       } else if (result.error) {
         toast.error(result.error);
       }
     }
-  }, [result, t]);
+  }, [result, t, enableAutoTranslation, language, translateCurrentPage]);
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
@@ -494,6 +501,14 @@ This claim appears to have originated from legitimate news sources around early 
     setMockResult(mockData);
     setIsMockLoading(false);
     toast.success("Mock Analysis Complete! (No API costs incurred)");
+    
+    // Trigger translation if auto-translation is enabled and language is not English
+    if (enableAutoTranslation && language !== "en") {
+      // Small delay to allow DOM to update with new content
+      setTimeout(() => {
+        translateCurrentPage();
+      }, 500);
+    }
   };
 
   const handleSaveAnalysis = async () => {
@@ -941,9 +956,7 @@ This claim appears to have originated from legitimate news sources around early 
                               </h4>
                               <div className="p-4 bg-muted rounded-lg">
                                 <div className="text-sm leading-relaxed">
-                                  <AnalysisRenderer
-                                    content={currentData.transcription.text}
-                                  />
+                                  <AnalysisRenderer content={currentData.transcription.text} />
                                 </div>
                                 {currentData.transcription.language && (
                                   <p className="text-xs text-muted-foreground mt-3">
@@ -1166,6 +1179,15 @@ This claim appears to have originated from legitimate news sources around early 
                                 </div>
                               </CardContent>
                             </Card>
+
+                            {/* Sentiment Analysis Section */}
+                            {(currentData.factCheck as any)?.sentimentAnalysis && (
+                              <div className="mt-6">
+                                <SentimentDisplay 
+                                  sentiment={(currentData.factCheck as any).sentimentAnalysis}
+                                />
+                              </div>
+                            )}
 
                             {/* Origin Tracing Diagram - Moved here from detailed analysis */}
                             {((

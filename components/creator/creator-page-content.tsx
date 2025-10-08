@@ -10,7 +10,7 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ExternalLink } from "lucide-react";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 import { CreatorSummary, CreatorAnalyses } from "@/components/creator";
 import { LoadingSpinner, EmptyState } from "@/components/analysis";
 import { useState, useEffect } from "react";

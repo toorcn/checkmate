@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/components/language-provider";
+import Link from "next/link";
+import { useLanguage } from "@/components/global-translation-provider";
 
 export function CTASection() {
   const { t } = useLanguage();

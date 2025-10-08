@@ -81,9 +81,9 @@ interface AnalysisActionsProps {
 
 const AnalysisActions = ({ analysisId }: AnalysisActionsProps) => (
   <div className="flex justify-end items-center mt-4">
-    <Link href={`/news/${analysisId}`} passHref>
-      <Button variant="outline" size="sm">
-        View Details
+    <Link href={`/news/${analysisId}`}>
+      <Button variant="outline" size="sm" asChild>
+        <span>View Details</span>
       </Button>
     </Link>
   </div>
@@ -109,12 +109,11 @@ const formatDate = (timestamp: number): string => {
  */
 export const AnalysisCard = ({ analysis, className }: AnalysisCardProps) => {
   return (
-    <Link href={`/news/${analysis._id}`} className="block">
-      <Card
-        className={`rounded-none border-x-0 border-t-0 first:border-t hover:bg-muted/50 cursor-pointer ${className || ""}`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start gap-4">
+    <Card
+      className={`rounded-none border-x-0 border-t-0 first:border-t hover:bg-muted/50 cursor-pointer ${className || ""}`}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
             {/* Creator Avatar */}
             <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
               <User className="h-5 w-5 text-muted-foreground" />
@@ -193,11 +192,11 @@ export const AnalysisCard = ({ analysis, className }: AnalysisCardProps) => {
               </div>
 
               {/* Actions */}
+              {/* Actions */}
               <AnalysisActions analysisId={analysis._id} />
             </div>
           </div>
         </CardContent>
       </Card>
-    </Link>
   );
 };

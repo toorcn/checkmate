@@ -3,8 +3,8 @@
 import { SearchCheck, Newspaper, Menu, Sun, Moon, Users } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "next-themes";
-import { LanguageToggle } from "@/components/language-toggle";
-import { useLanguage } from "@/components/language-provider";
+import { GlobalTranslationToggle, MobileGlobalTranslationToggle } from "@/components/global-translation-toggle";
+import { useGlobalTranslation } from "@/components/global-translation-provider";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { signOut } from "@/lib/better-auth-client";
@@ -16,13 +16,13 @@ import { useAuth } from "@/lib/hooks/use-auth";
 
 export function Header() {
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t } = useGlobalTranslation();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const { isExpanded } = useDiagramExpansion();
 
   // Inline LanguageToggle for mobile
   const MobileLanguageToggle = () => {
-    const { language, setLanguage, t } = useLanguage();
+    const { language, setLanguage, t } = useGlobalTranslation();
     const languages = [
       { code: "en" as const, label: t.english, flag: "🇺🇸" },
       { code: "ms" as const, label: t.malay, flag: "🇲🇾" },
@@ -61,7 +61,7 @@ export function Header() {
   // Inline ThemeToggle for mobile
   const MobileThemeToggle = () => {
     const { theme, setTheme } = useTheme();
-    const { t } = useLanguage();
+    const { t } = useGlobalTranslation();
     const [mounted, setMounted] = React.useState(false);
 
     // Prevent hydration mismatch by only rendering after mount
@@ -148,12 +148,12 @@ export function Header() {
       )}
       {mobile ? (
         <>
-          <MobileLanguageToggle />
+          <MobileGlobalTranslationToggle />
           <MobileThemeToggle />
         </>
       ) : (
         <>
-          <LanguageToggle />
+          <GlobalTranslationToggle />
           <ThemeToggle />
         </>
       )}
@@ -206,7 +206,7 @@ function AuthButtons({
   onClickDone?: () => void;
   mobile?: boolean;
 }) {
-  const { t } = useLanguage();
+  const { t } = useGlobalTranslation();
   const { user, signOut: authSignOut } = useAuth();
 
   const goSignOut = async () => {

@@ -12,6 +12,7 @@ import { researchAndFactCheck } from "../../../../tools/fact-checking";
 import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-bias-analysis";
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
 import { logger } from "../../../../lib/logger";
+import { analyzeSentiment } from "../../../../lib/sentiment-analysis";
 
 /**
  * TikTok-specific data extracted from the platform
@@ -529,6 +530,13 @@ Please fact-check the claims from this TikTok video content, paying special atte
           `TikTok content analysis from creator: ${tiktokData?.creator || 'unknown'}`
         );
 
+        // Perform sentiment analysis using AWS Comprehend
+        const sentimentAnalysis = await analyzeSentiment(
+          textToFactCheck,
+          transcription?.language || "en",
+          context.requestId
+        );
+
         const factCheckResult: FactCheckResult = {
           verdict:
             (resultData.overallStatus as FactCheckResult["verdict"]) ||
@@ -543,7 +551,22 @@ Please fact-check the claims from this TikTok video content, paying special atte
           originTracing: resultData.originTracing,
           beliefDrivers: resultData.beliefDrivers,
           politicalBias: politicalBiasAnalysis,
+          sentimentAnalysis: sentimentAnalysis
+            ? {
+                overall: sentimentAnalysis.overall,
+                scores: sentimentAnalysis.scores,
+                keyPhrases: sentimentAnalysis.keyPhrases,
+                entities: sentimentAnalysis.entities,
+                emotionalIntensity: sentimentAnalysis.emotionalIntensity,
+                flags: sentimentAnalysis.flags,
+              }
+            : undefined,
         };
+
+        // Add sentiment analysis flags to fact-check flags
+        if (sentimentAnalysis && sentimentAnalysis.flags.length > 0) {
+          factCheckResult.flags.push(...sentimentAnalysis.flags);
+        }
 
         // Lightweight parsing fallback from reasoning text when structured fields are absent
         if (
