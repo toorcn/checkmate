@@ -3,8 +3,24 @@ import { getGoogleOAuthUrl } from "@/lib/cognito";
 
 export async function GET(request: NextRequest) {
     try {
+        // Get the correct origin (handle reverse proxy headers)
+        const forwardedHost = request.headers.get('x-forwarded-host');
+        const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+        
+        const origin = forwardedHost
+            ? `${forwardedProto}://${forwardedHost}`
+            : request.nextUrl.origin;
+
         const redirectUri = request.nextUrl.searchParams.get("redirect_uri") || 
-                          `${request.nextUrl.origin}/api/auth/callback`;
+                          `${origin}/api/auth/callback`;
+
+        console.log('🔍 Google OAuth origin detection:', {
+            'nextUrl.origin': request.nextUrl.origin,
+            'x-forwarded-host': request.headers.get('x-forwarded-host'),
+            'x-forwarded-proto': request.headers.get('x-forwarded-proto'),
+            'finalOrigin': origin,
+            'redirectUri': redirectUri
+        });
 
         const authUrl = getGoogleOAuthUrl(redirectUri);
 
