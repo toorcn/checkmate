@@ -9,7 +9,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 import { AnalysisData, TikTokAnalysisData } from "@/types/analysis";
 
 interface ActionButtonsProps {

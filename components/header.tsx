@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { GlobalTranslationToggle, MobileGlobalTranslationToggle } from "@/components/global-translation-toggle";
 import { useGlobalTranslation } from "@/components/global-translation-provider";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/lib/better-auth-client";
@@ -164,6 +164,11 @@ export function Header() {
           </Link>
         </Button>
       )}
+      {mobile ? (
+        <MobileGlobalTranslationToggle />
+      ) : (
+        <GlobalTranslationToggle />
+      )}
       {mobile && <AvatarDropdown />}
     </>
   );
@@ -195,6 +200,7 @@ export function Header() {
                 side="right"
                 className="flex flex-col gap-4 w-56 pt-8"
               >
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <Controls closeMenu={() => setMenuOpen(false)} mobile />
               </SheetContent>
             </Sheet>

@@ -9,7 +9,7 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import { AnalysisRenderer } from "@/components/analysis-renderer";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
 import { MetadataDisplay } from "./metadata-display";
 import { FactCheckDisplay } from "./fact-check-display";

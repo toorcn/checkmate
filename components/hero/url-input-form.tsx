@@ -12,7 +12,7 @@ import {
   ShieldIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 
 interface UrlInputFormProps {
   url: string;

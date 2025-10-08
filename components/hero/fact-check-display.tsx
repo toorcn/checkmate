@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
+import { SentimentDisplay } from "@/components/analysis/sentiment-display";
 import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 import { FactCheckResult, AnalysisData } from "@/types/analysis";
 
@@ -291,6 +292,13 @@ export function FactCheckDisplay({
           </div>
         </CardContent>
       </Card>
+
+      {/* Sentiment Analysis Section */}
+      {factCheck.sentimentAnalysis && (
+        <div className="mt-6">
+          <SentimentDisplay sentiment={factCheck.sentimentAnalysis} />
+        </div>
+      )}
 
       {/* Origin Tracing Diagram */}
       {(factCheck.originTracing?.hypothesizedOrigin ||
