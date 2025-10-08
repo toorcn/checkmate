@@ -155,8 +155,6 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   useEffect(() => {
     if (result) {
       if (result.success) {
-        toast.success(t.analysisComplete);
-        
         // Trigger translation if auto-translation is enabled and language is not English
         if (enableAutoTranslation && language !== "en") {
           // Small delay to allow DOM to update with new content
