@@ -33,7 +33,6 @@ export function FactCheckDisplay({
   currentData,
 }: FactCheckDisplayProps) {
   const [isDetailedAnalysisExpanded, setIsDetailedAnalysisExpanded] = useState(false);
-  const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(false);
 
   // Normalize various backend verdict strings to a canonical set used by UI
   const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" => {
@@ -374,46 +373,8 @@ export function FactCheckDisplay({
                   Detailed Analysis:
                 </p>
                 <div>
-                  {(() => {
-                    const explanation = factCheck.explanation;
-                    const shouldTruncate = explanation.length > 500;
-
-                    const contentToShow =
-                      shouldTruncate && !isAnalysisExpanded
-                        ? explanation.substring(0, 500) + "..."
-                        : explanation;
-
-                    return (
-                      <AnalysisRenderer content={contentToShow} />
-                    );
-                  })()}
+                  <AnalysisRenderer content={factCheck.explanation} />
                 </div>
-                {(() => {
-                  const explanation = factCheck.explanation;
-
-                  if (explanation.length <= 500) return null;
-
-                  return (
-                    <button
-                      onClick={() =>
-                        setIsAnalysisExpanded(!isAnalysisExpanded)
-                      }
-                      className="mt-4 text-primary hover:text-primary/80 font-medium transition-colors text-sm flex items-center gap-1"
-                    >
-                      {isAnalysisExpanded ? (
-                        <>
-                          <ChevronUpIcon className="h-4 w-4" />
-                          Show less analysis
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDownIcon className="h-4 w-4" />
-                          Show full analysis
-                        </>
-                      )}
-                    </button>
-                  );
-                })()}
               </div>
             )}
 

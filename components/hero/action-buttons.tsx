@@ -10,14 +10,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
-import { AnalysisData } from "@/types/analysis";
+import { AnalysisData, TikTokAnalysisData } from "@/types/analysis";
 
 interface ActionButtonsProps {
   isSignedIn: boolean;
   isSaving: boolean;
   isSaved: boolean;
   savedId: string | null;
-  dataSource: AnalysisData | null;
+  dataSource: AnalysisData | TikTokAnalysisData | null;
   onSaveAnalysis: () => void;
   onCopySummary: () => void;
   onShare: () => void;
