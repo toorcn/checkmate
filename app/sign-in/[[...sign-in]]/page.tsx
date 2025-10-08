@@ -172,7 +172,7 @@ export default function Page() {
           </Button>
 
           <div className="mt-5 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/sign-up"
               className="text-foreground underline underline-offset-4"
