@@ -16,6 +16,13 @@ export function ClaimNode({ data }: { data: NodeData }) {
       iconColor: 'text-emerald-600',
       badge: 'bg-emerald-100 text-emerald-800 border-emerald-300'
     },
+    partially_true: {
+      bg: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50',
+      border: 'border-yellow-300',
+      text: 'text-yellow-900',
+      iconColor: 'text-yellow-600',
+      badge: 'bg-yellow-100 text-yellow-800 border-yellow-300'
+    },
     misleading: {
       bg: 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50',
       border: 'border-amber-300',
@@ -44,14 +51,63 @@ export function ClaimNode({ data }: { data: NodeData }) {
       iconColor: 'text-violet-600',
       badge: 'bg-violet-100 text-violet-800 border-violet-300'
     },
+    outdated: {
+      bg: 'bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50',
+      border: 'border-gray-300',
+      text: 'text-gray-900',
+      iconColor: 'text-gray-600',
+      badge: 'bg-gray-100 text-gray-800 border-gray-300'
+    },
+    exaggerated: {
+      bg: 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50',
+      border: 'border-orange-300',
+      text: 'text-orange-900',
+      iconColor: 'text-orange-600',
+      badge: 'bg-orange-100 text-orange-800 border-orange-300'
+    },
+    opinion: {
+      bg: 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50',
+      border: 'border-blue-300',
+      text: 'text-blue-900',
+      iconColor: 'text-blue-600',
+      badge: 'bg-blue-100 text-blue-800 border-blue-300'
+    },
+    rumor: {
+      bg: 'bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50',
+      border: 'border-gray-300',
+      text: 'text-gray-900',
+      iconColor: 'text-gray-600',
+      badge: 'bg-gray-100 text-gray-800 border-gray-300'
+    },
+    conspiracy: {
+      bg: 'bg-gradient-to-br from-red-50 via-rose-50 to-pink-50',
+      border: 'border-red-300',
+      text: 'text-red-900',
+      iconColor: 'text-red-600',
+      badge: 'bg-red-100 text-red-800 border-red-300'
+    },
+    debunked: {
+      bg: 'bg-gradient-to-br from-red-50 via-rose-50 to-pink-50',
+      border: 'border-red-300',
+      text: 'text-red-900',
+      iconColor: 'text-red-600',
+      badge: 'bg-red-100 text-red-800 border-red-300'
+    },
   };
 
   const verdictIcons = {
     verified: CheckCircle,
+    partially_true: AlertTriangle,
     misleading: AlertTriangle,
     false: XCircle,
     unverified: HelpCircle,
     satire: HelpCircle,
+    outdated: HelpCircle,
+    exaggerated: AlertTriangle,
+    opinion: HelpCircle,
+    rumor: HelpCircle,
+    conspiracy: XCircle,
+    debunked: XCircle,
   };
 
   const Icon = verdictIcons[data.verdict as keyof typeof verdictIcons] || HelpCircle;

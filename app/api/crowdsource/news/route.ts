@@ -21,7 +21,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  * Generate fake analysis for a news article
  */
 function generateFakeAnalysis() {
-  const verdicts = ["Verified", "Misleading", "Unverifiable", "False"] as const;
+  const verdicts = ["Verified", "Misleading", "Unverifiable", "False", "Partially True", "Outdated", "Exaggerated", "Opinion", "Rumor", "Conspiracy", "Debunked", "Satire"] as const;
   const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
   const confidence = Math.floor(Math.random() * 30) + 70; // 70-100%
 
@@ -34,6 +34,22 @@ function generateFakeAnalysis() {
       "The claims in this article cannot be verified with available information and credible sources.",
     False:
       "Our analysis has identified multiple factual errors and unsubstantiated claims in this article.",
+    "Partially True":
+      "This article contains both accurate and inaccurate elements. Some claims are supported by evidence while others are not.",
+    Outdated:
+      "This information was accurate at one time but has been superseded by newer evidence or developments.",
+    Exaggerated:
+      "While based on some truth, this article overstates or sensationalizes the facts beyond what evidence supports.",
+    Opinion:
+      "This article expresses subjective views or personal beliefs rather than factual claims that can be verified.",
+    Rumor:
+      "This appears to be unverified information circulating without credible sources or confirmation.",
+    Conspiracy:
+      "This article involves claims about secret plots or hidden agendas without credible evidence to support them.",
+    Debunked:
+      "This claim has been thoroughly disproven by multiple credible sources and scientific evidence.",
+    Satire:
+      "This article appears to be satirical, parody, or comedy in nature and should not be interpreted as factual information.",
   };
 
   const keyPointsOptions = [
@@ -56,6 +72,46 @@ function generateFakeAnalysis() {
       "Multiple factual errors identified",
       "Sources cited are not credible",
       "Information contradicts verified data",
+    ],
+    [
+      "Some claims are accurate while others are false",
+      "Mixed evidence supports different parts of the story",
+      "Requires careful distinction between true and false elements",
+    ],
+    [
+      "Information was accurate when originally published",
+      "New developments have changed the situation",
+      "Readers should seek updated information",
+    ],
+    [
+      "Core facts are true but overstated",
+      "Statistics are inflated beyond actual data",
+      "Sensational language exaggerates the significance",
+    ],
+    [
+      "Content expresses personal views",
+      "Not intended as factual reporting",
+      "Subjective interpretation of events",
+    ],
+    [
+      "Unverified information circulating",
+      "No credible sources confirm the claims",
+      "Appears to be speculation or hearsay",
+    ],
+    [
+      "Claims involve secretive plots",
+      "No credible evidence supports conspiracy theories",
+      "Multiple sources have debunked these claims",
+    ],
+    [
+      "Scientific evidence contradicts the claims",
+      "Multiple studies have disproven this theory",
+      "Expert consensus rejects these assertions",
+    ],
+    [
+      "Content is intended as humor or parody",
+      "Not meant to be taken as factual information",
+      "Comedic elements should not be interpreted literally",
     ],
   ];
 

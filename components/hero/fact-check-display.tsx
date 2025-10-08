@@ -36,13 +36,20 @@ export function FactCheckDisplay({
   const [isDetailedAnalysisExpanded, setIsDetailedAnalysisExpanded] = useState(false);
 
   // Normalize various backend verdict strings to a canonical set used by UI
-  const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" => {
+  const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked" => {
     const value = (status || "").toString().trim().toLowerCase();
     if (value === "true" || value === "verified") return "verified";
     if (value === "false") return "false";
     if (value === "misleading") return "misleading";
     if (value === "unverified" || value === "unverifiable") return "unverified";
     if (value === "satire") return "satire";
+    if (value === "partially_true") return "partially_true";
+    if (value === "outdated") return "outdated";
+    if (value === "exaggerated") return "exaggerated";
+    if (value === "opinion") return "opinion";
+    if (value === "rumor") return "rumor";
+    if (value === "conspiracy") return "conspiracy";
+    if (value === "debunked") return "debunked";
     return "unverified";
   };
 
@@ -59,6 +66,20 @@ export function FactCheckDisplay({
         return <AlertCircleIcon className="h-4 w-4 text-gray-500" />;
       case "satire":
         return <span className="text-purple-500 text-sm">🎭</span>;
+      case "partially_true":
+        return <AlertTriangleIcon className="h-4 w-4 text-yellow-600" />;
+      case "outdated":
+        return <AlertCircleIcon className="h-4 w-4 text-gray-600" />;
+      case "exaggerated":
+        return <AlertTriangleIcon className="h-4 w-4 text-orange-600" />;
+      case "opinion":
+        return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
+      case "rumor":
+        return <AlertCircleIcon className="h-4 w-4 text-gray-400" />;
+      case "conspiracy":
+        return <XCircleIcon className="h-4 w-4 text-red-500" />;
+      case "debunked":
+        return <XCircleIcon className="h-4 w-4 text-red-700" />;
       default:
         return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
     }
@@ -100,6 +121,55 @@ export function FactCheckDisplay({
           <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-700">
             <SmileIcon className="h-3 w-3 mr-1" />
             Satirical Content
+          </Badge>
+        );
+      case "partially_true":
+        return (
+          <Badge className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">
+            <AlertTriangleIcon className="h-3 w-3 mr-1" />
+            Partially True
+          </Badge>
+        );
+      case "outdated":
+        return (
+          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+            <AlertCircleIcon className="h-3 w-3 mr-1" />
+            Outdated Information
+          </Badge>
+        );
+      case "exaggerated":
+        return (
+          <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700">
+            <AlertTriangleIcon className="h-3 w-3 mr-1" />
+            Exaggerated Claims
+          </Badge>
+        );
+      case "opinion":
+        return (
+          <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700">
+            <AlertCircleIcon className="h-3 w-3 mr-1" />
+            Opinion
+          </Badge>
+        );
+      case "rumor":
+        return (
+          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+            <AlertCircleIcon className="h-3 w-3 mr-1" />
+            Rumor
+          </Badge>
+        );
+      case "conspiracy":
+        return (
+          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+            <XCircleIcon className="h-3 w-3 mr-1" />
+            Conspiracy Theory
+          </Badge>
+        );
+      case "debunked":
+        return (
+          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+            <XCircleIcon className="h-3 w-3 mr-1" />
+            Debunked
           </Badge>
         );
       default:
@@ -198,6 +268,55 @@ export function FactCheckDisplay({
           description:
             analysisDescription ||
             "This content appears to be satirical, parody, or comedy in nature. It should not be interpreted as factual information.",
+        };
+      case "partially_true":
+        return {
+          title: "Partially True",
+          description:
+            analysisDescription ||
+            "This content contains both accurate and inaccurate elements. Some claims are supported by evidence while others are not.",
+        };
+      case "outdated":
+        return {
+          title: "Outdated Information",
+          description:
+            analysisDescription ||
+            "This information was accurate at one time but has been superseded by newer evidence or developments.",
+        };
+      case "exaggerated":
+        return {
+          title: "Exaggerated Claims",
+          description:
+            analysisDescription ||
+            "While based on some truth, this content overstates or sensationalizes the facts beyond what evidence supports.",
+        };
+      case "opinion":
+        return {
+          title: "Opinion",
+          description:
+            analysisDescription ||
+            "This content expresses subjective views or personal beliefs rather than factual claims that can be verified.",
+        };
+      case "rumor":
+        return {
+          title: "Rumor",
+          description:
+            analysisDescription ||
+            "This appears to be unverified information circulating without credible sources or confirmation.",
+        };
+      case "conspiracy":
+        return {
+          title: "Conspiracy Theory",
+          description:
+            analysisDescription ||
+            "This content involves claims about secret plots or hidden agendas without credible evidence to support them.",
+        };
+      case "debunked":
+        return {
+          title: "Debunked",
+          description:
+            analysisDescription ||
+            "This claim has been thoroughly disproven by multiple credible sources and scientific evidence.",
         };
       default:
         return {

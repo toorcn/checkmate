@@ -53,8 +53,35 @@ export async function analyzeVerificationStatus(
     ) {
       status = "verified";
       confidence = 0.7;
+    } else if (lowercaseContent.includes("partially true") || lowercaseContent.includes("partially correct")) {
+      status = "partially_true";
+      confidence = 0.7;
     } else if (lowercaseContent.includes("misleading")) {
       status = "misleading";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("false") || lowercaseContent.includes("incorrect") || lowercaseContent.includes("wrong")) {
+      status = "false";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("exaggerated") || lowercaseContent.includes("overstated")) {
+      status = "exaggerated";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("outdated") || lowercaseContent.includes("superseded")) {
+      status = "outdated";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("opinion") || lowercaseContent.includes("subjective")) {
+      status = "opinion";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("rumor") || lowercaseContent.includes("unverified")) {
+      status = "rumor";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("conspiracy") || lowercaseContent.includes("conspiracy theory")) {
+      status = "conspiracy";
+      confidence = 0.7;
+    } else if (lowercaseContent.includes("debunked") || lowercaseContent.includes("disproven")) {
+      status = "debunked";
+      confidence = 0.8;
+    } else if (lowercaseContent.includes("satire") || lowercaseContent.includes("parody") || lowercaseContent.includes("humor")) {
+      status = "satire";
       confidence = 0.7;
     } else if (lowercaseContent.includes("unverifiable")) {
       status = "unverifiable";
@@ -76,7 +103,7 @@ Research Results:
 ${searchContent}
 
 Based on the research evidence, determine:
-1. Verification Status: Choose ONE of: "verified", "misleading", "unverifiable"
+1. Verification Status: Choose ONE of: "verified", "partially_true", "misleading", "false", "exaggerated", "outdated", "opinion", "rumor", "conspiracy", "debunked", "satire", "unverifiable"
 2. Confidence Level: A number from 0.0 to 1.0 representing how confident you are in this assessment
 
 Guidelines:
@@ -84,10 +111,46 @@ Guidelines:
   * Use this even if minor secondary details (like superlatives "first ever", "only one") are inaccurate
   * Focus on whether the main factual assertion is true
   * Example: "Australia offers free education" (verified) vs "first country to do so" (secondary detail)
+
+- "partially_true": The claim contains both accurate and inaccurate elements
+  * Use when some facts are correct but others are wrong or misleading
+  * Example: "The vaccine causes autism" (partially true - vaccine exists, but autism claim is false)
   
 - "misleading": The PRIMARY claim itself is substantially false, lacks critical context, or is deceptive
   * Use this when the core fact is wrong or presented in a way that creates false impressions
   * Do NOT use this just because embellishments or secondary details are inaccurate
+
+- "false": The claim is demonstrably incorrect based on credible evidence
+  * Use for clearly debunked claims with strong evidence against them
+  * Example: "COVID-19 was created in a lab" (false - natural origin confirmed by scientists)
+
+- "exaggerated": The claim contains truth but is overstated or sensationalized
+  * Use when facts are stretched beyond what evidence supports
+  * Example: "Millions died from vaccines" (exaggerated - some deaths occurred but not millions)
+
+- "outdated": The claim was true at one time but is no longer accurate
+  * Use for information that has been superseded by newer evidence
+  * Example: "The Earth is flat" (outdated - disproven centuries ago)
+
+- "opinion": The content expresses subjective views rather than factual claims
+  * Use for personal beliefs, preferences, or subjective statements
+  * Example: "This movie is terrible" (opinion - not a factual claim)
+
+- "rumor": Unverified information circulating without credible sources
+  * Use for unsubstantiated claims that lack reliable evidence
+  * Example: "Celebrity X is getting divorced" (rumor - no confirmed sources)
+
+- "conspiracy": Claims involving secret plots or hidden agendas without evidence
+  * Use for theories about secretive groups controlling events
+  * Example: "The government is hiding aliens" (conspiracy - no credible evidence)
+
+- "debunked": Claims that have been thoroughly disproven by multiple sources
+  * Use for claims with strong evidence against them from credible sources
+  * Example: "Vaccines cause autism" (debunked - multiple studies disprove this)
+
+- "satire": Content intended as humor or parody, not factual information
+  * Use for comedic content that might be mistaken for real news
+  * Example: "Man bites dog" from satirical news site (satire)
   
 - "unverifiable": Insufficient credible evidence to make a determination about the primary claim
 

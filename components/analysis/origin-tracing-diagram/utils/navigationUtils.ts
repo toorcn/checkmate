@@ -75,11 +75,22 @@ export function getVerdictColor(verdict: string): {
     case 'verified':
     case 'true':
       return getCredibilityColor(95);
+    case 'partially_true':
+      return getCredibilityColor(65);
     case 'misleading':
-    case 'satire':
+    case 'exaggerated':
       return getCredibilityColor(40);
+    case 'satire':
+      return getCredibilityColor(50);
     case 'false':
+    case 'conspiracy':
+    case 'debunked':
       return getCredibilityColor(10);
+    case 'outdated':
+    case 'rumor':
+      return getCredibilityColor(30);
+    case 'opinion':
+      return getCredibilityColor(70);
     case 'unverified':
     default:
       return getCredibilityColor(60);
