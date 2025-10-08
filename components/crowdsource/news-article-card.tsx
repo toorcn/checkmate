@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +18,10 @@ import {
   ChevronUp,
   Calendar,
   TrendingUp,
+  MessageCircle,
 } from "lucide-react";
 import { NewsArticle } from "./news-articles-list";
+import { CommentsSection } from "./comments-section";
 import { cn } from "@/lib/utils";
 
 interface NewsArticleCardProps {
@@ -33,7 +36,9 @@ interface NewsArticleCardProps {
  * NewsArticleCard component displays a single news article with voting
  */
 export const NewsArticleCard = ({ article, onVote }: NewsArticleCardProps) => {
+  const router = useRouter();
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
 
   const handleVote = (voteType: "credible" | "notCredible" | "unsure") => {
@@ -91,7 +96,10 @@ export const NewsArticleCard = ({ article, onVote }: NewsArticleCardProps) => {
                 {article.analysis.verdict}
               </Badge>
             </div>
-            <h3 className="text-lg font-semibold line-clamp-2 mb-2">
+            <h3 
+              className="text-lg font-semibold line-clamp-2 mb-2 cursor-pointer hover:text-primary transition-colors"
+              onClick={() => router.push(`/crowdsource/${article.id}`)}
+            >
               {article.title}
             </h3>
             <p className="text-sm text-muted-foreground line-clamp-2">
@@ -207,18 +215,54 @@ export const NewsArticleCard = ({ article, onVote }: NewsArticleCardProps) => {
           )}
         </div>
 
-        {/* Read More Link */}
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="w-full gap-2"
-        >
-          <a href={article.url} target="_blank" rel="noopener noreferrer">
-            Read Full Article
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </Button>
+        {/* Comments Section */}
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowComments(!showComments)}
+            className="w-full justify-between"
+          >
+            <span className="font-medium flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Community Discussion
+            </span>
+            {showComments ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+
+          {showComments && (
+            <div className="mt-2">
+              <CommentsSection articleId={article.id} />
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/crowdsource/${article.id}`)}
+            className="flex-1 gap-2"
+          >
+            View Full Article
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="gap-2"
+          >
+            <a href={article.url} target="_blank" rel="noopener noreferrer">
+              Original
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
