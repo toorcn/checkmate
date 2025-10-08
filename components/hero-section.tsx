@@ -32,7 +32,10 @@ import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { useGlobalTranslation } from "@/components/global-translation-provider";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
 import { SentimentDisplay } from "@/components/analysis/sentiment-display";
+import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
+import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 import Link from "next/link";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 interface HeroSectionProps {
   initialUrl?: string;
@@ -70,6 +73,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [isMockLoading, setIsMockLoading] = useState(false);
+  const { isExpanded: isDiagramExpanded } = useDiagramExpansion();
   const [mockResult, setMockResult] = useState<{
     success: boolean;
     data: {
@@ -135,18 +139,9 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
     startProgress,
     stopProgress,
     resetProgress,
-  } = useAnimatedProgress({ duration: 30000 }); // 30 seconds
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        setIsSignedIn(res.ok && (await res.json())?.user != null);
-      } catch {
-        setIsSignedIn(false);
-      }
-    })();
-  }, []);
+  } = useAnimatedProgress({ duration: 20000 }); // 30 seconds
+  const { user } = useAuth();
+  const isSignedIn = !!user;
 
   const saveTikTokAnalysisWithCredibility =
     useSaveTikTokAnalysisWithCredibility();
@@ -886,7 +881,7 @@ This claim appears to have originated from legitimate news sources around early 
         {/* Results */}
         {(result || mockResult) && (
           <div className="mx-auto max-w-7xl mt-8 px-2 sm:px-4">
-            <Card className="overflow-hidden">
+            <Card className={isDiagramExpanded ? "overflow-visible" : "overflow-hidden"}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   {result?.success || mockResult?.success ? (
@@ -1420,9 +1415,9 @@ This claim appears to have originated from legitimate news sources around early 
                                     )}
 
                                   {/* Belief Drivers - Text summary after diagram */}
-                                  {(
-                                    currentData.factCheck as unknown as FactCheckResult
-                                  ).beliefDrivers &&
+                                    {(
+                                      currentData.factCheck as unknown as FactCheckResult
+                                    ).beliefDrivers &&
                                     (
                                       currentData.factCheck as unknown as FactCheckResult
                                     ).beliefDrivers!.length > 0 && (
@@ -1448,6 +1443,21 @@ This claim appears to have originated from legitimate news sources around early 
                                         </div>
                                       </div>
                                     )}
+
+                                    {/* Political Bias Meter - Only for Malaysia Political Content */}
+                                    {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
+                                      (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (
+                                        <div className="mt-4">
+                                          <PoliticalBiasMeter
+                                            biasScore={(currentData.factCheck as any).politicalBias.malaysiaBiasScore}
+                                            explanation={(currentData.factCheck as any).politicalBias.explanation}
+                                            keyQuote={(currentData.factCheck as any).politicalBias.keyQuote}
+                                            confidence={(currentData.factCheck as any).politicalBias.confidence}
+                                            biasIndicators={(currentData.factCheck as any).politicalBias.biasIndicators}
+                                            politicalTopics={(currentData.factCheck as any).politicalBias.politicalTopics}
+                                          />
+                                        </div>
+                                      )}
                                 </div>
                               )}
                             </div>

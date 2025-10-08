@@ -18,6 +18,7 @@ const cognitoClient = new CognitoIdentityProviderClient({
 const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID;
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID;
 const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET;
+const COGNITO_DOMAIN = process.env.COGNITO_DOMAIN;
 
 function validateCognitoConfig() {
     if (!USER_POOL_ID || !CLIENT_ID) {
@@ -401,5 +402,152 @@ export async function verifyCognitoToken(token: string): Promise<any> {
     } catch (error) {
         console.error("Error verifying Cognito token:", error);
         return null;
+    }
+}
+
+/**
+ * Get user information from ID token (for OAuth users)
+ * This is more reliable for OAuth flows as it doesn't require special scopes
+ */
+export async function getUserFromIdToken(idToken: string): Promise<CognitoUser | null> {
+    try {
+        const jwt = await import("jsonwebtoken");
+        const decoded = jwt.decode(idToken) as any;
+
+        if (!decoded) {
+            return null;
+        }
+
+        return {
+            id: decoded.sub || decoded["cognito:username"] || "",
+            email: decoded.email || "",
+            username: decoded["cognito:username"] || decoded.email?.split("@")[0] || "",
+            emailVerified: decoded.email_verified === true || decoded.email_verified === "true",
+            enabled: true,
+            userStatus: "CONFIRMED",
+            attributes: decoded,
+        };
+    } catch (error) {
+        console.error("Error extracting user from ID token:", error);
+        return null;
+    }
+}
+
+/**
+ * Get Cognito OAuth URL for Google sign-in
+ */
+export function getGoogleOAuthUrl(redirectUri: string): string {
+    validateCognitoConfig();
+    
+    if (!COGNITO_DOMAIN) {
+        throw new Error("COGNITO_DOMAIN environment variable is not set");
+    }
+
+    const cognitoRegion = process.env.COGNITO_REGION || process.env.APP_REGION || "us-east-1";
+    
+    const params = new URLSearchParams({
+        client_id: CLIENT_ID!,
+        response_type: "code",
+        scope: "email openid profile",
+        redirect_uri: redirectUri,
+        identity_provider: "Google",
+    });
+
+    return `https://${COGNITO_DOMAIN}.auth.${cognitoRegion}.amazoncognito.com/oauth2/authorize?${params}`;
+}
+
+/**
+ * Exchange OAuth code for tokens
+ */
+export async function exchangeOAuthCode(
+    code: string,
+    redirectUri: string
+): Promise<SignInResult> {
+    validateCognitoConfig();
+    
+    if (!COGNITO_DOMAIN) {
+        throw new Error("COGNITO_DOMAIN environment variable is not set");
+    }
+
+    const cognitoRegion = process.env.COGNITO_REGION || process.env.APP_REGION || "us-east-1";
+    const tokenEndpoint = `https://${COGNITO_DOMAIN}.auth.${cognitoRegion}.amazoncognito.com/oauth2/token`;
+
+    const params = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: CLIENT_ID!,
+        code: code,
+        redirect_uri: redirectUri,
+    });
+
+    // Add client secret if available
+    if (CLIENT_SECRET) {
+        params.append("client_secret", CLIENT_SECRET);
+    }
+
+    try {
+        console.log("🔄 Exchanging OAuth code for tokens:", {
+            tokenEndpoint,
+            redirectUri,
+            hasClientSecret: !!CLIENT_SECRET,
+            clientIdPrefix: CLIENT_ID?.substring(0, 8) + "...",
+        });
+
+        const response = await fetch(tokenEndpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: params.toString(),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ Token exchange failed:", {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorText,
+                redirectUri: redirectUri,
+                tokenEndpoint: tokenEndpoint,
+                hasClientSecret: !!CLIENT_SECRET,
+            });
+            
+            // Try to parse the error
+            let errorMessage = "Failed to exchange code for tokens";
+            let errorDetails = "";
+            try {
+                const errorData = JSON.parse(errorText);
+                console.error("Token exchange error:", errorData);
+                errorMessage = errorData.error_description || errorData.error || errorMessage;
+                
+                // Provide helpful context based on error type
+                if (errorData.error === "unauthorized_client") {
+                    errorDetails = " - This usually means the redirect URI doesn't match what's configured in Cognito App Client settings. Please ensure your deployed domain is added to 'Allowed callback URLs' in Cognito.";
+                } else if (errorData.error === "invalid_client") {
+                    errorDetails = " - Check that COGNITO_CLIENT_ID and COGNITO_CLIENT_SECRET are correctly set in your environment variables.";
+                } else if (errorData.error === "invalid_grant") {
+                    errorDetails = " - The authorization code is invalid or expired. Try signing in again.";
+                }
+            } catch {
+                // If not JSON, use the raw text if it's short
+                if (errorText.length < 100) {
+                    errorMessage = errorText;
+                }
+            }
+            
+            throw new Error(errorMessage + errorDetails);
+        }
+
+        const data = await response.json();
+
+        return {
+            accessToken: data.access_token,
+            idToken: data.id_token,
+            refreshToken: data.refresh_token,
+            expiresIn: data.expires_in,
+            tokenType: data.token_type,
+        };
+    } catch (error: any) {
+        console.error("Error exchanging OAuth code:", error);
+        throw new Error(error.message || "OAuth authentication failed");
     }
 }

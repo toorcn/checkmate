@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchCheck, Newspaper, Menu, Sun, Moon } from "lucide-react";
+import { SearchCheck, Newspaper, Menu, Sun, Moon, Users } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "next-themes";
 import { GlobalTranslationToggle, MobileGlobalTranslationToggle } from "@/components/global-translation-toggle";
@@ -11,11 +11,14 @@ import { signOut } from "@/lib/better-auth-client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
+import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export function Header() {
   const pathname = usePathname();
   const { t } = useGlobalTranslation();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const { isExpanded } = useDiagramExpansion();
 
   // Inline LanguageToggle for mobile
   const MobileLanguageToggle = () => {
@@ -128,6 +131,21 @@ export function Header() {
           </Link>
         </Button>
       )}
+      {pathname !== "/crowdsource" && (
+        <Button
+          variant="outline"
+          size="sm"
+          className={
+            mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
+          }
+          asChild
+        >
+          <Link href="/crowdsource" className="inline-flex items-center">
+            <Users className="h-4 w-4 mr-2" />
+            {t.voteOnNews}
+          </Link>
+        </Button>
+      )}
       {mobile ? (
         <>
           <MobileGlobalTranslationToggle />
@@ -144,7 +162,7 @@ export function Header() {
   );
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <header className={`border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-400 ${isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}`}>
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -189,32 +207,15 @@ function AuthButtons({
   mobile?: boolean;
 }) {
   const { t } = useGlobalTranslation();
-  const [isSignedIn, setIsSignedIn] = React.useState(false);
-  const [email, setEmail] = React.useState<string>("");
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setIsSignedIn(!!data?.user);
-          setEmail(data?.user?.email || "");
-        } else {
-          setIsSignedIn(false);
-        }
-      } catch {
-        setIsSignedIn(false);
-      }
-    })();
-  }, []);
+  const { user, signOut: authSignOut } = useAuth();
 
   const goSignOut = async () => {
     await signOut();
-    setIsSignedIn(false);
+    await authSignOut();
     onClickDone?.();
   };
 
-  if (!isSignedIn) {
+  if (!user) {
     return (
       <div className="flex items-center gap-2">
         <Button variant="default" size="sm" className=" justify-start" asChild>
@@ -226,7 +227,7 @@ function AuthButtons({
 
   return mobile ? (
     <div className="w-full flex items-center justify-between">
-      <span className="truncate max-w-[10rem]">{email || t.checkmate}</span>
+      <span className="truncate max-w-[10rem]">{user.email || t.checkmate}</span>
       <Button variant="outline" size="sm" onClick={goSignOut} className="ml-2">
         Sign out
       </Button>
@@ -239,22 +240,11 @@ function AuthButtons({
 }
 
 function SignedInEmailBadge() {
-  const [email, setEmail] = React.useState<string>("");
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setEmail(data?.user?.email || "");
-        }
-      } catch {}
-    })();
-  }, []);
-  if (!email) return null;
+  const { user } = useAuth();
+  if (!user?.email) return null;
   return (
     <span className="text-sm text-muted-foreground truncate max-w-[16rem]">
-      {email}
+      {user.email}
     </span>
   );
 }

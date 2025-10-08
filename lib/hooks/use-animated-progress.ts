@@ -43,7 +43,7 @@ export function useAnimatedProgress({
       const easedProgress = easing(linearProgress);
       
       // Convert to percentage (0-100) but cap at 98% to avoid showing "complete"
-      const progressValue = Math.min(easedProgress * 98, 98);
+      const progressValue = Math.min(easedProgress * 99, 99);
       
       setProgress(progressValue);
       

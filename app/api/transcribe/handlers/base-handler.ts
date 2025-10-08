@@ -202,7 +202,11 @@ Task: Read the following analysis text and produce a compact JSON with:
 Guidelines (optimize for rich, comprehensive node coverage without fabrication):
 - Extract AS MANY distinct items as present in the text; do not invent facts.
 - Targets: firstSeenDates up to 15, evolutionSteps up to 10, beliefDrivers up to 10, sources up to 15.
-- For evolutionSteps: Show HOW the belief/claim transformed on each platform, not just platform names. Include the specific adaptation, amplification, or mutation that occurred.
+- For evolutionSteps: For EACH platform, describe the specific transformation that occurred:
+  * transformation: How the content changed (simplified for tweets, emotionalized for TikTok, formatted as memes, etc.)
+  * impact: Quantify reach/engagement when available (went viral, 50K shares, reached mainstream media, etc.) or describe qualitative impact (changed narrative, reached new audience, triggered responses)
+  * Example: {platform: "Twitter", transformation: "Claim simplified to 280 chars, emotional language amplified, misleading context removed", impact: "Went viral with 50K+ retweets, spread to mainstream news"}
+  * Do NOT use generic phrases like "Content spread through X" - always describe what specifically happened
 - For sources: Include both 'title' and 'source' fields where 'source' is the publication/organization name (e.g., "Reuters", "Snopes") and 'title' is the article title.
 - Include dates and URLs whenever available. Prefer diverse platforms (forums, social, influencers, blogs, news, messaging).
 - For beliefDrivers references: Link to practical debunking articles, fact-check explanations, or accessible journalism that explains similar cases - NOT academic papers. Focus on articles that help laypeople understand how misinformation spreads in real-world scenarios.
