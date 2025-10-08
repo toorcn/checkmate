@@ -65,7 +65,7 @@ export function TranslationStatusIndicator() {
             <div className="space-y-1">
               <Progress value={translationProgress} className="h-1.5" />
               <p className="text-xs text-muted-foreground">
-                Converting to {currentLanguage?.nativeName} using AWS Translate
+                Converting to {currentLanguage?.nativeName}
               </p>
             </div>
           </div>

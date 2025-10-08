@@ -66,7 +66,7 @@ export function TranslationToggle() {
 
           {enableRealTimeTranslation && (
             <div className="text-xs text-muted-foreground mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-              Content will be automatically translated using AWS Translate when language is changed.
+              Content will be automatically translated when language is changed.
             </div>
           )}
         </div>
