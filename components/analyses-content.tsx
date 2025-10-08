@@ -47,6 +47,20 @@ const getStatusIcon = (status: string) => {
       return <AlertCircleIcon className="h-4 w-4 text-gray-500" />;
     case "satire":
       return <span className="text-purple-500 text-sm">🎭</span>;
+    case "partially_true":
+      return <AlertTriangleIcon className="h-4 w-4 text-yellow-600" />;
+    case "outdated":
+      return <AlertCircleIcon className="h-4 w-4 text-gray-600" />;
+    case "exaggerated":
+      return <AlertTriangleIcon className="h-4 w-4 text-orange-600" />;
+    case "opinion":
+      return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
+    case "rumor":
+      return <AlertCircleIcon className="h-4 w-4 text-gray-400" />;
+    case "conspiracy":
+      return <XCircleIcon className="h-4 w-4 text-red-500" />;
+    case "debunked":
+      return <XCircleIcon className="h-4 w-4 text-red-700" />;
     default:
       return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
   }
@@ -77,6 +91,38 @@ const getStatusBadge = (status: string) => {
         <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200">
           Satire
         </Badge>
+      );
+    case "partially_true":
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800">Partially True</Badge>
+      );
+    case "outdated":
+      return (
+        <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+          Outdated
+        </Badge>
+      );
+    case "exaggerated":
+      return (
+        <Badge className="bg-orange-100 text-orange-800">Exaggerated</Badge>
+      );
+    case "opinion":
+      return (
+        <Badge className="bg-blue-100 text-blue-800">Opinion</Badge>
+      );
+    case "rumor":
+      return (
+        <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+          Rumor
+        </Badge>
+      );
+    case "conspiracy":
+      return (
+        <Badge className="bg-red-100 text-red-800">Conspiracy</Badge>
+      );
+    case "debunked":
+      return (
+        <Badge className="bg-red-100 text-red-800">Debunked</Badge>
       );
     default:
       return (

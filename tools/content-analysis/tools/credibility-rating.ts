@@ -46,10 +46,33 @@ export const calculateCreatorCredibilityRating = tool({
               credibilityScore += 3.0;
               factors.push("Content verified as true (+3.0)");
               break;
+            case "partially_true":
+              credibilityScore += 1.0;
+              factors.push("Content partially true (+1.0)");
+              break;
             case "false":
-            case "misleading":
+            case "conspiracy":
+            case "debunked":
               credibilityScore -= 4.0;
-              factors.push("Content flagged as false/misleading (-4.0)");
+              factors.push("Content flagged as false/conspiracy/debunked (-4.0)");
+              break;
+            case "misleading":
+            case "exaggerated":
+              credibilityScore -= 3.0;
+              factors.push("Content flagged as misleading/exaggerated (-3.0)");
+              break;
+            case "outdated":
+            case "rumor":
+              credibilityScore -= 2.0;
+              factors.push("Content flagged as outdated/rumor (-2.0)");
+              break;
+            case "opinion":
+              credibilityScore += 0.5;
+              factors.push("Content identified as opinion (+0.5)");
+              break;
+            case "satire":
+              credibilityScore += 1.0;
+              factors.push("Content identified as satire (+1.0)");
               break;
             case "unverifiable":
               credibilityScore -= 1.0;

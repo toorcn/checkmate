@@ -1,5 +1,5 @@
 export interface FactCheckResult {
-  verdict: "verified" | "misleading" | "false" | "unverified" | "satire";
+  verdict: "verified" | "misleading" | "false" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked";
   confidence: number;
   explanation: string;
   content: string;
