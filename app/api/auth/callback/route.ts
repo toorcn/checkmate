@@ -21,8 +21,26 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        // Get the correct origin (handle reverse proxy headers)
+        const forwardedHost = request.headers.get('x-forwarded-host');
+        const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+        
+        const origin = forwardedHost
+            ? `${forwardedProto}://${forwardedHost}`
+            : request.nextUrl.origin;
+
+        const redirectUri = `${origin}/api/auth/callback`;
+
+        console.log('🔍 Origin detection:', {
+            'nextUrl.origin': request.nextUrl.origin,
+            'x-forwarded-host': request.headers.get('x-forwarded-host'),
+            'x-forwarded-proto': request.headers.get('x-forwarded-proto'),
+            'host': request.headers.get('host'),
+            'finalOrigin': origin,
+            'redirectUri': redirectUri
+        });
+
         // Exchange code for tokens
-        const redirectUri = `${request.nextUrl.origin}/api/auth/callback`;
         const tokens = await exchangeOAuthCode(code, redirectUri);
 
         // Get user info from ID token (more reliable for OAuth)
