@@ -3,17 +3,17 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { S3Client } from "@aws-sdk/client-s3";
 import { TranscribeClient } from "@aws-sdk/client-transcribe";
 import { ComprehendClient } from "@aws-sdk/client-comprehend";
+import { TranslateClient } from "@aws-sdk/client-translate";
 
 /**
  * Centralized AWS clients with shared region from config
  */
 
-if (process.env.APP_REGION) {
-  if (!process.env.AWS_REGION) process.env.AWS_REGION = process.env.APP_REGION;
-  if (!process.env.AWS_DEFAULT_REGION)
-    process.env.AWS_DEFAULT_REGION = process.env.APP_REGION;
-}
-const region = process.env.APP_REGION;
+// Use AWS_REGION from environment, fallback to APP_REGION or us-east-1
+const region = process.env.AWS_REGION || process.env.APP_REGION || "us-east-1";
+
+if (!process.env.AWS_REGION) process.env.AWS_REGION = region;
+if (!process.env.AWS_DEFAULT_REGION) process.env.AWS_DEFAULT_REGION = region;
 
 /**
  * DynamoDB Document client (marshalling on by default)
@@ -40,5 +40,10 @@ export const transcribe = new TranscribeClient({ region });
  * Comprehend client for sentiment analysis and NLP
  */
 export const comprehend = new ComprehendClient({ region });
+
+/**
+ * Translate client for real-time translation
+ */
+export const translate = new TranslateClient({ region });
 
 // Removed Cognito client; no longer used.
