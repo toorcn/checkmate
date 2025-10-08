@@ -147,7 +147,7 @@ export function PoliticalBiasMeter({
           {keyQuote && (
             <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md border-l-3 border-amber-500">
               <p className="text-sm italic text-foreground leading-relaxed mb-1">
-                "{keyQuote}"
+                &ldquo;{keyQuote}&rdquo;
               </p>
               <p className="text-xs text-muted-foreground">
                 Key phrase contributing to classification
