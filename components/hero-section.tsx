@@ -7,7 +7,13 @@ import { useTikTokAnalysis } from "@/lib/hooks/use-tiktok-analysis";
 import { useSaveTikTokAnalysisWithCredibility } from "@/lib/hooks/use-saved-analyses";
 import { useAnimatedProgress } from "@/lib/hooks/use-animated-progress";
 import { toast } from "sonner";
-import { useLanguage } from "@/components/language-provider";
+import { AnalysisRenderer } from "@/components/analysis-renderer";
+import { useGlobalTranslation } from "@/components/global-translation-provider";
+import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
+import { SentimentDisplay } from "@/components/analysis/sentiment-display";
+import { useDiagramExpansion } from "@/lib/hooks/useDiagramExpansion";
+import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
+import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import {
   UrlInputForm,
@@ -40,7 +46,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
 
   const saveTikTokAnalysisWithCredibility = useSaveTikTokAnalysisWithCredibility();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, translateCurrentPage, enableAutoTranslation, language } = useGlobalTranslation();
 
   const [phase, setPhase] = useState<string>("");
 
@@ -133,12 +139,18 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   useEffect(() => {
     if (result) {
       if (result.success) {
-        toast.success(t.analysisComplete);
+        // Trigger translation if auto-translation is enabled and language is not English
+        if (enableAutoTranslation && language !== "en") {
+          // Small delay to allow DOM to update with new content
+          setTimeout(() => {
+            translateCurrentPage();
+          }, 500);
+        }
       } else if (result.error) {
         toast.error(result.error);
       }
     }
-  }, [result, t]);
+  }, [result, t, enableAutoTranslation, language, translateCurrentPage]);
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
@@ -471,6 +483,14 @@ This claim appears to have originated from legitimate news sources around early 
     setMockResult(mockData);
     setIsMockLoading(false);
     toast.success("Mock Analysis Complete! (No API costs incurred)");
+    
+    // Trigger translation if auto-translation is enabled and language is not English
+    if (enableAutoTranslation && language !== "en") {
+      // Small delay to allow DOM to update with new content
+      setTimeout(() => {
+        translateCurrentPage();
+      }, 500);
+    }
   };
 
   const handleSaveAnalysis = async () => {
@@ -584,10 +604,10 @@ This claim appears to have originated from legitimate news sources around early 
           setUrl={setUrl}
           isLoading={isLoading}
           isMockLoading={isMockLoading}
-            onSubmit={handleSubmit}
+          onSubmit={handleSubmit}
           onMockAnalysis={handleMockAnalysis}
         />
-          </div>
+      </div>
 
       <ResultsSection
         result={result as any}

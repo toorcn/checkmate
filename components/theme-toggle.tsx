@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 
 import { Button } from "@/components/ui/button";
 

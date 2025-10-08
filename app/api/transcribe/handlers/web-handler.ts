@@ -11,6 +11,7 @@ import { researchAndFactCheck } from "../../../../tools/fact-checking";
 import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-bias-analysis";
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
 import { logger } from "../../../../lib/logger";
+import { analyzeSentiment } from "../../../../lib/sentiment-analysis";
 
 /**
  * Web content-specific data extracted from the platform
@@ -229,6 +230,13 @@ Please fact-check the claims from this web article content, paying special atten
           `Web content analysis from source: ${webData?.title || 'unknown article'}`
         );
 
+        // Perform sentiment analysis using AWS Comprehend
+        const sentimentAnalysis = await analyzeSentiment(
+          textToFactCheck,
+          webData.metadata?.language || "en",
+          context.requestId
+        );
+
         const factCheckResult: FactCheckResult = {
           verdict:
             (resultData.overallStatus as FactCheckResult["verdict"]) ||
@@ -239,10 +247,20 @@ Please fact-check the claims from this web article content, paying special atten
             textToFactCheck.substring(0, 500) +
             (textToFactCheck.length > 500 ? "..." : ""),
           sources: resultData.sources || [],
-          flags: [],
+          flags: sentimentAnalysis?.flags || [],
           originTracing: resultData.originTracing,
           beliefDrivers: resultData.beliefDrivers,
           politicalBias: politicalBiasAnalysis,
+          sentimentAnalysis: sentimentAnalysis
+            ? {
+                overall: sentimentAnalysis.overall,
+                scores: sentimentAnalysis.scores,
+                keyPhrases: sentimentAnalysis.keyPhrases,
+                entities: sentimentAnalysis.entities,
+                emotionalIntensity: sentimentAnalysis.emotionalIntensity,
+                flags: sentimentAnalysis.flags,
+              }
+            : undefined,
         };
 
         // Lightweight parsing fallback from reasoning text when structured fields are absent

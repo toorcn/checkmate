@@ -3,8 +3,8 @@
 import { SearchCheck, Newspaper, Menu, Sun, Moon, Users, User, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "next-themes";
-import { LanguageToggle } from "@/components/language-toggle";
-import { useLanguage } from "@/components/language-provider";
+import { GlobalTranslationToggle, MobileGlobalTranslationToggle } from "@/components/global-translation-toggle";
+import { useGlobalTranslation } from "@/components/global-translation-provider";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -18,7 +18,7 @@ import { useAuth } from "@/lib/hooks/use-auth";
 
 export function Header() {
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t } = useGlobalTranslation();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const { isExpanded } = useDiagramExpansion();
 
@@ -26,7 +26,7 @@ export function Header() {
   const AvatarDropdown = () => {
     const { user, signOut: authSignOut } = useAuth();
     const { theme, setTheme } = useTheme();
-    const { language, setLanguage, t } = useLanguage();
+    const { language, setLanguage, t } = useGlobalTranslation();
     const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {

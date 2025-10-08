@@ -5,6 +5,8 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { Header } from "@/components/header";
 import Providers from "@/components/Providers";
+import { GlobalTranslationProvider } from "@/components/global-translation-provider";
+import { TranslationStatusIndicator } from "@/components/translation-status-indicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +35,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <Header />
-          {children}
-          <Toaster richColors />
+          <GlobalTranslationProvider>
+            <Header />
+            {children}
+            <TranslationStatusIndicator />
+            <Toaster richColors />
+          </GlobalTranslationProvider>
         </Providers>
       </body>
     </html>
