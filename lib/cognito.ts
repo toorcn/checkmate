@@ -485,6 +485,13 @@ export async function exchangeOAuthCode(
     }
 
     try {
+        console.log("🔄 Exchanging OAuth code for tokens:", {
+            tokenEndpoint,
+            redirectUri,
+            hasClientSecret: !!CLIENT_SECRET,
+            clientIdPrefix: CLIENT_ID?.substring(0, 8) + "...",
+        });
+
         const response = await fetch(tokenEndpoint, {
             method: "POST",
             headers: {
@@ -495,8 +502,39 @@ export async function exchangeOAuthCode(
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Token exchange error:", errorText);
-            throw new Error("Failed to exchange code for tokens");
+            console.error("❌ Token exchange failed:", {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorText,
+                redirectUri: redirectUri,
+                tokenEndpoint: tokenEndpoint,
+                hasClientSecret: !!CLIENT_SECRET,
+            });
+            
+            // Try to parse the error
+            let errorMessage = "Failed to exchange code for tokens";
+            let errorDetails = "";
+            try {
+                const errorData = JSON.parse(errorText);
+                console.error("Token exchange error:", errorData);
+                errorMessage = errorData.error_description || errorData.error || errorMessage;
+                
+                // Provide helpful context based on error type
+                if (errorData.error === "unauthorized_client") {
+                    errorDetails = " - This usually means the redirect URI doesn't match what's configured in Cognito App Client settings. Please ensure your deployed domain is added to 'Allowed callback URLs' in Cognito.";
+                } else if (errorData.error === "invalid_client") {
+                    errorDetails = " - Check that COGNITO_CLIENT_ID and COGNITO_CLIENT_SECRET are correctly set in your environment variables.";
+                } else if (errorData.error === "invalid_grant") {
+                    errorDetails = " - The authorization code is invalid or expired. Try signing in again.";
+                }
+            } catch {
+                // If not JSON, use the raw text if it's short
+                if (errorText.length < 100) {
+                    errorMessage = errorText;
+                }
+            }
+            
+            throw new Error(errorMessage + errorDetails);
         }
 
         const data = await response.json();
