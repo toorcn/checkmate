@@ -30,7 +30,7 @@ import { AnalysisRenderer } from "@/components/analysis-renderer";
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
 import { CreatorCredibilityDisplay } from "@/components/creator-credibility-display";
 import { SentimentDisplay } from "@/components/analysis/sentiment-display";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
 
 const getStatusIcon = (status: string) => {

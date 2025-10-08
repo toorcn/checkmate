@@ -19,13 +19,27 @@ export function TranslationStatusIndicator() {
     cancelTranslation 
   } = useGlobalTranslation();
 
+  const [showSuccess, setShowSuccess] = React.useState(false);
   const currentLanguage = availableLanguages.find(lang => lang.code === language);
+
+  // Auto-hide success message after 3 seconds
+  React.useEffect(() => {
+    if (hasTranslatedContent && !isTranslating) {
+      setShowSuccess(true);
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000); // Hide after 3 seconds
+      return () => clearTimeout(timer);
+    } else {
+      setShowSuccess(false);
+    }
+  }, [hasTranslatedContent, isTranslating]);
 
   // Don't show indicator for English
   if (language === "en") return null;
 
   // Don't show if no translation activity
-  if (!isTranslating && !hasTranslatedContent) return null;
+  if (!isTranslating && !showSuccess) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -55,7 +69,7 @@ export function TranslationStatusIndicator() {
               </p>
             </div>
           </div>
-        ) : hasTranslatedContent ? (
+        ) : showSuccess ? (
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 text-green-500" />
             <span className="text-sm">

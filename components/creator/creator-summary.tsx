@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BarChart3, Calendar } from "lucide-react";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 
 /**
  * Creator data interface

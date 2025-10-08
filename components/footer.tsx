@@ -1,6 +1,8 @@
 "use client";
 import { CheckCircleIcon } from "lucide-react";
-import { useLanguage } from "@/components/language-provider";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/global-translation-provider"; "@/components/language-provider";
 
 export function Footer() {
   const { t } = useLanguage();

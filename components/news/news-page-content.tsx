@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 import { NewsLayout } from "./news-layout";
 
 /**

@@ -10,7 +10,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3 } from "lucide-react";
-import { useLanguage } from "@/components/language-provider";
+import { useLanguage } from "@/components/global-translation-provider";
 import { LoadingSpinner } from "@/components/analysis";
 import { useState, useEffect } from "react";
 
