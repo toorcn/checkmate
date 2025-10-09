@@ -132,51 +132,54 @@ export function Header() {
   const Controls = ({
     closeMenu,
     mobile,
-  }: { closeMenu?: () => void; mobile?: boolean } = {}) => (
-    <>
-      {pathname !== "/news" && (
-        <Button
-          variant="outline"
-          size="sm"
-          className={
-            mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
-          }
-          asChild
-        >
-          <Link href="/news" className="inline-flex items-center">
-            <Newspaper className="h-4 w-4 mr-2" />
-            {t.getNews}
-          </Link>
-        </Button>
-      )}
-      {pathname !== "/crowdsource" && (
-        <Button
-          variant="outline"
-          size="sm"
-          className={
-            mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
-          }
-          asChild
-        >
-          <Link href="/crowdsource" className="inline-flex items-center">
-            <Users className="h-4 w-4 mr-2" />
-            {t.voteOnNews}
-          </Link>
-        </Button>
-      )}
-      {mobile ? (
-        <MobileGlobalTranslationToggle />
-      ) : (
-        <GlobalTranslationToggle />
-      )}
-      {mobile && (
-        <>
-          <ThemeToggle />
-          <AvatarDropdown />
-        </>
-      )}
-    </>
-  );
+  }: { closeMenu?: () => void; mobile?: boolean } = {}) => {
+    const { user } = useAuth();
+    
+    return (
+      <>
+        {pathname !== "/news" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className={
+              mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
+            }
+            asChild
+          >
+            <Link href="/news" className="inline-flex items-center">
+              <Newspaper className="h-4 w-4 mr-2" />
+              {t.getNews}
+            </Link>
+          </Button>
+        )}
+        {pathname !== "/crowdsource" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className={
+              mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
+            }
+            asChild
+          >
+            <Link href="/crowdsource" className="inline-flex items-center">
+              <Users className="h-4 w-4 mr-2" />
+              {t.voteOnNews}
+            </Link>
+          </Button>
+        )}
+        {!user && (
+          <>
+            {mobile ? (
+              <MobileGlobalTranslationToggle />
+            ) : (
+              <GlobalTranslationToggle />
+            )}
+          </>
+        )}
+        {mobile && <AvatarDropdown />}
+      </>
+    );
+  };
 
   return (
     <header className={`border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-400 ${isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}`}>
@@ -191,7 +194,7 @@ export function Header() {
           {/* Desktop controls */}
           <div className="hidden sm:flex items-center gap-3">
             <Controls />
-            <ThemeToggle />
+            {!useAuth().user && <ThemeToggle />}
             <AvatarDropdown />
           </div>
           {/* Mobile menu */}
