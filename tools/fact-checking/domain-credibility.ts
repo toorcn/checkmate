@@ -29,7 +29,8 @@ import { textModel, DEFAULT_SCORE_MAX_TOKENS, DEFAULT_SCORE_TEMPERATURE } from "
 export async function evaluateDomainCredibility(
   domain: string
 ): Promise<number> {
-  if (!process.env.APP_REGION && !process.env.AWS_REGION) {
+  // Check if AI model is available (BEDROCK_MODEL_ID is required for AI analysis)
+  if (!process.env.BEDROCK_MODEL_ID) {
     /**
      * Fallback Credibility Assessment
      * When API is unavailable, uses domain-based heuristics to assign scores.

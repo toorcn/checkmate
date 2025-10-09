@@ -62,7 +62,8 @@ export async function analyzePoliticalBias(
   const isMalaysiaPolitical = detectMalaysiaPoliticalContent(content);
   
   // Fallback analysis when API is not available
-  if (!process.env.APP_REGION && !process.env.AWS_REGION) {
+  // Check if AI model is available (BEDROCK_MODEL_ID is required for AI analysis)
+  if (!process.env.BEDROCK_MODEL_ID) {
     const fallbackResult = performKeywordBasedBiasAnalysis(content);
     if (isMalaysiaPolitical) {
       return {

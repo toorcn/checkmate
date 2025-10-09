@@ -16,6 +16,7 @@ import { extractHashtagsAndMentions } from "./tools/social-extraction";
 import { generateContentInsights } from "./tools/content-insights";
 import { generateVideoSummary } from "./tools/video-summary";
 import { calculateCreatorCredibilityRating } from "./tools/credibility-rating";
+import { credibilityVerificationAgent } from "./tools/credibility-verification-agent";
 
 // Import helper functions for direct use
 export * from "./helpers/sentiment";
@@ -30,6 +31,7 @@ export {
   generateContentInsights,
   generateVideoSummary,
   calculateCreatorCredibilityRating,
+  credibilityVerificationAgent,
 };
 
 // Export tools array for easy consumption
@@ -39,6 +41,7 @@ export const contentAnalysisTools = [
   generateContentInsights,
   generateVideoSummary,
   calculateCreatorCredibilityRating,
+  credibilityVerificationAgent,
 ];
 
 // Export types for better TypeScript support

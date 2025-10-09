@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     creatorCredibilityRating:
       body.creatorCredibilityRating == null
         ? undefined
-        : Math.round(Number(body.creatorCredibilityRating)),
+        : Math.round(Number(body.creatorCredibilityRating) * 10) / 10, // Keep one decimal place
     contentCreatorId: body.contentCreatorId,
     platform,
   });
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       credibilityRating:
         body.creatorCredibilityRating == null
           ? null
-          : Math.round(Number(body.creatorCredibilityRating)),
+          : Math.round(Number(body.creatorCredibilityRating) * 10) / 10, // Keep one decimal place
       at: new Date(),
     });
   }

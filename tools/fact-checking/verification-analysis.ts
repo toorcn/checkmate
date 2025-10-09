@@ -36,55 +36,84 @@ export async function analyzeVerificationStatus(
   claim: string,
   searchContent: string
 ): Promise<{ status: string; confidence: number }> {
-  if (!process.env.APP_REGION && !process.env.AWS_REGION) {
+  // Check if AI model is available (BEDROCK_MODEL_ID is required for AI analysis)
+  if (!process.env.BEDROCK_MODEL_ID) {
     /**
      * Fallback Analysis: Keyword-Based Assessment
      * When API is unavailable, uses basic keyword matching to determine status.
      * This provides a basic level of analysis even without AI capabilities.
      */
     const lowercaseContent = searchContent.toLowerCase();
+    const lowercaseClaim = claim.toLowerCase();
     let status = "unverifiable";
     let confidence = 0.5;
 
+    // Check for positive verification indicators
     if (
       lowercaseContent.includes("verified") ||
       lowercaseContent.includes("confirmed") ||
-      lowercaseContent.includes("accurate")
+      lowercaseContent.includes("accurate") ||
+      lowercaseContent.includes("true") ||
+      lowercaseContent.includes("correct") ||
+      lowercaseContent.includes("factual") ||
+      lowercaseContent.includes("supported by evidence")
     ) {
       status = "verified";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("partially true") || lowercaseContent.includes("partially correct")) {
+    } 
+    // Check for partial truth indicators
+    else if (lowercaseContent.includes("partially true") || lowercaseContent.includes("partially correct") || lowercaseContent.includes("some truth")) {
       status = "partially_true";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("misleading")) {
+    } 
+    // Check for misleading indicators
+    else if (lowercaseContent.includes("misleading") || lowercaseContent.includes("deceptive") || lowercaseContent.includes("misleading")) {
       status = "misleading";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("false") || lowercaseContent.includes("incorrect") || lowercaseContent.includes("wrong")) {
+    } 
+    // Check for false indicators
+    else if (lowercaseContent.includes("false") || lowercaseContent.includes("incorrect") || lowercaseContent.includes("wrong") || lowercaseContent.includes("debunked") || lowercaseContent.includes("disproven")) {
       status = "false";
-      confidence = 0.7;
-    } else if (lowercaseContent.includes("exaggerated") || lowercaseContent.includes("overstated")) {
+      confidence = 0.8;
+    } 
+    // Check for exaggeration indicators
+    else if (lowercaseContent.includes("exaggerated") || lowercaseContent.includes("overstated") || lowercaseContent.includes("sensationalized")) {
       status = "exaggerated";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("outdated") || lowercaseContent.includes("superseded")) {
+    } 
+    // Check for outdated indicators
+    else if (lowercaseContent.includes("outdated") || lowercaseContent.includes("superseded") || lowercaseContent.includes("no longer accurate")) {
       status = "outdated";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("opinion") || lowercaseContent.includes("subjective")) {
+    } 
+    // Check for opinion indicators
+    else if (lowercaseContent.includes("opinion") || lowercaseContent.includes("subjective") || lowercaseContent.includes("personal view")) {
       status = "opinion";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("rumor") || lowercaseContent.includes("unverified")) {
+    } 
+    // Check for rumor indicators
+    else if (lowercaseContent.includes("rumor") || lowercaseContent.includes("unverified") || lowercaseContent.includes("unsubstantiated")) {
       status = "rumor";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("conspiracy") || lowercaseContent.includes("conspiracy theory")) {
+    } 
+    // Check for conspiracy indicators
+    else if (lowercaseContent.includes("conspiracy") || lowercaseContent.includes("conspiracy theory") || lowercaseContent.includes("secret plot")) {
       status = "conspiracy";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("debunked") || lowercaseContent.includes("disproven")) {
-      status = "debunked";
-      confidence = 0.8;
-    } else if (lowercaseContent.includes("satire") || lowercaseContent.includes("parody") || lowercaseContent.includes("humor")) {
+    } 
+    // Check for satire indicators
+    else if (lowercaseContent.includes("satire") || lowercaseContent.includes("parody") || lowercaseContent.includes("humor") || lowercaseContent.includes("comedy")) {
       status = "satire";
       confidence = 0.7;
-    } else if (lowercaseContent.includes("unverifiable")) {
-      status = "unverifiable";
+    } 
+    // Check if content has substantial research data
+    else if (searchContent.length > 500 && (lowercaseContent.includes("source") || lowercaseContent.includes("study") || lowercaseContent.includes("research"))) {
+      status = "verified"; // If we have substantial research content, assume it's more likely to be verified
+      confidence = 0.6;
+    }
+    // Check if claim is very short or seems like a question
+    else if (claim.length < 50 || lowercaseClaim.includes("?") || lowercaseClaim.includes("what") || lowercaseClaim.includes("how")) {
+      status = "opinion";
       confidence = 0.6;
     }
 

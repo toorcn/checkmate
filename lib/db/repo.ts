@@ -228,7 +228,7 @@ export async function recordCreatorAnalysis(input: {
   const rating =
     input.credibilityRating == null
       ? null
-      : Math.round(Number(input.credibilityRating));
+      : Math.round(Number(input.credibilityRating) * 10) / 10; // Keep one decimal place instead of rounding to integer
   if (!existing) {
     await db.insert(creators).values({
       id: input.id,
@@ -243,7 +243,7 @@ export async function recordCreatorAnalysis(input: {
   }
   const newTotalAnalyses = (existing as any).totalAnalyses + 1;
   const newTotalScore = (existing as any).totalCredibilityScore + (rating ?? 0);
-  const newAvg = Math.round(newTotalScore / Math.max(1, newTotalAnalyses));
+  const newAvg = Math.round((newTotalScore / Math.max(1, newTotalAnalyses)) * 10) / 10; // Keep one decimal place
   await db
     .update(creators)
     .set({

@@ -394,6 +394,9 @@ Format your response clearly with these sections:
         factCheckAnalysis || searchContent
       );
 
+      // Convert confidence from 0-1 scale to 0-100 scale for consistency
+      const confidencePercentage = Math.round(confidence * 100);
+
       /**
        * Return comprehensive fact-check results with:
        * - Overall verification status and confidence
@@ -405,7 +408,7 @@ Format your response clearly with these sections:
         success: true,
         data: {
           overallStatus: status,
-          confidence: confidence,
+          confidence: confidencePercentage, // Now returns 0-100 scale
           isVerified: status === "verified",
           isMisleading: status === "misleading",
           isUnverifiable: status === "unverifiable",
@@ -422,7 +425,11 @@ Format your response clearly with these sections:
               source: source.source,
             })),
           },
-          sources: extractedSources,
+          sources: extractedSources.map(source => ({
+            url: source.url,
+            title: source.title,
+            credibility: Math.round(source.relevance * 10), // Convert relevance (0-1) to credibility (0-10) for FactCheckResult interface
+          })),
           credibleSourcesCount: extractedSources.filter(
             (s) => s.relevance > 0.7
           ).length,

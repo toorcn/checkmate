@@ -7,6 +7,7 @@ import {
 } from "./base-handler";
 import { ApiError } from "../../../../lib/api-error";
 import { scrapeWebContent } from "../../../../tools/helpers";
+import { getCreator } from "../../../../lib/db/repo";
 import { researchAndFactCheck } from "../../../../tools/fact-checking";
 import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-bias-analysis";
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
@@ -241,7 +242,7 @@ Please fact-check the claims from this web article content, paying special atten
           verdict:
             (resultData.overallStatus as FactCheckResult["verdict"]) ||
             "unverified",
-          confidence: Math.round((resultData.confidence || 0.5) * 100),
+          confidence: resultData.confidence || 30, // Use fallback confidence for unverified content
           explanation: resultData.reasoning || "No analysis available",
           content:
             textToFactCheck.substring(0, 500) +
@@ -331,7 +332,7 @@ Please fact-check the claims from this web article content, paying special atten
       // Return fallback result
       return {
         verdict: "unverified",
-        confidence: 0,
+        confidence: 30, // More reasonable default for unverified content
         explanation:
           "Verification service temporarily unavailable. Manual fact-checking recommended.",
         content:
@@ -374,6 +375,34 @@ Please fact-check the claims from this web article content, paying special atten
    * @param context - Processing context
    * @returns Credibility rating (0-10) or null if calculation fails
    */
+  /**
+   * Gets creator's historical credibility data for accumulative scoring
+   */
+  private async getCreatorHistoricalData(creatorId: string, context: ProcessingContext) {
+    try {
+      const existingCreator = await getCreator(creatorId, this.platform);
+      if (existingCreator) {
+        return {
+          creatorHistoricalCredibility: (existingCreator as any).credibilityRating || 6.5,
+          totalAnalyses: (existingCreator as any).totalAnalyses || 0,
+        };
+      }
+      return {
+        creatorHistoricalCredibility: 6.5, // Default starting credibility
+        totalAnalyses: 0,
+      };
+    } catch (error) {
+      logger.warn("Failed to get creator historical data", {
+        requestId: context.requestId,
+        platform: this.platform,
+      });
+      return {
+        creatorHistoricalCredibility: 6.5,
+        totalAnalyses: 0,
+      };
+    }
+  }
+
   protected async calculateCredibility(
     factCheck: FactCheckResult | null,
     extractedData: ExtractedContent | null,
@@ -415,6 +444,11 @@ Please fact-check the claims from this web article content, paying special atten
             verdict: factCheck.verdict,
             confidence: factCheck.confidence,
             isVerified: true,
+            sources: (factCheck.sources || []).map(source => ({
+              url: source.url,
+              title: source.title,
+              relevance: source.credibility / 10, // Convert credibility (0-10) to relevance (0-1)
+            })),
           },
           contentMetadata: {
             creator: webData.creator || "Unknown",
@@ -427,6 +461,13 @@ Please fact-check the claims from this web article content, paying special atten
             hasNewsContent: true,
             needsFactCheck: true,
             contentLength: webData.content.length,
+            sentimentAnalysis: factCheck.sentimentAnalysis ? {
+              overall: factCheck.sentimentAnalysis.overall,
+              emotionalIntensity: factCheck.sentimentAnalysis.emotionalIntensity,
+              flags: factCheck.sentimentAnalysis.flags,
+            } : undefined,
+            // Get creator's historical credibility for accumulative scoring
+            ...(await this.getCreatorHistoricalData(webData.creator || "unknown", context)),
           },
         },
         {
