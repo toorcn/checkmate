@@ -33,8 +33,10 @@ export interface ExtractedContent {
 /**
  * Fact check result interface
  */
+import { Verdict } from "@/types/verdict";
+
 export interface FactCheckResult {
-  verdict: "verified" | "misleading" | "false" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked";
+  verdict: Verdict;
   confidence: number; // 0-100
   explanation: string;
   content: string; // Summary/content of what was fact-checked

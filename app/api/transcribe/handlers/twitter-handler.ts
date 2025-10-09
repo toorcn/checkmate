@@ -11,6 +11,7 @@ import { transcribeVideoDirectly } from "../../../../tools/index";
 import { researchAndFactCheck } from "../../../../tools/fact-checking";
 import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-bias-analysis";
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
+import { normalizeVerdict, isAffirmative } from "@/types/verdict";
 import { extractTweetId } from "../../../../lib/validation";
 import { logger } from "../../../../lib/logger";
 import { analyzeSentiment } from "../../../../lib/sentiment-analysis";
@@ -265,7 +266,9 @@ Please fact-check the claims from this Twitter/X post content, paying special at
         transcription
           ? "both the tweet text and the transcribed speech"
           : "the tweet text"
-      }. Consider the context that this is social media content that may contain opinions, personal experiences, or claims that need verification.`;
+      }. Consider the context that this is social media content that may contain opinions, personal experiences, or claims that need verification.
+
+Return JSON with keys: overallStatus (one of: verified, misleading, false, satire, partially_true, outdated, exaggerated, opinion, rumor, conspiracy, debunked), confidence (0-1), reasoning, sources[]. Do not use unverified/unverifiable/unknown. Always choose the best-fit label.`;
 
       const factCheck = await researchAndFactCheck.execute(
         {
@@ -303,10 +306,13 @@ Please fact-check the claims from this Twitter/X post content, paying special at
           context.requestId
         );
 
+        const forcedVerdict = normalizeVerdict(resultData.overallStatus, {
+          confidence: typeof resultData.confidence === "number" ? Math.round((resultData.confidence || 0) * 100) : undefined,
+          reasoning: resultData.reasoning,
+        });
+
         const factCheckResult: FactCheckResult = {
-          verdict:
-            (resultData.overallStatus as FactCheckResult["verdict"]) ||
-            "unverified",
+          verdict: forcedVerdict,
           confidence: Math.round((resultData.confidence || 0.5) * 100),
           explanation: resultData.reasoning || "No analysis available",
           content:
@@ -363,8 +369,9 @@ Please fact-check the claims from this Twitter/X post content, paying special at
       });
 
       // Return fallback result
+      const forcedVerdict = normalizeVerdict("unknown", { confidence: 0, reasoning: "service unavailable" });
       return {
-        verdict: "unverified",
+        verdict: forcedVerdict,
         confidence: 0,
         explanation:
           "Verification service temporarily unavailable. Manual fact-checking recommended.",
@@ -387,8 +394,9 @@ Please fact-check the claims from this Twitter/X post content, paying special at
       );
 
       // Return fallback instead of throwing
+      const forcedVerdict = normalizeVerdict("unknown", { confidence: 0, reasoning: "technical error" });
       return {
-        verdict: "unverified",
+        verdict: forcedVerdict,
         confidence: 0,
         explanation:
           "Fact-checking failed due to technical error. Manual verification recommended.",
@@ -448,7 +456,7 @@ Please fact-check the claims from this Twitter/X post content, paying special at
           factCheckResult: {
             verdict: factCheck.verdict,
             confidence: factCheck.confidence,
-            isVerified: true,
+            isVerified: isAffirmative(factCheck.verdict),
           },
           contentMetadata: {
             creator: twitterData.creator || "Unknown",

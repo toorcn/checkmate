@@ -1,5 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
+import { Verdict } from "@/types/verdict";
 
 /**
  * Tool for calculating a content creator's credibility rating (0-10) based on analysis results.
@@ -10,7 +11,7 @@ export const calculateCreatorCredibilityRating = tool({
   parameters: z.object({
     factCheckResult: z
       .object({
-        verdict: z.string().optional(), // "true", "false", "misleading", "unverifiable"
+        verdict: z.string().optional(), // uses centralized Verdict labels
         confidence: z.number().optional(), // 0-100
         isVerified: z.boolean().optional(),
       })
@@ -40,8 +41,7 @@ export const calculateCreatorCredibilityRating = tool({
         const { verdict, confidence, isVerified } = factCheckResult;
 
         if (isVerified && verdict) {
-          switch (verdict.toLowerCase()) {
-            case "true":
+          switch ((verdict as string).toLowerCase()) {
             case "verified":
               credibilityScore += 3.0;
               factors.push("Content verified as true (+3.0)");
@@ -73,10 +73,6 @@ export const calculateCreatorCredibilityRating = tool({
             case "satire":
               credibilityScore += 1.0;
               factors.push("Content identified as satire (+1.0)");
-              break;
-            case "unverifiable":
-              credibilityScore -= 1.0;
-              factors.push("Content unverifiable (-1.0)");
               break;
           }
 

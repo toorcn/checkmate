@@ -10,6 +10,7 @@ import { scrapeWebContent } from "../../../../tools/helpers";
 import { researchAndFactCheck } from "../../../../tools/fact-checking";
 import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-bias-analysis";
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
+import { normalizeVerdict, isAffirmative } from "@/types/verdict";
 import { logger } from "../../../../lib/logger";
 import { analyzeSentiment } from "../../../../lib/sentiment-analysis";
 
@@ -185,7 +186,9 @@ export class WebHandler extends BaseHandler {
 - Publication Date: ${webData.metadata?.publishedTime || "Unknown"}
 - Language: ${webData.metadata?.language || "Unknown"}
 
-Please fact-check the claims from this web article content, paying special attention to the article content and any factual claims made. Consider the context that this is web content that may contain opinions, analysis, or claims that need verification.`;
+Please fact-check the claims from this web article content, paying special attention to the article content and any factual claims made. Consider the context that this is web content that may contain opinions, analysis, or claims that need verification.
+
+Return JSON with keys: overallStatus (one of: verified, misleading, false, satire, partially_true, outdated, exaggerated, opinion, rumor, conspiracy, debunked), confidence (0-1), reasoning, sources[]. Do not use unverified/unverifiable/unknown. Always choose the best-fit label.`;
 
       const factCheck = await researchAndFactCheck.execute(
         {
@@ -237,10 +240,13 @@ Please fact-check the claims from this web article content, paying special atten
           context.requestId
         );
 
+        const forcedVerdict = normalizeVerdict(resultData.overallStatus, {
+          confidence: typeof resultData.confidence === "number" ? Math.round((resultData.confidence || 0) * 100) : undefined,
+          reasoning: resultData.reasoning,
+        });
+
         const factCheckResult: FactCheckResult = {
-          verdict:
-            (resultData.overallStatus as FactCheckResult["verdict"]) ||
-            "unverified",
+          verdict: forcedVerdict,
           confidence: Math.round((resultData.confidence || 0.5) * 100),
           explanation: resultData.reasoning || "No analysis available",
           content:
@@ -329,8 +335,9 @@ Please fact-check the claims from this web article content, paying special atten
       });
 
       // Return fallback result
+      const forcedVerdict = normalizeVerdict("unknown", { confidence: 0, reasoning: "service unavailable" });
       return {
-        verdict: "unverified",
+        verdict: forcedVerdict,
         confidence: 0,
         explanation:
           "Verification service temporarily unavailable. Manual fact-checking recommended.",
@@ -353,8 +360,9 @@ Please fact-check the claims from this web article content, paying special atten
       );
 
       // Return fallback instead of throwing
+      const forcedVerdict = normalizeVerdict("unknown", { confidence: 0, reasoning: "technical error" });
       return {
-        verdict: "unverified",
+        verdict: forcedVerdict,
         confidence: 0,
         explanation:
           "Fact-checking failed due to technical error. Manual verification recommended.",
@@ -414,7 +422,7 @@ Please fact-check the claims from this web article content, paying special atten
           factCheckResult: {
             verdict: factCheck.verdict,
             confidence: factCheck.confidence,
-            isVerified: true,
+            isVerified: isAffirmative(factCheck.verdict),
           },
           contentMetadata: {
             creator: webData.creator || "Unknown",

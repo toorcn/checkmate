@@ -1,5 +1,7 @@
+import { Verdict } from "./verdict";
+
 export interface FactCheckResult {
-  verdict: "verified" | "misleading" | "false" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked";
+  verdict: Verdict;
   confidence: number;
   explanation: string;
   content: string;
