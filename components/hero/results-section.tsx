@@ -64,24 +64,22 @@ export function ResultsSection({
   return (
     <div ref={resultsRef} className="mx-auto max-w-7xl mt-8 px-2 sm:px-4">
       <Card className={isDiagramExpanded ? "overflow-visible" : "overflow-hidden"}>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             {result?.success || mockResult?.success ? (
               <CheckCircleIcon className="h-5 w-5 text-green-500" />
             ) : (
               <AlertCircleIcon className="h-5 w-5 text-red-500" />
             )}
-            <span className="truncate">
-              {result?.success || mockResult?.success
-                ? result?.success
-                  ? t.analysisComplete
-                  : "Mock Analysis Complete"
-                : "Analysis Failed"}
-            </span>
+            {result?.success || mockResult?.success
+              ? result?.success
+                ? t.analysisComplete
+                : "Mock Analysis Complete"
+              : "Analysis Failed"}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-4 sm:space-y-6 text-left">
+        <CardContent>
+          <div className="space-y-6 text-left">
             {/* Video Metadata */}
             <MetadataDisplay metadata={currentData.metadata} />
 
@@ -90,12 +88,12 @@ export function ResultsSection({
               currentData.transcription.text &&
               currentData.transcription.text.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="font-medium flex items-center gap-2 text-sm sm:text-base">
+                  <h4 className="font-medium flex items-center gap-2">
                     <ShieldCheckIcon className="h-4 w-4" />
                     Transcription
                   </h4>
-                  <div className="p-3 sm:p-4 bg-muted rounded-lg">
-                    <div className="text-xs sm:text-sm leading-relaxed">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="text-sm leading-relaxed">
                       <AnalysisRenderer content={currentData.transcription.text} />
                     </div>
                     {currentData.transcription.language && (
@@ -109,34 +107,33 @@ export function ResultsSection({
 
             {/* Platform Analysis */}
             <div className="space-y-3">
-              <h4 className="font-medium flex items-center gap-2 text-sm sm:text-base">
+              <h4 className="font-medium flex items-center gap-2">
                 <AlertCircleIcon className="h-4 w-4" />
                 Platform Analysis
               </h4>
-              <div className="p-3 sm:p-4 bg-muted rounded-lg space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                  <span className="text-xs sm:text-sm">Source Platform:</span>
-                  <Badge variant="secondary" className="w-fit">
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Source Platform:</span>
+                  <Badge variant="secondary">
                     {currentData.metadata.platform === "twitter"
                       ? "Twitter/X"
                       : "TikTok"}
                   </Badge>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                  <span className="text-xs sm:text-sm">Content Type:</span>
-                  <Badge variant="outline" className="w-fit">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Content Type:</span>
+                  <Badge variant="outline">
                     {currentData.metadata.platform === "twitter"
                       ? "Social Post"
                       : "Video Content"}
                   </Badge>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                  <span className="text-xs sm:text-sm">Fact-Check Required:</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Fact-Check Required:</span>
                   <Badge
                     variant={
                       currentData.requiresFactCheck ? "destructive" : "secondary"
                     }
-                    className="w-fit"
                   >
                     {currentData.requiresFactCheck ? "Yes" : "No"}
                   </Badge>
@@ -147,40 +144,38 @@ export function ResultsSection({
             {/* News Detection */}
             {currentData.newsDetection && (
               <div className="space-y-3">
-                <h4 className="font-medium flex items-center gap-2 text-sm sm:text-base">
+                <h4 className="font-medium flex items-center gap-2">
                   <AlertCircleIcon className="h-4 w-4" />
                   Content Analysis
                 </h4>
-                <div className="p-3 sm:p-4 bg-muted rounded-lg space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                    <span className="text-xs sm:text-sm">Content Type:</span>
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Content Type:</span>
                     <Badge
                       variant={
                         currentData.newsDetection.contentType === "news_factual"
                           ? "destructive"
                           : "secondary"
                       }
-                      className="w-fit"
                     >
                       {currentData.newsDetection.contentType === "news_factual"
                         ? "News/Factual"
                         : "Entertainment"}
                     </Badge>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                    <span className="text-xs sm:text-sm">Requires Fact-Check:</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Requires Fact-Check:</span>
                     <Badge
                       variant={
                         currentData.requiresFactCheck ? "destructive" : "secondary"
                       }
-                      className="w-fit"
                     >
                       {currentData.requiresFactCheck ? "Yes" : "No"}
                     </Badge>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                    <span className="text-xs sm:text-sm">Confidence:</span>
-                    <span className="text-xs sm:text-sm font-medium">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Confidence:</span>
+                    <span className="text-sm font-medium">
                       {Math.round(currentData.newsDetection.confidence * 100)}%
                     </span>
                   </div>

@@ -80,68 +80,58 @@ export function UrlInputForm({
     <div className="mx-auto max-w-2xl space-y-5 px-2 sm:px-4">
       <form
         onSubmit={onSubmit}
-        className="space-y-3"
+        className="flex flex-col sm:flex-row gap-3 items-center justify-center"
       >
-        {/* Input field */}
-        <div className="flex gap-2">
-          <Input
-            placeholder={t.urlPlaceholder}
-            className={`flex-1 h-12 text-base min-w-0 break-words border-2 focus:border-primary/50 transition-colors duration-200 ${urlTouched && !isValidUrl ? "border-red-400 focus:border-red-500" : ""}`}
-            value={url}
-            onChange={(e) => { setUrl(e.target.value); if (!urlTouched) setUrlTouched(true); }}
-            onBlur={() => setUrlTouched(true)}
-            disabled={isLoading || isMockLoading}
-            aria-label="Content URL"
-            aria-invalid={Boolean(urlTouched && !isValidUrl)}
-            aria-describedby="url-help"
-            autoFocus
-          />
-          <Button
-            type="submit"
-            size="lg"
-            className="px-4 sm:px-6 h-12 shrink-0 font-medium shadow-md hover:shadow-lg transition-all duration-200"
-            disabled={isLoading || isMockLoading || !isValidUrl}
-            aria-label="Analyze URL"
-          >
-            {isLoading ? (
-              <LoaderIcon className="h-4 w-4 sm:mr-2 animate-spin" />
-            ) : (
-              <PlayIcon className="h-4 w-4 sm:mr-2" />
-            )}
-            <span className="hidden sm:inline">{isLoading ? t.analyzing : t.analyzeButton}</span>
-            <span className="sm:hidden">Go</span>
-          </Button>
-        </div>
-        
-        {/* Action buttons row */}
-        <div className="flex gap-2 justify-center sm:justify-start">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="px-3 h-10 shrink-0"
-            onClick={handlePasteFromClipboard}
-            disabled={isLoading || isMockLoading}
-            aria-label="Paste URL from clipboard"
-          >
-            <ClipboardIcon className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Paste</span>
-            <span className="sm:hidden">Paste</span>
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="px-3 h-10 shrink-0"
-            onClick={handleClearUrl}
-            disabled={isLoading || isMockLoading || !url}
-            aria-label="Clear URL"
-          >
-            <XCircleIcon className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Clear</span>
-            <span className="sm:hidden">Clear</span>
-          </Button>
-        </div>
+        <Input
+          placeholder={t.urlPlaceholder}
+          className={`flex-1 h-12 text-base min-w-0 break-words border-2 focus:border-primary/50 transition-colors duration-200 ${urlTouched && !isValidUrl ? "border-red-400 focus:border-red-500" : ""}`}
+          value={url}
+          onChange={(e) => { setUrl(e.target.value); if (!urlTouched) setUrlTouched(true); }}
+          onBlur={() => setUrlTouched(true)}
+          disabled={isLoading || isMockLoading}
+          aria-label="Content URL"
+          aria-invalid={Boolean(urlTouched && !isValidUrl)}
+          aria-describedby="url-help"
+          autoFocus
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="px-3 h-10 shrink-0"
+          onClick={handlePasteFromClipboard}
+          disabled={isLoading || isMockLoading}
+          aria-label="Paste URL from clipboard"
+        >
+          <ClipboardIcon className="h-4 w-4 mr-1" />
+          Paste
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="px-3 h-10 shrink-0"
+          onClick={handleClearUrl}
+          disabled={isLoading || isMockLoading || !url}
+          aria-label="Clear URL"
+        >
+          <XCircleIcon className="h-4 w-4 mr-1" />
+          Clear
+        </Button>
+        <Button
+          type="submit"
+          size="lg"
+          className="px-6 h-12 shrink-0 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+          disabled={isLoading || isMockLoading || !isValidUrl}
+          aria-label="Analyze URL"
+        >
+          {isLoading ? (
+            <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <PlayIcon className="h-4 w-4 mr-2" />
+          )}
+          {isLoading ? t.analyzing : t.analyzeButton}
+        </Button>
       </form>
 
       {/* Helper text & validation */}
