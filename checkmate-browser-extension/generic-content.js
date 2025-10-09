@@ -186,7 +186,7 @@
     btn.addEventListener("click", () => {
       const url = window.location.href;
       window.open(
-        `https://prod.dmsurgvp1argw.amplifyapp.com/?link=${encodeURIComponent(
+        `https://main.d29ilzc0v3zl50.amplifyapp.com//?link=${encodeURIComponent(
           url
         )}`,
         "_blank"
