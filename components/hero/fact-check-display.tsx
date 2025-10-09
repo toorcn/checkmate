@@ -36,12 +36,11 @@ export function FactCheckDisplay({
   const [isDetailedAnalysisExpanded, setIsDetailedAnalysisExpanded] = useState(false);
 
   // Normalize various backend verdict strings to a canonical set used by UI
-  const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked" => {
+  const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked" => {
     const value = (status || "").toString().trim().toLowerCase();
     if (value === "true" || value === "verified") return "verified";
     if (value === "false") return "false";
     if (value === "misleading") return "misleading";
-    if (value === "unverified" || value === "unverifiable") return "unverified";
     if (value === "satire") return "satire";
     if (value === "partially_true") return "partially_true";
     if (value === "outdated") return "outdated";
@@ -50,7 +49,7 @@ export function FactCheckDisplay({
     if (value === "rumor") return "rumor";
     if (value === "conspiracy") return "conspiracy";
     if (value === "debunked") return "debunked";
-    return "unverified";
+    return "opinion";
   };
 
   const getStatusIcon = (status: string) => {
@@ -61,9 +60,6 @@ export function FactCheckDisplay({
         return <XCircleIcon className="h-4 w-4 text-red-600" />;
       case "misleading":
         return <AlertTriangleIcon className="h-4 w-4 text-orange-500" />;
-      case "unverified":
-      case "unverifiable":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-500" />;
       case "satire":
         return <span className="text-purple-500 text-sm">🎭</span>;
       case "partially_true":
@@ -106,14 +102,6 @@ export function FactCheckDisplay({
           <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Misleading Content
-          </Badge>
-        );
-      case "unverified":
-      case "unverifiable":
-        return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
-            <AlertCircleIcon className="h-3 w-3 mr-1" />
-            Insufficient Evidence
           </Badge>
         );
       case "satire":
@@ -255,13 +243,6 @@ export function FactCheckDisplay({
             analysisDescription ||
             "While some elements may be factually correct, the content lacks important context, presents selective information, or draws unsupported conclusions that could mislead viewers.",
         };
-      case "unverifiable":
-        return {
-          title: "Insufficient Evidence",
-          description:
-            analysisDescription ||
-            "There is not enough credible evidence available to verify or debunk the claims made in this content. Further investigation may be needed.",
-        };
       case "satire":
         return {
           title: "Satirical Content",
@@ -302,7 +283,7 @@ export function FactCheckDisplay({
           title: "Rumor",
           description:
             analysisDescription ||
-            "This appears to be unverified information circulating without credible sources or confirmation.",
+            "This appears to be information circulating without credible sources or confirmation.",
         };
       case "conspiracy":
         return {

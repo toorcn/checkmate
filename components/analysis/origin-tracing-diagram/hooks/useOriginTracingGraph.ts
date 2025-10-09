@@ -21,7 +21,7 @@ interface UseOriginTracingGraphProps {
   originTracing?: OriginTracingData;
   beliefDrivers: BeliefDriver[];
   sources: FactCheckSource[];
-  verdict: 'verified' | 'misleading' | 'false' | 'unverified' | 'satire';
+  verdict: 'verified' | 'misleading' | 'false' | 'satire';
   content: string;
   allLinks: Array<{ url: string; title?: string }>;
 }

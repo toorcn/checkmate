@@ -91,7 +91,6 @@ export function getVerdictColor(verdict: string): {
       return getCredibilityColor(30);
     case 'opinion':
       return getCredibilityColor(70);
-    case 'unverified':
     default:
       return getCredibilityColor(60);
   }

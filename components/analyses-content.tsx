@@ -43,8 +43,7 @@ const getStatusIcon = (status: string) => {
       return <XCircleIcon className="h-4 w-4 text-red-500" />;
     case "misleading":
       return <AlertTriangleIcon className="h-4 w-4 text-yellow-500" />;
-    case "unverifiable":
-      return <AlertCircleIcon className="h-4 w-4 text-gray-500" />;
+    // removed unverifiable case
     case "satire":
       return <span className="text-purple-500 text-sm">🎭</span>;
     case "partially_true":
@@ -80,12 +79,7 @@ const getStatusBadge = (status: string) => {
       return (
         <Badge className="bg-yellow-100 text-yellow-800">Misleading</Badge>
       );
-    case "unverifiable":
-      return (
-        <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-          Unverifiable
-        </Badge>
-      );
+    // removed unverifiable case
     case "satire":
       return (
         <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200">

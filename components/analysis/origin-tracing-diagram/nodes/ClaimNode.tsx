@@ -37,13 +37,7 @@ export function ClaimNode({ data }: { data: NodeData }) {
       iconColor: 'text-rose-600',
       badge: 'bg-rose-100 text-rose-800 border-rose-300'
     },
-    unverified: {
-      bg: 'bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50',
-      border: 'border-slate-300',
-      text: 'text-slate-900',
-      iconColor: 'text-slate-600',
-      badge: 'bg-slate-100 text-slate-800 border-slate-300'
-    },
+    // removed unverified
     satire: {
       bg: 'bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50',
       border: 'border-violet-300',
@@ -100,7 +94,7 @@ export function ClaimNode({ data }: { data: NodeData }) {
     partially_true: AlertTriangle,
     misleading: AlertTriangle,
     false: XCircle,
-    unverified: HelpCircle,
+    // removed unverified icon
     satire: HelpCircle,
     outdated: HelpCircle,
     exaggerated: AlertTriangle,
@@ -111,7 +105,7 @@ export function ClaimNode({ data }: { data: NodeData }) {
   };
 
   const Icon = verdictIcons[data.verdict as keyof typeof verdictIcons] || HelpCircle;
-  const styles = verdictStyles[data.verdict as keyof typeof verdictStyles] || verdictStyles.unverified;
+  const styles = verdictStyles[data.verdict as keyof typeof verdictStyles] || verdictStyles.opinion;
 
   return (
     <div className={`relative px-7 py-6 border-2 rounded-2xl shadow-2xl min-w-[280px] max-w-[400px] backdrop-blur-sm transition-all duration-300 ${styles.bg} ${styles.border} ${styles.text}`}>

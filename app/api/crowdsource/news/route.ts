@@ -21,7 +21,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  * Generate fake analysis for a news article
  */
 function generateFakeAnalysis() {
-  const verdicts = ["Verified", "Misleading", "Unverifiable", "False", "Partially True", "Outdated", "Exaggerated", "Opinion", "Rumor", "Conspiracy", "Debunked", "Satire"] as const;
+  const verdicts = ["Verified", "Misleading", "False", "Partially True", "Outdated", "Exaggerated", "Opinion", "Rumor", "Conspiracy", "Debunked", "Satire"] as const;
   const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
   const confidence = Math.floor(Math.random() * 30) + 70; // 70-100%
 
@@ -30,8 +30,7 @@ function generateFakeAnalysis() {
       "Our AI analysis indicates this article contains factually accurate information supported by credible sources.",
     Misleading:
       "This article contains some factual elements but presents them in a misleading context or omits key information.",
-    Unverifiable:
-      "The claims in this article cannot be verified with available information and credible sources.",
+    // removed Unverifiable entry
     False:
       "Our analysis has identified multiple factual errors and unsubstantiated claims in this article.",
     "Partially True":
@@ -43,7 +42,7 @@ function generateFakeAnalysis() {
     Opinion:
       "This article expresses subjective views or personal beliefs rather than factual claims that can be verified.",
     Rumor:
-      "This appears to be unverified information circulating without credible sources or confirmation.",
+      "This appears to be information circulating without credible sources or confirmation.",
     Conspiracy:
       "This article involves claims about secret plots or hidden agendas without credible evidence to support them.",
     Debunked:

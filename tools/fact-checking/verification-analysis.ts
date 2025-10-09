@@ -5,7 +5,7 @@ import { textModel, DEFAULT_CLASSIFY_MAX_TOKENS, DEFAULT_CLASSIFY_TEMPERATURE } 
  * Analyzes verification status and confidence using LLM with comprehensive fact-check analysis.
  *
  * This function takes a claim and supporting research content, then uses AI to determine:
- * - Verification status (verified/misleading/unverifiable)
+ * - Verification status (verified/misleading/false/partially_true/outdated/exaggerated/opinion/rumor/conspiracy/debunked/satire)
  * - Confidence level (0.0 to 1.0)
  *
  * **Important**: The analysis prioritizes PRIMARY claims over SECONDARY details. Content
@@ -43,7 +43,7 @@ export async function analyzeVerificationStatus(
      * This provides a basic level of analysis even without AI capabilities.
      */
     const lowercaseContent = searchContent.toLowerCase();
-    let status = "unverifiable";
+    let status = "opinion";
     let confidence = 0.5;
 
     if (
@@ -84,7 +84,7 @@ export async function analyzeVerificationStatus(
       status = "satire";
       confidence = 0.7;
     } else if (lowercaseContent.includes("unverifiable")) {
-      status = "unverifiable";
+      status = "opinion";
       confidence = 0.6;
     }
 
@@ -103,7 +103,7 @@ Research Results:
 ${searchContent}
 
 Based on the research evidence, determine:
-1. Verification Status: Choose ONE of: "verified", "partially_true", "misleading", "false", "exaggerated", "outdated", "opinion", "rumor", "conspiracy", "debunked", "satire", "unverifiable"
+1. Verification Status: Choose ONE of: "verified", "partially_true", "misleading", "false", "exaggerated", "outdated", "opinion", "rumor", "conspiracy", "debunked", "satire"
 2. Confidence Level: A number from 0.0 to 1.0 representing how confident you are in this assessment
 
 Guidelines:
@@ -151,8 +151,6 @@ Guidelines:
 - "satire": Content intended as humor or parody, not factual information
   * Use for comedic content that might be mistaken for real news
   * Example: "Man bites dog" from satirical news site (satire)
-  
-- "unverifiable": Insufficient credible evidence to make a determination about the primary claim
 
 **IMPORTANT**: Base your verdict on the PRIMARY claim, not embellishments or secondary details.
 
@@ -172,7 +170,7 @@ Respond in this exact JSON format:
        * Attempts to parse JSON response and validates the results.
        */
       const parsed = JSON.parse(responseText.trim() || "{}");
-      const status = parsed.status || "unverifiable";
+      const status = parsed.status || "opinion";
       const confidence = Math.max(0, Math.min(1, parsed.confidence || 0.5));
 
       return { status, confidence };
@@ -181,7 +179,7 @@ Respond in this exact JSON format:
        * JSON Parsing Fallback
        * If AI response isn't valid JSON, return safe defaults.
        */
-      return { status: "unverifiable", confidence: 0.5 };
+      return { status: "opinion", confidence: 0.5 };
     }
   } catch (error) {
     /**
@@ -189,6 +187,6 @@ Respond in this exact JSON format:
      * Logs errors for debugging while providing safe fallback response.
      */
     console.warn(`Failed to analyze verification status for claim:`, error);
-    return { status: "unverifiable", confidence: 0.5 };
+    return { status: "opinion", confidence: 0.5 };
   }
 }

@@ -72,7 +72,7 @@ export function HowItWorks() {
         "Get a detailed report with verdicts, sources, and creator credibility rating.",
       icon: FileTextIcon,
       features: [
-        "Truth/misleading/unverifiable verdicts",
+        "Truth/misleading/definitive verdicts",
         "Linked credible sources",
         "Creator credibility rating",
         "Easy-to-read summary",

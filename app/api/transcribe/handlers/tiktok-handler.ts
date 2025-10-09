@@ -13,6 +13,7 @@ import { analyzePoliticalBias } from "../../../../tools/fact-checking/political-
 import { calculateCreatorCredibilityRating } from "../../../../tools/content-analysis";
 import { logger } from "../../../../lib/logger";
 import { analyzeSentiment } from "../../../../lib/sentiment-analysis";
+import { normalizeVerdict } from "@/types/verdict";
 
 /**
  * TikTok-specific data extracted from the platform
@@ -412,7 +413,7 @@ export class TikTokHandler extends BaseHandler {
    *
    * @returns {Promise<FactCheckResult | null>} Promise resolving to fact-check analysis or null
    * @returns {FactCheckResult} Returns comprehensive fact-check containing:
-   *   - Overall verdict (verified, false, misleading, unverified)
+   *   - Overall verdict (verified, false, misleading, satire, partially_true, outdated, exaggerated, opinion, rumor, conspiracy, debunked)
    *   - Confidence percentage (0-100)
    *   - Detailed explanation of findings
    *   - Analyzed content snippet
@@ -538,9 +539,10 @@ Please fact-check the claims from this TikTok video content, paying special atte
         );
 
         const factCheckResult: FactCheckResult = {
-          verdict:
-            (resultData.overallStatus as FactCheckResult["verdict"]) ||
-            "unverified",
+          verdict: normalizeVerdict(resultData.overallStatus, {
+            confidence: Math.round((resultData.confidence || 0.5) * 100),
+            reasoning: resultData.reasoning,
+          }),
           confidence: Math.round((resultData.confidence || 0.5) * 100),
           explanation: resultData.reasoning || "No analysis available",
           content:
@@ -649,7 +651,7 @@ Please fact-check the claims from this TikTok video content, paying special atte
 
       // Return fallback result
       return {
-        verdict: "unverified",
+        verdict: normalizeVerdict("unknown", { confidence: 0, reasoning: "service unavailable" }),
         confidence: 0,
         explanation:
           "Verification service temporarily unavailable. Manual fact-checking recommended.",
@@ -672,7 +674,7 @@ Please fact-check the claims from this TikTok video content, paying special atte
 
       // Return fallback instead of throwing
       return {
-        verdict: "unverified",
+        verdict: normalizeVerdict("unknown", { confidence: 0, reasoning: "technical error" }),
         confidence: 0,
         explanation:
           "Fact-checking failed due to technical error. Manual verification recommended.",
