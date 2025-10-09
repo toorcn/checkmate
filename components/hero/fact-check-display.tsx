@@ -397,15 +397,42 @@ export function FactCheckDisplay({
         )}
 
         {/* Sentiment Analysis Card */}
-        {factCheck.sentimentAnalysis && (
-          <AnalysisOverviewCard
-            title="Sentiment Analysis"
-            description={`Overall tone: ${factCheck.sentimentAnalysis.overall?.label || "Neutral"}`}
-            icon={<BarChart3Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
-            onClick={() => setOpenModal("sentiment")}
-            variant="info"
-          />
-        )}
+        {factCheck.sentimentAnalysis && (() => {
+          const sentiment = (factCheck.sentimentAnalysis.overall || "NEUTRAL").toUpperCase();
+          const getSentimentVariant = () => {
+            switch (sentiment) {
+              case "POSITIVE":
+                return "success";
+              case "NEGATIVE":
+                return "danger";
+              case "MIXED":
+                return "warning";
+              default:
+                return "info";
+            }
+          };
+          const getSentimentIconColor = () => {
+            switch (sentiment) {
+              case "POSITIVE":
+                return "text-green-600 dark:text-green-400";
+              case "NEGATIVE":
+                return "text-red-600 dark:text-red-400";
+              case "MIXED":
+                return "text-yellow-600 dark:text-yellow-400";
+              default:
+                return "text-blue-600 dark:text-blue-400";
+            }
+          };
+          return (
+            <AnalysisOverviewCard
+              title="Sentiment Analysis"
+              description={`Overall tone: ${factCheck.sentimentAnalysis.overall || "Neutral"}`}
+              icon={<BarChart3Icon className={`h-5 w-5 ${getSentimentIconColor()}`} />}
+              onClick={() => setOpenModal("sentiment")}
+              variant={getSentimentVariant()}
+            />
+          );
+        })()}
       </div>
 
       {/* Political Bias Card - Only for Malaysia Political Content */}
