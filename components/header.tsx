@@ -169,7 +169,12 @@ export function Header() {
       ) : (
         <GlobalTranslationToggle />
       )}
-      {mobile && <AvatarDropdown />}
+      {mobile && (
+        <>
+          <ThemeToggle />
+          <AvatarDropdown />
+        </>
+      )}
     </>
   );
 
@@ -186,6 +191,7 @@ export function Header() {
           {/* Desktop controls */}
           <div className="hidden sm:flex items-center gap-3">
             <Controls />
+            <ThemeToggle />
             <AvatarDropdown />
           </div>
           {/* Mobile menu */}
