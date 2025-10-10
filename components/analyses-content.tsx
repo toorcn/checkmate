@@ -419,7 +419,7 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                                 title: s.title || s.source,
                                 source: s.source || s.title,
                                 credibility:
-                                  s.credibility ?? s.relevance ?? 0.5,
+                                  s.credibility !== undefined ? s.credibility : s.relevance !== undefined ? s.relevance : undefined,
                               })
                             )}
                             verdict={(analysis.factCheck as any).verdict}
