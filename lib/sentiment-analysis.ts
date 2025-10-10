@@ -27,6 +27,21 @@ export interface SentimentAnalysisResult {
   }>;
   emotionalIntensity: number; // 0-1 scale, calculated from sentiment scores
   flags: string[]; // Warning flags for highly emotional/inflammatory content
+  manipulationTactics?: Array<{
+    tactic: string;
+    description: string;
+    examples: string[];
+  }>;
+  credibilityImpact?: {
+    modifier: number;
+    explanation: string;
+  };
+  targetEmotions?: string[];
+  linguisticRedFlags?: Array<{
+    type: string;
+    phrase: string;
+    reason: string;
+  }>;
 }
 
 /**
@@ -204,44 +219,161 @@ export async function analyzeSentiment(
 
     // Detect inflammatory/manipulative content flags
     const flags: string[] = [];
+    const manipulationTactics: Array<{
+      tactic: string;
+      description: string;
+      examples: string[];
+    }> = [];
+    const targetEmotions: string[] = [];
+    const linguisticRedFlags: Array<{
+      type: string;
+      phrase: string;
+      reason: string;
+    }> = [];
 
     // Very high negative sentiment (potential fear-mongering, anger)
     if (scores.negative > 0.7) {
       flags.push("high_negative_sentiment");
+      targetEmotions.push("fear", "anger");
+      manipulationTactics.push({
+        tactic: "Fear-mongering",
+        description: "Uses highly negative language to provoke fear or anxiety responses",
+        examples: keyPhrases.slice(0, 3),
+      });
     }
 
     // High emotional intensity with mixed sentiment (potential manipulation)
     if (emotionalIntensity > 0.8 && scores.mixed > 0.3) {
       flags.push("emotionally_manipulative");
+      targetEmotions.push("confusion", "urgency");
+      manipulationTactics.push({
+        tactic: "Emotional Manipulation",
+        description: "Combines conflicting emotions to bypass critical thinking",
+        examples: keyPhrases.slice(0, 3),
+      });
     }
+
+    // Enhanced linguistic red flag detection
+    const textLower = analyzableText.toLowerCase();
+    
+    // Absolutist language
+    const absolutistPatterns = [
+      { pattern: /\b(always|never|everyone|nobody|all|none)\b/g, type: "absolutist" },
+    ];
+    
+    // Tribal/us-vs-them language
+    const tribalPatterns = [
+      { pattern: /\b(they don't want you to know|wake up|sheeple|mainstream media lies)\b/g, type: "tribal" },
+      { pattern: /\b(us vs them|elite|globalist)\b/g, type: "tribal" },
+    ];
+    
+    // Emotional amplifiers
+    const amplifierPatterns = [
+      { pattern: /\b(shocking|horrifying|unbelievable|devastating|explosive)\b/g, type: "amplifier" },
+      { pattern: /\b(breaking|urgent|act now|must see|revealed)\b/g, type: "amplifier" },
+    ];
+    
+    // Vague attributions
+    const vaguePatterns = [
+      { pattern: /\b(sources say|people are saying|many believe|it is reported)\b/g, type: "vague_attribution" },
+    ];
 
     // Check for inflammatory key phrases
     const inflammatoryKeywords = [
-      "shocking",
-      "outrageous",
-      "scandal",
-      "exposed",
-      "truth they don't want",
-      "wake up",
-      "sheeple",
-      "fake news",
-      "mainstream media",
-      "cover up",
-      "conspiracy",
+      "shocking", "outrageous", "scandal", "exposed", "truth they don't want",
+      "wake up", "sheeple", "fake news", "mainstream media", "cover up", "conspiracy",
+      "bombshell", "stunning", "unbelievable", "devastating", "explosive",
     ];
-    const hasInflammatoryLanguage = keyPhrases.some((phrase) =>
+    
+    const foundInflammatoryPhrases = keyPhrases.filter((phrase) =>
       inflammatoryKeywords.some((keyword) =>
         phrase.toLowerCase().includes(keyword.toLowerCase())
       )
     );
-    if (hasInflammatoryLanguage) {
+    
+    if (foundInflammatoryPhrases.length > 0) {
       flags.push("inflammatory_language");
+      targetEmotions.push("outrage", "shock");
+      manipulationTactics.push({
+        tactic: "Inflammatory Language",
+        description: "Uses provocative words designed to trigger emotional reactions rather than inform",
+        examples: foundInflammatoryPhrases.slice(0, 3),
+      });
+      
+      foundInflammatoryPhrases.forEach(phrase => {
+        linguisticRedFlags.push({
+          type: "inflammatory",
+          phrase,
+          reason: "Designed to provoke emotional reactions rather than inform",
+        });
+      });
+    }
+
+    // Detect absolutist language in key phrases
+    keyPhrases.forEach(phrase => {
+      if (/\b(always|never|everyone|nobody|all|none)\b/i.test(phrase)) {
+        linguisticRedFlags.push({
+          type: "absolutist",
+          phrase,
+          reason: "Absolute statements are rarely accurate and often indicate exaggeration",
+        });
+      }
+      
+      if (/\b(sources say|people are saying|many believe)\b/i.test(phrase)) {
+        linguisticRedFlags.push({
+          type: "vague_attribution",
+          phrase,
+          reason: "Vague attributions avoid providing verifiable sources",
+        });
+      }
+    });
+
+    // Detect urgency tactics
+    if (/\b(urgent|act now|hurry|don't wait|last chance|breaking)\b/i.test(textLower)) {
+      manipulationTactics.push({
+        tactic: "Urgency Tactics",
+        description: "Creates false sense of urgency to prevent careful evaluation",
+        examples: keyPhrases.filter(p => /urgent|act now|hurry|breaking/i.test(p)).slice(0, 2),
+      });
+      targetEmotions.push("urgency", "anxiety");
     }
 
     // Very high positive sentiment can also be suspicious (clickbait, too good to be true)
     if (scores.positive > 0.85 && emotionalIntensity > 0.85) {
       flags.push("suspiciously_positive");
+      targetEmotions.push("hope", "excitement");
+      manipulationTactics.push({
+        tactic: "Too Good to Be True",
+        description: "Unusually high positive sentiment may indicate clickbait or unrealistic promises",
+        examples: keyPhrases.slice(0, 3),
+      });
     }
+
+    // Calculate credibility impact
+    let credibilityModifier = 1.0;
+    const impactReasons: string[] = [];
+
+    if (emotionalIntensity > 0.8) {
+      credibilityModifier -= 0.1;
+      impactReasons.push("High emotional intensity suggests potential bias");
+    }
+
+    if (flags.includes("inflammatory_language")) {
+      credibilityModifier -= 0.1;
+      impactReasons.push("Inflammatory language often indicates manipulation");
+    }
+
+    if (flags.includes("emotionally_manipulative")) {
+      credibilityModifier -= 0.15;
+      impactReasons.push("Emotional manipulation tactics detected");
+    }
+
+    if (linguisticRedFlags.length >= 3) {
+      credibilityModifier -= 0.05;
+      impactReasons.push("Multiple linguistic red flags present");
+    }
+
+    credibilityModifier = Math.max(0.7, Math.min(1.0, credibilityModifier));
 
     const result: SentimentAnalysisResult = {
       overall,
@@ -250,6 +382,13 @@ export async function analyzeSentiment(
       entities: entities.length > 0 ? entities : undefined,
       emotionalIntensity,
       flags,
+      manipulationTactics: manipulationTactics.length > 0 ? manipulationTactics : undefined,
+      credibilityImpact: credibilityModifier < 1.0 ? {
+        modifier: credibilityModifier,
+        explanation: impactReasons.join(". "),
+      } : undefined,
+      targetEmotions: targetEmotions.length > 0 ? [...new Set(targetEmotions)] : undefined,
+      linguisticRedFlags: linguisticRedFlags.length > 0 ? linguisticRedFlags.slice(0, 10) : undefined,
     };
 
     logger.info("Sentiment analysis completed", {
@@ -261,6 +400,9 @@ export async function analyzeSentiment(
         flagsCount: flags.length,
         keyPhrasesCount: keyPhrases.length,
         entitiesCount: entities.length,
+        manipulationTacticsCount: manipulationTactics.length,
+        redFlagsCount: linguisticRedFlags.length,
+        credibilityModifier,
       },
     });
 
