@@ -11,3 +11,7 @@ export { VotingStats } from "./voting-stats";
 export { ArticlePageContent } from "./article-page-content";
 export { CommentsSection } from "./comments-section";
 export { CommentCard } from "./comment-card";
+export { ArticleFilters } from "./article-filters";
+export { ArticleSearch } from "./article-search";
+export { ArticleSort } from "./article-sort";
+export { ArticlePagination } from "./article-pagination";

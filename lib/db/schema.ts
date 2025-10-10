@@ -100,3 +100,26 @@ export const comments = pgTable(
     index("comments_user_idx").on(t.userId, t.createdAt),
   ]
 );
+
+export const articleAnalyses = pgTable(
+  "article_analyses",
+  {
+    articleId: text("article_id").primaryKey(),
+    articleUrl: text("article_url").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    source: text("source").notNull(),
+    verdict: text("verdict").notNull(),
+    confidence: integer("confidence").notNull(),
+    summary: text("summary").notNull(),
+    keyPoints: text("key_points").notNull(), // JSON array
+    sentiment: text("sentiment"), // JSON object
+    factsVerified: integer("facts_verified").notNull().default(0),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("article_analyses_created_idx").on(t.createdAt),
+    index("article_analyses_verdict_idx").on(t.verdict),
+  ]
+);
