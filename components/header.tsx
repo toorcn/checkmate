@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchCheck, Newspaper, Menu, Sun, Moon, Users, User, ChevronDown } from "lucide-react";
+import { SearchCheck, Newspaper, Menu, Sun, Moon, Users, User, ChevronDown, Code } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "next-themes";
 import { GlobalTranslationToggle, MobileGlobalTranslationToggle } from "@/components/global-translation-toggle";
@@ -164,6 +164,21 @@ export function Header() {
             <Link href="/crowdsource" className="inline-flex items-center">
               <Users className="h-4 w-4 mr-2" />
               {t.voteOnNews}
+            </Link>
+          </Button>
+        )}
+        {user && pathname !== "/api" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className={
+              mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
+            }
+            asChild
+          >
+            <Link href="/api" className="inline-flex items-center">
+              <Code className="h-4 w-4 mr-2" />
+              API
             </Link>
           </Button>
         )}

@@ -9,7 +9,7 @@ The External API provides programmatic access to Checkmate's core features throu
 ## Base URL
 
 ```
-https://your-domain.com/api/external
+https://checkmate.asia/api/external
 ```
 
 ## Authentication
@@ -18,7 +18,7 @@ All endpoints require an API key passed in the `X-API-Key` header:
 
 ```bash
 curl -H "X-API-Key: your-api-key-here" \
-     https://your-domain.com/api/external/transcribe
+     https://checkmate.asia/api/external/transcribe
 ```
 
 ## Rate Limiting
@@ -52,7 +52,7 @@ All endpoints support CORS for cross-origin requests:
 Returns comprehensive API documentation and status information.
 
 ```bash
-curl https://your-domain.com/api/external
+curl https://checkmate.asia/api/external
 ```
 
 **Response:**
@@ -250,7 +250,7 @@ All endpoints return consistent error responses:
 
 ```javascript
 const API_KEY = 'your-api-key-here';
-const BASE_URL = 'https://your-domain.com/api/external';
+const BASE_URL = 'https://checkmate.asia/api/external';
 
 async function transcribeContent(url) {
   const response = await fetch(`${BASE_URL}/transcribe`, {
@@ -276,7 +276,7 @@ console.log(result.data.transcription.text);
 import requests
 
 API_KEY = 'your-api-key-here'
-BASE_URL = 'https://your-domain.com/api/external'
+BASE_URL = 'https://checkmate.asia/api/external'
 
 def transcribe_content(url):
     response = requests.post(
@@ -298,20 +298,20 @@ print(result['data']['transcription']['text'])
 
 ```bash
 # Transcribe content
-curl -X POST https://your-domain.com/api/external/transcribe \
+curl -X POST https://checkmate.asia/api/external/transcribe \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-api-key-here" \
   -d '{"videoUrl": "https://tiktok.com/@user/video/123"}'
 
 # Translate text
-curl -X POST https://your-domain.com/api/external/translate \
+curl -X POST https://checkmate.asia/api/external/translate \
   -H "Content-Type: application/json" \
   -H "X-API-Key: your-api-key-here" \
   -d '{"text": "Hello world", "targetLanguage": "es"}'
 
 # Get analyses
 curl -H "X-API-Key: your-api-key-here" \
-     https://your-domain.com/api/external/analyses
+     https://checkmate.asia/api/external/analyses
 ```
 
 ## Testing
@@ -320,8 +320,8 @@ Use the provided test script to verify API functionality:
 
 ```bash
 # Set environment variables
-export API_BASE_URL="https://your-domain.com"
-export API_KEY="your-api-key-here"
+export API_BASE_URL="https://checkmate.asia"
+export CHECKMATE_API_KEY="your-api-key-here"
 
 # Run tests
 node test-external-api.js

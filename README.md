@@ -1,6 +1,6 @@
 # Checkmate 🔍
 
-[🌐 Visit the Website](https://prod.dmsurgvp1argw.amplifyapp.com/)
+[🌐 Visit the Website](https://checkmate.asia/)
 
 test-workflows-2
 
@@ -230,6 +230,68 @@ For new developers joining the project, comprehensive documentation is available
 ### Browser Extension
 
 - **Browser Extension**: Instantly fact-check content while browsing TikTok, Twitter, or news sites
+
+## 🔌 External API Access
+
+Checkmate provides a comprehensive external API for programmatic access to content analysis, transcription, and fact-checking services.
+
+### Quick Start
+
+```bash
+# Test the external API
+npm run test:api
+
+# Start the development server
+npm run dev
+```
+
+### Authentication
+
+All external API endpoints require an API key:
+
+```bash
+curl -H "X-API-Key: demo-key-123" \
+     https://checkmate.asia/api/external/transcribe
+```
+
+### Available Endpoints
+
+- **`GET /api/external`** - API documentation and status
+- **`POST /api/external/transcribe`** - Analyze content (TikTok, Twitter, web)
+- **`POST /api/external/translate`** - Translate text between languages
+- **`GET /api/external/analyses`** - List user analyses
+- **`POST /api/external/analyses`** - Create new analysis
+- **`GET /api/external/crowdsource/vote`** - Get vote counts
+- **`POST /api/external/crowdsource/vote`** - Submit credibility votes
+
+### Rate Limiting
+
+Rate limits are based on API key tier:
+- **Free**: 100 requests/hour
+- **Basic**: 1,000 requests/hour
+- **Premium**: 10,000 requests/hour
+- **Enterprise**: 100,000 requests/hour
+
+### Example Usage
+
+```javascript
+// Analyze a TikTok video
+const response = await fetch('https://checkmate.asia/api/external/transcribe', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'demo-key-123'
+  },
+  body: JSON.stringify({
+    tiktokUrl: 'https://tiktok.com/@user/video/123'
+  })
+});
+
+const result = await response.json();
+console.log(result.data.transcription.text);
+```
+
+For detailed documentation, examples, and integration guides, see **[EXTERNAL_API.md](docs/EXTERNAL_API.md)**.
 
 ## 📱 Usage Instructions & Demo
 
