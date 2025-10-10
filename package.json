@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:api": "node test-external-api.js",
     "setup:cognito": "node scripts/setup-cognito.js",
     "setup:cognito-client": "node scripts/setup-cognito-client.js",
     "test:cognito": "node scripts/test-cognito.js",
