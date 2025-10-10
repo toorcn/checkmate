@@ -38,6 +38,11 @@ export interface NewsArticle {
     keyPoints: string[];
     sentiment?: any;
     factsVerified?: number;
+    beliefDrivers?: Array<{
+      name: string;
+      description: string;
+      references?: Array<{ title: string; url: string }>;
+    }>;
   } | null;
 }
 

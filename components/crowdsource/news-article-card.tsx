@@ -308,77 +308,150 @@ export const NewsArticleCard = ({ article, onVote }: NewsArticleCardProps) => {
               </Button>
 
               {showAnalysis && analysis && (
-                <div className="space-y-4 p-5 bg-gradient-to-br from-muted/40 to-muted/20 rounded-xl border border-border/50">
-                  {/* Confidence Meter */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium">Confidence Level</span>
-                      <span className="font-semibold">{analysis.confidence}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all duration-500",
-                          analysis.confidence >= 80
-                            ? "bg-gradient-to-r from-green-500 to-green-600"
-                            : analysis.confidence >= 60
-                            ? "bg-gradient-to-r from-blue-500 to-blue-600"
-                            : "bg-gradient-to-r from-yellow-500 to-yellow-600"
+                <div className="space-y-4">
+                  {/* Main Analysis Card */}
+                  <div className={cn(
+                    "border-l-4 rounded-lg p-5",
+                    getVerdictColor(analysis.verdict).includes("green") && "border-l-green-500 bg-green-50/50 dark:bg-green-900/10",
+                    getVerdictColor(analysis.verdict).includes("red") && "border-l-red-500 bg-red-50/50 dark:bg-red-900/10",
+                    getVerdictColor(analysis.verdict).includes("yellow") && "border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10",
+                    getVerdictColor(analysis.verdict).includes("purple") && "border-l-purple-500 bg-purple-50/50 dark:bg-purple-900/10",
+                    !getVerdictColor(analysis.verdict).includes("green") && 
+                    !getVerdictColor(analysis.verdict).includes("red") && 
+                    !getVerdictColor(analysis.verdict).includes("yellow") &&
+                    !getVerdictColor(analysis.verdict).includes("purple") && "border-l-gray-500 bg-gray-50/50 dark:bg-gray-900/10"
+                  )}>
+                    <div className="space-y-4">
+                      {/* Header */}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1 rounded-full bg-white dark:bg-gray-800 shadow-sm">
+                              {getVerdictIcon(analysis.verdict)}
+                            </div>
+                            <h5 className="font-semibold text-base">
+                              {analysis.verdict}
+                            </h5>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Analysis Summary */}
+                      <div className="bg-white/60 dark:bg-gray-800/60 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50">
+                        <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                          {analysis.summary}
+                        </p>
+                      </div>
+
+                      {/* Metrics */}
+                      <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                              {analysis.confidence}%
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Confidence</p>
+                            <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                                style={{ width: `${analysis.confidence}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {analysis.factsVerified !== undefined && analysis.factsVerified > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                              <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                                {analysis.factsVerified}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Facts</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500">Verified</p>
+                            </div>
+                          </div>
                         )}
-                        style={{ width: `${analysis.confidence}%` }}
-                      />
+                      </div>
+
+                      {/* Key Points if available */}
+                      {analysis.keyPoints && analysis.keyPoints.length > 0 && (
+                        <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                          <p className="font-medium text-sm mb-2">Key Findings:</p>
+                          <ul className="space-y-1.5">
+                            {analysis.keyPoints.slice(0, 3).map((point: string, index: number) => (
+                              <li key={index} className="text-xs text-muted-foreground flex items-start gap-2">
+                                <span className="text-primary font-bold mt-0.5">•</span>
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Sentiment Analysis if available */}
+                      {analysis.sentiment && (
+                        <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="font-medium text-sm">Sentiment Analysis</p>
+                            <Badge variant="outline" className={cn("text-xs", getSentimentColor(analysis.sentiment))}>
+                              {getSentimentLabel(analysis.sentiment)}
+                            </Badge>
+                          </div>
+                          {analysis.sentiment.sentimentScore && (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Tone Score</span>
+                                <span className="font-medium">
+                                  {(analysis.sentiment.sentimentScore.Score * 100).toFixed(0)}%
+                                </span>
+                              </div>
+                              <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full transition-all",
+                                    analysis.sentiment.sentimentScore.Score > 0.3
+                                      ? "bg-green-500"
+                                      : analysis.sentiment.sentimentScore.Score < -0.3
+                                      ? "bg-red-500"
+                                      : "bg-gray-500"
+                                  )}
+                                  style={{ 
+                                    width: `${Math.abs(analysis.sentiment.sentimentScore.Score) * 100}%` 
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Belief Drivers if available */}
+                      {analysis.beliefDrivers && analysis.beliefDrivers.length > 0 && (
+                        <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                          <p className="font-medium text-sm mb-3">Why People Believe This:</p>
+                          <div className="space-y-2">
+                            {analysis.beliefDrivers.slice(0, 2).map((driver, index) => (
+                              <div
+                                key={index}
+                                className="text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded"
+                              >
+                                <span className="font-semibold">{driver.name}:</span>{" "}
+                                <span className="text-muted-foreground">{driver.description}</span>
+                              </div>
+                            ))}
+                            {analysis.beliefDrivers.length > 2 && (
+                              <p className="text-xs text-muted-foreground italic">
+                                +{analysis.beliefDrivers.length - 2} more factors
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Summary */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2">Summary</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {analysis.summary}
-                    </p>
-                  </div>
-
-                  {/* Key Points */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-3">Key Points</h4>
-                    <ul className="space-y-2">
-                      {analysis.keyPoints?.map((point: string, index: number) => (
-                        <li
-                          key={index}
-                          className="text-sm text-muted-foreground flex items-start gap-3"
-                        >
-                          <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
-                          <span className="leading-relaxed">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Sentiment & Facts */}
-                  <div className="flex items-center gap-4 pt-2 border-t border-border/50">
-                    {analysis.sentiment && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          Sentiment:
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn("text-xs", getSentimentColor(analysis.sentiment))}
-                        >
-                          {getSentimentLabel(analysis.sentiment)}
-                        </Badge>
-                      </div>
-                    )}
-                    {analysis.factsVerified !== undefined && analysis.factsVerified > 0 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          Facts Verified:
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {analysis.factsVerified}
-                        </Badge>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

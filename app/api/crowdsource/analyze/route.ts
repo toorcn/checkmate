@@ -59,6 +59,11 @@ async function generateAnalysis(article: {
   summary: string;
   keyPoints: string[];
   factsVerified: number;
+  beliefDrivers: Array<{
+    name: string;
+    description: string;
+    references?: Array<{ title: string; url: string }>;
+  }>;
 }> {
   const fullText = [article.title, article.description, article.content]
     .filter(Boolean)
@@ -137,13 +142,116 @@ Focus on:
     console.error("Error extracting facts:", error);
   }
 
+  // Generate belief drivers based on verdict
+  const beliefDrivers = generateBeliefDrivers(verdict, article.source);
+
   return {
     verdict,
     confidence,
     summary,
     keyPoints,
     factsVerified,
+    beliefDrivers,
   };
+}
+
+/**
+ * Generate belief drivers based on verdict and source
+ */
+function generateBeliefDrivers(verdict: string, source: string): Array<{
+  name: string;
+  description: string;
+  references?: Array<{ title: string; url: string }>;
+}> {
+  const lowerVerdict = verdict.toLowerCase();
+  
+  const commonReferences = [
+    {
+      title: "Understanding Media Bias - Media Bias/Fact Check",
+      url: "https://mediabiasfactcheck.com/methodology/",
+    },
+    {
+      title: "How to Spot Misinformation - FactCheck.org",
+      url: "https://www.factcheck.org/",
+    },
+  ];
+
+  if (lowerVerdict.includes("verified") || lowerVerdict.includes("true")) {
+    return [
+      {
+        name: "Source Credibility",
+        description: `${source} is a recognized news organization with established fact-checking standards and editorial oversight.`,
+        references: commonReferences,
+      },
+      {
+        name: "Multiple Corroboration",
+        description: "The information can be verified across multiple independent credible sources.",
+      },
+      {
+        name: "Transparency",
+        description: "The article provides clear sourcing and attribution for claims made.",
+      },
+    ];
+  } else if (lowerVerdict.includes("misleading") || lowerVerdict.includes("context")) {
+    return [
+      {
+        name: "Missing Context",
+        description: "The article presents factual information but omits important context that could change interpretation.",
+      },
+      {
+        name: "Selective Reporting",
+        description: "Information may be cherry-picked to support a particular narrative while excluding contradictory data.",
+      },
+      {
+        name: "Confirmation Bias",
+        description: "People tend to believe information that confirms their existing beliefs, even when context is missing.",
+        references: commonReferences,
+      },
+    ];
+  } else if (lowerVerdict.includes("false") || lowerVerdict.includes("debunked")) {
+    return [
+      {
+        name: "Misinformation Spread",
+        description: "False information can spread rapidly on social media before fact-checks catch up.",
+      },
+      {
+        name: "Emotional Appeal",
+        description: "False claims often use emotional language to bypass critical thinking.",
+      },
+      {
+        name: "Authority Misrepresentation",
+        description: "May falsely cite experts or authoritative sources to appear credible.",
+        references: commonReferences,
+      },
+    ];
+  } else if (lowerVerdict.includes("opinion")) {
+    return [
+      {
+        name: "Subjective Interpretation",
+        description: "This content expresses personal views or interpretations rather than verifiable facts.",
+      },
+      {
+        name: "Editorial Perspective",
+        description: "Opinion pieces reflect the author's perspective and should not be treated as objective reporting.",
+      },
+    ];
+  } else {
+    return [
+      {
+        name: "Insufficient Evidence",
+        description: "Limited credible sources available to verify or contradict the claims made.",
+      },
+      {
+        name: "Emerging Information",
+        description: "The story may be developing and additional context may emerge over time.",
+      },
+      {
+        name: "Source Limitations",
+        description: "The original source may lack transparency or established credibility.",
+        references: commonReferences,
+      },
+    ];
+  }
 }
 
 /**
