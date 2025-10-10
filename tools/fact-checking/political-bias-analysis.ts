@@ -136,7 +136,8 @@ Respond in this exact JSON format:
         biasIntensity: 0,
         confidence: 0.5,
         explanation: "Political bias analysis completed using AI assessment.",
-        biasIndicators: []
+        biasIndicators: [],
+        politicalTopics: []
       });
       
       // Check if parsing failed (returned fallback values)
@@ -402,7 +403,9 @@ Respond in this exact JSON format:
       malaysiaBiasScore: 50,
       explanation: "Malaysia political bias analysis completed using AI assessment.",
       keyQuote: "",
-      confidence: 0.5
+      confidence: 0.5,
+      biasIndicators: [],
+      politicalTopics: []
     });
     
     // Check if parsing failed (returned fallback values)

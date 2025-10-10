@@ -4,6 +4,10 @@ export enum ApiErrorCode {
   MISSING_URL = "MISSING_URL",
   UNSUPPORTED_PLATFORM = "UNSUPPORTED_PLATFORM",
 
+  // Authentication errors
+  UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
+
   // External service errors
   TIKTOK_FETCH_FAILED = "TIKTOK_FETCH_FAILED",
   TWITTER_FETCH_FAILED = "TWITTER_FETCH_FAILED",
@@ -155,6 +159,24 @@ export class ApiError extends Error {
       408,
       true,
       { operation, timeoutMs }
+    );
+  }
+
+  static unauthorized(message: string = "Unauthorized"): ApiError {
+    return new ApiError(
+      ApiErrorCode.UNAUTHORIZED,
+      message,
+      401,
+      true
+    );
+  }
+
+  static forbidden(message: string = "Forbidden"): ApiError {
+    return new ApiError(
+      ApiErrorCode.FORBIDDEN,
+      message,
+      403,
+      true
     );
   }
 
