@@ -1,8 +1,11 @@
-name: checkmate_app
-description: "A new Flutter project."
+name: checkmate
+description: "AI-powered fact-checking app that analyzes TikTok, Twitter/X, news articles, and other content for credibility and misinformation detection."
 publish_to: 'none'
 
 version: 1.0.0+1
+
+author: "Checkmate Team"
+homepage: "https://www.checkmate.asia"
 
 environment:
   sdk: ^3.8.1

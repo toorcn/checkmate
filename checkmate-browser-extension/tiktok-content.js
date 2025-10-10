@@ -157,14 +157,14 @@
       getDirectTikTokURL()
         .then((url) => {
           navigator.clipboard?.writeText(url).catch(() => { });
-          window.open(`http://localhost:3000/?link=${encodeURIComponent(url)}`, "_blank");
+          window.open(`https://www.checkmate.asia/?link=${encodeURIComponent(url)}`, "_blank");
         })
         .catch(() => {
           // If direct URL fails, try the original embed extraction
           extractTikTokEmbedURL()
             .then((url) => {
               navigator.clipboard?.writeText(url).catch(() => { });
-              window.open(`http://localhost:3000/?link=${encodeURIComponent(url)}`, "_blank");
+              window.open(`https://www.checkmate.asia/?link=${encodeURIComponent(url)}`, "_blank");
             })
             .catch((err) => alert(err.message));
         });
