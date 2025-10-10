@@ -22,6 +22,18 @@ export function Header() {
   const { t } = useGlobalTranslation();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const { isExpanded } = useDiagramExpansion();
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  // Handle scroll animation
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Compact Avatar Dropdown Component
   const AvatarDropdown = () => {
@@ -154,10 +166,10 @@ export function Header() {
               href={link.href} 
               className={`text-sm transition-colors ${
                 isActive 
-                  ? "text-foreground font-medium" 
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-foreground font-semibold scale-105" 
+                  : "text-muted-foreground hover:text-foreground hover:scale-105"
               } ${
-                mobile ? "block py-2" : ""
+                mobile ? "block py-3 px-2 rounded-md hover:bg-muted/50" : "px-3 py-2 rounded-md hover:bg-muted/50"
               }`}
               onClick={closeMenu}
             >
@@ -171,15 +183,19 @@ export function Header() {
   };
 
   return (
-    <header className={`bg-background sticky top-0 z-50 transition-all duration-400 ${isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}`}>
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="flex h-16 items-center justify-between">
+    <header className={`bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-50 transition-all duration-500 ease-in-out ${
+      isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'
+    } ${
+      isScrolled ? 'shadow-lg shadow-black/5 dark:shadow-black/20' : 'shadow-none'
+    }`}>
+      <div className="mx-auto max-w-7xl px-6 md:px-8 lg:px-12">
+        <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Logo />
           
           {/* Desktop Navigation */}
-          <div className="hidden sm:flex items-center gap-6">
-            <nav className="flex items-center gap-6">
+          <div className="hidden sm:flex items-center gap-8">
+            <nav className="flex items-center gap-8">
               <Controls />
             </nav>
           </div>
@@ -201,7 +217,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="flex flex-col gap-6 w-56 pt-8"
+                className="flex flex-col gap-8 w-72 pt-12 bg-background/95 backdrop-blur-md"
               >
                 <Controls closeMenu={() => setMenuOpen(false)} mobile />
                 <div className="flex flex-col gap-3 pt-4 border-t border-border">

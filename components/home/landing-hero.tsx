@@ -21,7 +21,7 @@ export function LandingHero() {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-24 md:py-32">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
+        <div className="max-w-3xl mx-auto text-center space-y-8">
           {/* Top badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1.5 backdrop-blur-sm">
             <Sparkles className="h-4 w-4" />
