@@ -38,8 +38,8 @@ Extract only the most important factual claims (not opinions). Return as a numbe
   // Parse numbered list into array
   const facts = result.text
     .split('\n')
-    .filter(line => /^\d+\./.test(line.trim()))
-    .map(line => line.replace(/^\d+\.\s*/, '').trim())
+    .filter(line => /^(\d+[\.\)\-]|•)\s/.test(line.trim()))
+    .map(line => line.replace(/^(\d+[\.\)\-]|•)\s*/, '').trim())
     .filter(fact => fact.length > 0);
 
   return facts;
