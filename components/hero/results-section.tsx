@@ -106,7 +106,7 @@ export function ResultsSection({
               )}
 
             {/* Platform Analysis */}
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               <h4 className="font-medium flex items-center gap-2">
                 <AlertCircleIcon className="h-4 w-4" />
                 Platform Analysis
@@ -139,7 +139,7 @@ export function ResultsSection({
                   </Badge>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* News Detection */}
             {currentData.newsDetection && (

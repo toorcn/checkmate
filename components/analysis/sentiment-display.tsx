@@ -11,7 +11,17 @@ import {
   Lightbulb,
   Tag,
   Users,
+  Brain,
+  ShieldAlert,
+  Target,
+  AlertCircle,
+  Info,
+  CheckCircle,
+  BarChart3,
+  Shield,
 } from "lucide-react";
+import { generateSentimentGuidance, formatEmotionName } from "@/lib/sentiment-utils";
+import { calculateSentimentVerdictCorrelation } from "@/lib/sentiment-verdict-correlation";
 
 interface SentimentAnalysisData {
   overall: string;
@@ -28,10 +38,26 @@ interface SentimentAnalysisData {
   }>;
   emotionalIntensity: number;
   flags: string[];
+  manipulationTactics?: Array<{
+    tactic: string;
+    description: string;
+    examples: string[];
+  }>;
+  credibilityImpact?: {
+    modifier: number;
+    explanation: string;
+  };
+  targetEmotions?: string[];
+  linguisticRedFlags?: Array<{
+    type: string;
+    phrase: string;
+    reason: string;
+  }>;
 }
 
 interface SentimentDisplayProps {
   sentiment: SentimentAnalysisData;
+  verdict?: string;
 }
 
 const getSentimentIcon = (sentiment: string) => {
@@ -118,10 +144,61 @@ const getFlagDescription = (flag: string) => {
   return descriptions[flag] || "";
 };
 
-export function SentimentDisplay({ sentiment }: SentimentDisplayProps) {
+export function SentimentDisplay({ sentiment, verdict }: SentimentDisplayProps) {
   if (!sentiment) return null;
 
   const hasWarnings = sentiment.flags.length > 0 || sentiment.emotionalIntensity >= 0.7;
+  const guidanceMessages = generateSentimentGuidance(
+    sentiment.emotionalIntensity,
+    sentiment.flags,
+    sentiment.manipulationTactics,
+    verdict
+  );
+
+  // Calculate pattern matching if verdict is available
+  const patternMatch = verdict
+    ? calculateSentimentVerdictCorrelation(
+        {
+          overall: sentiment.overall,
+          scores: sentiment.scores,
+          emotionalIntensity: sentiment.emotionalIntensity,
+          manipulationTactics: sentiment.manipulationTactics,
+          targetEmotions: sentiment.targetEmotions,
+          linguisticRedFlags: sentiment.linguisticRedFlags,
+        },
+        verdict
+      )
+    : null;
+
+  const getPatternMatchColor = (assessment: string) => {
+    switch (assessment) {
+      case "strong_match":
+        return "border-green-500 bg-green-50 dark:bg-green-900/10";
+      case "partial_match":
+        return "border-blue-500 bg-blue-50 dark:bg-blue-900/10";
+      case "weak_match":
+        return "border-orange-500 bg-orange-50 dark:bg-orange-900/10";
+      case "mismatch":
+        return "border-red-500 bg-red-50 dark:bg-red-900/10";
+      default:
+        return "border-gray-300 bg-gray-50 dark:bg-gray-800";
+    }
+  };
+
+  const getPatternMatchIcon = (assessment: string) => {
+    switch (assessment) {
+      case "strong_match":
+        return <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />;
+      case "partial_match":
+        return <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+      case "weak_match":
+        return <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
+      case "mismatch":
+        return <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />;
+      default:
+        return <Info className="h-5 w-5 text-gray-600 dark:text-gray-400" />;
+    }
+  };
 
   return (
     <Card className={hasWarnings ? "border-yellow-200 dark:border-yellow-800" : ""}>
@@ -140,6 +217,105 @@ export function SentimentDisplay({ sentiment }: SentimentDisplayProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Pattern Matching Section - First priority display */}
+        {patternMatch && verdict && (
+          <div
+            className={`p-4 rounded-lg border-2 ${getPatternMatchColor(
+              patternMatch.overallAssessment
+            )}`}
+          >
+            <div className="flex items-start gap-3">
+              {getPatternMatchIcon(patternMatch.overallAssessment)}
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold">
+                    Sentiment-Verdict Consistency Check
+                  </h4>
+                  <Badge
+                    variant="outline"
+                    className={`text-sm font-bold ${
+                      patternMatch.confidence >= 80
+                        ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200"
+                        : patternMatch.confidence >= 60
+                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200"
+                        : patternMatch.confidence >= 40
+                        ? "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200"
+                        : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200"
+                    }`}
+                  >
+                    {patternMatch.confidence}% Match
+                  </Badge>
+                </div>
+
+                <p className="text-sm text-muted-foreground mb-3">
+                  {patternMatch.userMessage}
+                </p>
+
+                {/* Matches */}
+                {patternMatch.matches.length > 0 && (
+                  <div className="space-y-1 mb-2">
+                    <p className="text-xs font-medium text-green-700 dark:text-green-300">
+                      Pattern Matches:
+                    </p>
+                    <ul className="space-y-0.5">
+                      {patternMatch.matches.map((match, idx) => (
+                        <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                          <span>{match}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Mismatches */}
+                {patternMatch.mismatches.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-orange-700 dark:text-orange-300">
+                      Inconsistencies:
+                    </p>
+                    <ul className="space-y-0.5">
+                      {patternMatch.mismatches.map((mismatch, idx) => (
+                        <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-orange-600 dark:text-orange-400 mt-0.5">⚠</span>
+                          <span>{mismatch}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="mt-3 pt-3 border-t border-current/10">
+                  <p className="text-xs text-muted-foreground italic">
+                    {patternMatch.explanation}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Actionable Guidance */}
+        {guidanceMessages.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <h4 className="text-sm font-semibold">What You Should Do</h4>
+            </div>
+            <div className="space-y-2">
+              {guidanceMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800"
+                >
+                  <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-muted-foreground flex-1">{message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Sentiment Scores */}
         <div className="space-y-3">
           <h4 className="text-sm font-semibold">Sentiment Breakdown</h4>
@@ -293,14 +469,165 @@ export function SentimentDisplay({ sentiment }: SentimentDisplayProps) {
           </div>
         )}
 
+        {/* Credibility Impact */}
+        {sentiment.credibilityImpact && sentiment.credibilityImpact.modifier < 1.0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <h4 className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                Impact on Credibility
+              </h4>
+            </div>
+            <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Credibility Modifier</span>
+                <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                  {Math.round(sentiment.credibilityImpact.modifier * 100)}%
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {sentiment.credibilityImpact.explanation}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                <strong>Why this matters:</strong> Content with high emotional manipulation
+                is {Math.round((1 - sentiment.credibilityImpact.modifier) * 100)}% less likely
+                to be factually accurate based on historical patterns.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Manipulation Tactics */}
+        {sentiment.manipulationTactics && sentiment.manipulationTactics.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <h4 className="text-sm font-semibold text-red-600 dark:text-red-400">
+                Manipulation Tactics Detected ({sentiment.manipulationTactics.length})
+              </h4>
+            </div>
+            <div className="space-y-3">
+              {sentiment.manipulationTactics.map((tactic, index) => (
+                <div
+                  key={index}
+                  className="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800"
+                >
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h5 className="text-sm font-semibold text-red-900 dark:text-red-100">
+                        {tactic.tactic}
+                      </h5>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {tactic.description}
+                      </p>
+                      {tactic.examples.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Examples found:
+                          </p>
+                          {tactic.examples.map((example, idx) => (
+                            <div
+                              key={idx}
+                              className="text-xs bg-red-100 dark:bg-red-900/20 px-2 py-1 rounded"
+                            >
+                              &quot;{example}&quot;
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Target Emotions */}
+        {sentiment.targetEmotions && sentiment.targetEmotions.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <h4 className="text-sm font-semibold">Targeted Emotions</h4>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {sentiment.targetEmotions.map((emotion, index) => {
+                const formatted = formatEmotionName(emotion);
+                return (
+                  <Badge
+                    key={index}
+                    className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200"
+                  >
+                    <span className="mr-1">{formatted.emoji}</span>
+                    {formatted.name}
+                  </Badge>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This content appears designed to trigger these emotional responses, which can
+              bypass critical thinking and make false claims more believable.
+            </p>
+          </div>
+        )}
+
+        {/* Linguistic Red Flags */}
+        {sentiment.linguisticRedFlags && sentiment.linguisticRedFlags.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <h4 className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                Linguistic Red Flags ({sentiment.linguisticRedFlags.length})
+              </h4>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {sentiment.linguisticRedFlags.map((flag, index) => (
+                <div
+                  key={index}
+                  className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800"
+                >
+                  <div className="flex items-start gap-2">
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-orange-100 dark:bg-orange-900/20 flex-shrink-0"
+                    >
+                      {flag.type.replace(/_/g, " ")}
+                    </Badge>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-orange-900 dark:text-orange-100 break-words">
+                        &quot;{flag.phrase}&quot;
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {flag.reason}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Interpretation Guide */}
         <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
-          <p className="text-xs text-muted-foreground">
-            <strong>💡 What this means:</strong> Sentiment analysis helps identify
-            emotionally charged or manipulative content. High emotional intensity or
-            multiple warning flags suggest the content may be designed to provoke
-            reactions rather than inform.
-          </p>
+          <div className="flex items-start gap-2">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-muted-foreground">
+                <strong>💡 Why Sentiment Analysis Matters:</strong> False information often
+                uses emotional manipulation to bypass critical thinking. Content designed to
+                provoke strong emotional reactions (fear, anger, outrage) is statistically
+                more likely to contain false or misleading claims.
+              </p>
+              {sentiment.credibilityImpact && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  <strong>Research shows:</strong> Claims with high emotional intensity are
+                  3x more likely to be false compared to neutral, fact-based reporting.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

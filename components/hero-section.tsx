@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useTikTokAnalysis } from "@/lib/hooks/use-tiktok-analysis";
 import { useSaveTikTokAnalysisWithCredibility } from "@/lib/hooks/use-saved-analyses";
 import { useAnimatedProgress } from "@/lib/hooks/use-animated-progress";
@@ -28,6 +29,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const [savedId, setSavedId] = useState<string | null>(null);
   const [isMockLoading, setIsMockLoading] = useState(false);
   const [mockResult, setMockResult] = useState<MockResult | null>(null);
+  const [isInputExpanded, setIsInputExpanded] = useState(true);
   const { analyzeTikTok, isLoading, result, reset } = useTikTokAnalysis();
   const {
     progress,
@@ -133,6 +135,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   useEffect(() => {
     if (result) {
       if (result.success) {
+        setIsInputExpanded(false); // Collapse input when results are shown
         // Trigger translation if auto-translation is enabled and language is not English
         if (enableAutoTranslation && language !== "en") {
           // Small delay to allow DOM to update with new content
@@ -172,6 +175,7 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
     setIsSaved(false);
     setSavedId(null);
     setMockResult(null);
+    setIsInputExpanded(true);
     resetProgress();
     reset();
   };
@@ -476,6 +480,7 @@ This claim appears to have originated from legitimate news sources around early 
 
     setMockResult(mockData);
     setIsMockLoading(false);
+    setIsInputExpanded(false); // Collapse input when mock results are shown
     toast.success("Mock Analysis Complete! (No API costs incurred)");
     
     // Trigger translation if auto-translation is enabled and language is not English
@@ -582,25 +587,45 @@ This claim appears to have originated from legitimate news sources around early 
         phase={phase}
       />
       
-      <div className="text-center">
-        <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
-          AI-Powered Fact Checking
-        </Badge>
+      <div className={`text-center transition-all duration-500 ${!isInputExpanded && (result?.success || mockResult?.success) ? 'mb-8' : ''}`}>
         <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
           {t.heroTitle}
         </h1>
-        <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
-          {t.heroSubtitle}
-        </p>
         
-        <UrlInputForm
-          url={url}
-          setUrl={setUrl}
-          isLoading={isLoading}
-          isMockLoading={isMockLoading}
-          onSubmit={handleSubmit}
-          onMockAnalysis={handleMockAnalysis}
-        />
+        {!isInputExpanded && (result?.success || mockResult?.success) ? (
+          // Collapsed state - show button to expand
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => setIsInputExpanded(true)}
+              variant="outline"
+              className="gap-2 cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              New Analysis
+            </Button>
+          </div>
+        ) : (
+          // Expanded state - show full input form
+          <>
+            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
+              AI-Powered Fact Checking
+            </Badge>
+            <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
+              {t.heroSubtitle}
+            </p>
+            
+            <UrlInputForm
+              url={url}
+              setUrl={setUrl}
+              isLoading={isLoading}
+              isMockLoading={isMockLoading}
+              onSubmit={handleSubmit}
+              onMockAnalysis={handleMockAnalysis}
+            />
+          </>
+        )}
       </div>
 
       <ResultsSection
