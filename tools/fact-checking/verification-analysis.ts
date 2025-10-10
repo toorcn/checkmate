@@ -1,5 +1,6 @@
 import { generateText } from "ai";
 import { textModel, DEFAULT_CLASSIFY_MAX_TOKENS, DEFAULT_CLASSIFY_TEMPERATURE } from "../../lib/ai";
+import { parseJsonResponse } from "../../lib/json-parser";
 
 /**
  * Analyzes verification status and confidence using LLM with comprehensive fact-check analysis.
@@ -262,7 +263,7 @@ Respond in this exact JSON format:
       console.log("=== VERIFICATION ANALYSIS DEBUG ===");
       console.log("Raw AI response:", responseText);
       
-      const parsed = JSON.parse(responseText.trim() || "{}");
+      const parsed = parseJsonResponse(responseText, { status: "unverifiable", confidence: 0.5 });
       console.log("Parsed JSON:", parsed);
       
       const status = parsed.status || "unverifiable";

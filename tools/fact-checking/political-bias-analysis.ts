@@ -1,5 +1,6 @@
 import { generateText } from "ai";
 import { textModel, DEFAULT_CLASSIFY_MAX_TOKENS, DEFAULT_CLASSIFY_TEMPERATURE } from "../../lib/ai";
+import { parseJsonResponse } from "../../lib/json-parser";
 
 /**
  * Political bias analysis result interface
@@ -129,36 +130,20 @@ Respond in this exact JSON format:
     });
 
     try {
-      // Try to extract JSON from the response (handle markdown code blocks or plain JSON)
-      let jsonText = responseText.trim();
+      // Use the robust JSON parser utility
+      const parsed = parseJsonResponse(responseText, {
+        biasDirection: "neutral",
+        biasIntensity: 0,
+        confidence: 0.5,
+        explanation: "Political bias analysis completed using AI assessment.",
+        biasIndicators: []
+      });
       
-      // Remove markdown code block if present
-      if (jsonText.includes("```json")) {
-        const jsonMatch = jsonText.match(/```json\s*([\s\S]*?)\s*```/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[1].trim();
-        }
-      } else if (jsonText.includes("```")) {
-        const jsonMatch = jsonText.match(/```\s*([\s\S]*?)\s*```/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[1].trim();
-        }
-      }
-      
-      // Find JSON object boundaries
-      const startIdx = jsonText.indexOf("{");
-      const endIdx = jsonText.lastIndexOf("}");
-      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        jsonText = jsonText.substring(startIdx, endIdx + 1);
-      }
-      
-      // Check if JSON appears truncated (missing closing brace)
-      if (!jsonText.trim().endsWith("}")) {
-        console.warn("JSON response appears truncated, using fallback analysis");
+      // Check if parsing failed (returned fallback values)
+      if (!parsed.biasDirection || parsed.biasDirection === "neutral" && parsed.confidence === 0.5) {
+        console.warn("JSON parsing failed or returned fallback values, using keyword analysis");
         return performKeywordBasedBiasAnalysis(content);
       }
-      
-      const parsed = JSON.parse(jsonText || "{}");
       
       // Validate and normalize the response
       return {
@@ -412,32 +397,17 @@ Respond in this exact JSON format:
       temperature: DEFAULT_CLASSIFY_TEMPERATURE,
     });
 
-    // Try to extract JSON from the response (handle markdown code blocks or plain JSON)
-    let jsonText = responseText.trim();
+    // Use the robust JSON parser utility
+    const parsed = parseJsonResponse(responseText, {
+      malaysiaBiasScore: 50,
+      explanation: "Malaysia political bias analysis completed using AI assessment.",
+      keyQuote: "",
+      confidence: 0.5
+    });
     
-    // Remove markdown code block if present
-    if (jsonText.includes("```json")) {
-      const jsonMatch = jsonText.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        jsonText = jsonMatch[1].trim();
-      }
-    } else if (jsonText.includes("```")) {
-      const jsonMatch = jsonText.match(/```\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        jsonText = jsonMatch[1].trim();
-      }
-    }
-    
-    // Find JSON object boundaries
-    const startIdx = jsonText.indexOf("{");
-    const endIdx = jsonText.lastIndexOf("}");
-    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-      jsonText = jsonText.substring(startIdx, endIdx + 1);
-    }
-    
-    // Check if JSON appears truncated (missing closing brace)
-    if (!jsonText.trim().endsWith("}")) {
-      console.warn("Malaysia bias JSON response appears truncated, using fallback analysis");
+    // Check if parsing failed (returned fallback values)
+    if (parsed.malaysiaBiasScore === 50 && parsed.confidence === 0.5) {
+      console.warn("Malaysia bias JSON parsing failed, using fallback analysis");
       const fallbackResult = performKeywordBasedBiasAnalysis(content);
       return {
         ...fallbackResult,
@@ -446,8 +416,6 @@ Respond in this exact JSON format:
         keyQuote: extractKeyQuote(content),
       };
     }
-
-    const parsed = JSON.parse(jsonText || "{}");
     
     const biasScore = Math.max(0, Math.min(100, parsed.malaysiaBiasScore || 50));
     
