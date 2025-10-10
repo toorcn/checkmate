@@ -11,28 +11,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TikTok Checkmate',
+      title: 'Checkmate',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: TikTokShareHandler(),
+      home: ShareHandler(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class TikTokShareHandler extends StatefulWidget {
+class ShareHandler extends StatefulWidget {
   @override
-  _TikTokShareHandlerState createState() => _TikTokShareHandlerState();
+  _ShareHandlerState createState() => _ShareHandlerState();
 }
 
-class _TikTokShareHandlerState extends State<TikTokShareHandler> {
+class _ShareHandlerState extends State<ShareHandler> {
   late StreamSubscription _intentDataStreamSubscription;
   WebViewController? _webViewController;
   bool _isLoading = true;
-  String _defaultUrl = 'https://main.d29ilzc0v3zl50.amplifyapp.com/';
-  String _statusMessage = 'Ready to receive TikTok shares';
+  String _defaultUrl = 'https://www.checkmate.asia/';
+  String _statusMessage = 'Ready to receive shared content';
 
   @override
   void initState() {
@@ -123,44 +123,20 @@ class _TikTokShareHandlerState extends State<TikTokShareHandler> {
       _statusMessage = 'Processing shared content...';
     });
     
-    // Extract TikTok URL from shared content
-    String? tiktokUrl = sharedContent.trim();// _extractTikTokUrl(sharedContent);
+    // Pass all shared content to the website - let the website handle validation
+    String sharedUrl = sharedContent.trim();
     
-    if (tiktokUrl != null) {
-      setState(() {
-        _statusMessage = 'Loading TikTok video...';
-      });
-      _loadTikTokInWebView(tiktokUrl);
-    } else {
-      setState(() {
-        _statusMessage = 'No valid TikTok link found';
-      });
-      _showErrorDialog('No valid TikTok link found in shared content');
-    }
+    setState(() {
+      _statusMessage = 'Loading content...';
+    });
+    _loadContentInWebView(sharedUrl);
   }
 
-  String? _extractTikTokUrl(String text) {
-    // Common TikTok URL patterns
-    List<RegExp> patterns = [
-      RegExp(r'https?://(?:www\.)?tiktok\.com/@[^/]+/video/\d+[^\s]*'),
-      RegExp(r'https?://(?:vm|vt)\.tiktok\.com/[A-Za-z0-9]+/?[^\s]*'),
-      RegExp(r'https?://(?:www\.)?tiktok\.com/t/[A-Za-z0-9]+/?[^\s]*'),
-    ];
 
-    for (RegExp pattern in patterns) {
-      Match? match = pattern.firstMatch(text);
-      if (match != null) {
-        return match.group(0);
-      }
-    }
-    
-    return null;
-  }
-
-  void _loadTikTokInWebView(String tiktokUrl) {
-    // URL encode the TikTok link
-    String encodedUrl = Uri.encodeComponent(tiktokUrl);
-    String finalUrl = 'https://main.d29ilzc0v3zl50.amplifyapp.com/?link=$encodedUrl';
+  void _loadContentInWebView(String sharedUrl) {
+    // URL encode the shared link
+    String encodedUrl = Uri.encodeComponent(sharedUrl);
+    String finalUrl = 'https://www.checkmate.asia/?link=$encodedUrl';
     
     print('Loading URL: $finalUrl');
     
@@ -229,12 +205,12 @@ class _TikTokShareHandlerState extends State<TikTokShareHandler> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Test with a sample TikTok URL
+          // Test with a sample URL
           _handleSharedContent('https://www.tiktok.com/@amrizal366/video/7500220572404616503');
         },
         child: Icon(Icons.play_arrow),
         backgroundColor: Colors.black,
-        tooltip: 'Test with sample TikTok',
+        tooltip: 'Test with sample content',
       ),
     );
   }

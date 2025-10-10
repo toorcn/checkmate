@@ -186,7 +186,7 @@
     btn.addEventListener("click", () => {
       const url = window.location.href;
       window.open(
-        `https://main.d29ilzc0v3zl50.amplifyapp.com/?link=${encodeURIComponent(
+        `https://www.checkmate.asia/?link=${encodeURIComponent(
           url
         )}`,
         "_blank"
