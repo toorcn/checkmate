@@ -4,8 +4,12 @@ import { Button } from "@/components/ui/button";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
+import localFont from "next/font/local";
+
+const departureMono = localFont({ src: "../DepartureMono-Regular.woff2" });
 
 export function LandingHero() {
+
   const scrollToFeatures = () => {
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -25,7 +29,7 @@ export function LandingHero() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-6xl font-semibold tracking-tight text-foreground">
+          <h1 className={`text-5xl md:text-6xl font-semibold tracking-tight mb-2 ${departureMono.className}`}>
             Voice of Truth at the speed of thought
           </h1>
           {/* Subheadline */}

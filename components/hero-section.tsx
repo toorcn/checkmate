@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useChat } from "@ai-sdk/react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+// no extra inputs; reuse existing UrlInputForm
 import { useTikTokAnalysis } from "@/lib/hooks/use-tiktok-analysis";
 import { useSaveTikTokAnalysisWithCredibility } from "@/lib/hooks/use-saved-analyses";
 import { useAnimatedProgress } from "@/lib/hooks/use-animated-progress";
@@ -25,6 +27,8 @@ interface HeroSectionProps {
 
 export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectionProps) {
   const [url, setUrl] = useState(initialUrl);
+  const [chatMode, setChatMode] = useState(false);
+  const [forceChat, setForceChat] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -46,6 +50,10 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
   const { t, translateCurrentPage, enableAutoTranslation, language } = useGlobalTranslation();
 
   const [phase, setPhase] = useState<string>("");
+
+  // Chat hook (AI SDK v4)
+  const chatApi = (useChat as unknown as any);
+  const { messages: chatMessages, append: appendMessage, status: chatStatus, error: chatError } = chatApi({ api: "/api/chat" });
 
   // Loading phase label derived from progress
   useEffect(() => {
@@ -150,13 +158,40 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
     }
   }, [result, t, enableAutoTranslation, language, translateCurrentPage]);
 
+  const isProbablyUrl = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    try {
+      // Allow missing scheme by trying to prepend https
+      // If it parses as URL with a hostname and a dot, treat as URL
+      const candidate = trimmed.match(/^https?:\/\//i) ? trimmed : `https://${trimmed}`;
+      const u = new URL(candidate);
+      return Boolean(u.hostname && u.hostname.includes("."));
+    } catch {
+      return false;
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!url.trim()) {
       toast.error(t.enterUrl);
       return;
     }
 
-    // Update URL with query parameter
+    if (forceChat || !isProbablyUrl(url)) {
+      // Switch to chat mode and send the user's message
+      setChatMode(true);
+      setIsInputExpanded(false);
+      const content = url.trim();
+      try {
+        await appendMessage({ role: "user", content });
+      } catch (e) {
+        toast.error("Failed to start chat");
+      }
+      return;
+    }
+
+    // URL flow (existing behavior)
     const params = new URLSearchParams();
     params.set("link", url.trim());
     router.replace(`?${params.toString()}`);
@@ -173,6 +208,8 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
 
   const handleReset = () => {
     setUrl("");
+    setChatMode(false);
+    setForceChat(false);
     setIsSaved(false);
     setSavedId(null);
     setMockResult(null);
@@ -585,7 +622,7 @@ This claim appears to have originated from legitimate news sources around early 
     <section className={`${isDashboard ? "py-6 md:py-8" : "py-24 md:py-32"} relative`}>
       <LoadingOverlay
         isLoading={isLoading}
-        isMockLoading={isMockLoading}
+        isMockLoading={isMockLoading || chatStatus === "streaming"}
         progress={progress}
         phase={phase}
       />
@@ -609,7 +646,7 @@ This claim appears to have originated from legitimate news sources around early 
           </>
         )}
 
-        {(!isDashboard && !isInputExpanded && (result?.success || mockResult?.success)) ? (
+        {(!isDashboard && !isInputExpanded && (result?.success || mockResult?.success || chatMode)) ? (
           <div className="flex justify-center">
             <Button 
               onClick={() => setIsInputExpanded(true)}
@@ -633,22 +670,65 @@ This claim appears to have originated from legitimate news sources around early 
               onMockAnalysis={handleMockAnalysis}
               compact={isDashboard}
             />
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <Button
+                type="button"
+                variant={forceChat ? "default" : "outline"}
+                onClick={() => setForceChat(!forceChat)}
+                className="px-3 py-1 text-sm"
+              >
+                {forceChat ? "Chat Mode: On" : "Chat Mode: Off"}
+              </Button>
+              <span className="text-xs text-muted-foreground">Auto-detects non-URLs</span>
+            </div>
           </>
         )}
       </div>
 
-      <ResultsSection
-        result={result as any}
-        mockResult={mockResult}
-        isSignedIn={isSignedIn}
-        isSaving={isSaving}
-        isSaved={isSaved}
-        savedId={savedId}
-        onSaveAnalysis={handleSaveAnalysis}
-        onCopySummary={handleCopySummary}
-        onShare={handleShare}
-        onReset={handleReset}
-      />
+      {chatMode ? (
+        <div className="mx-auto mt-6 max-w-3xl">
+          <div className="space-y-4 border rounded-lg p-4 bg-background">
+            {chatMessages.length === 0 && (
+              <p className="text-sm text-muted-foreground">Ask about current news. We will cite sources when available.</p>
+            )}
+            {chatMessages.map((m: any, i: number) => (
+              <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
+                <div className={`inline-block rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                  {Array.isArray(m.parts)
+                    ? m.parts.map((p: any, idx: number) => {
+                        if (p.type === "text") return <span key={idx}>{p.text}</span>;
+                        if (p.type === "reasoning") return <span key={idx} className="opacity-70">{p.text}</span>;
+                        if (p.type === "source") return (
+                          <a key={idx} href={p.source?.url} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                            {p.source?.title || p.source?.url}
+                          </a>
+                        );
+                        return null;
+                      })
+                    : m.content}
+                </div>
+              </div>
+            ))}
+            {chatStatus === "submitted" && (
+              <p className="text-sm text-muted-foreground">Thinking…</p>
+            )}
+          </div>
+          {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
+        </div>
+      ) : (
+        <ResultsSection
+          result={result as any}
+          mockResult={mockResult}
+          isSignedIn={isSignedIn}
+          isSaving={isSaving}
+          isSaved={isSaved}
+          savedId={savedId}
+          onSaveAnalysis={handleSaveAnalysis}
+          onCopySummary={handleCopySummary}
+          onShare={handleShare}
+          onReset={handleReset}
+        />
+      )}
     </section>
   );
 }
