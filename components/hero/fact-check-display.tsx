@@ -31,6 +31,7 @@ import {
   SourcesDetailContent,
   BeliefDriversDetailContent,
 } from "./analysis-detail-modal";
+import { calculateSentimentVerdictCorrelation } from "@/lib/sentiment-verdict-correlation";
 
 interface FactCheckDisplayProps {
   factCheck: any;
@@ -383,6 +384,19 @@ export function FactCheckDisplay({
           const targetEmotions = factCheck.sentimentAnalysis.targetEmotions || [];
           const linguisticRedFlags = factCheck.sentimentAnalysis.linguisticRedFlags || [];
           
+          // Calculate pattern matching for the overview
+          const patternMatch = calculateSentimentVerdictCorrelation(
+            {
+              overall: sentiment,
+              scores,
+              emotionalIntensity,
+              manipulationTactics,
+              targetEmotions,
+              linguisticRedFlags,
+            },
+            normalizeVerdict(factCheck.verdict)
+          );
+          
           const getSentimentVariant = () => {
             // If high emotional intensity or manipulation detected, show as warning/danger
             if (emotionalIntensity > 0.7 || manipulationTactics.length > 0) {
@@ -426,6 +440,18 @@ export function FactCheckDisplay({
           const intensityLabel = emotionalIntensity > 0.7 ? "High" : emotionalIntensity > 0.4 ? "Moderate" : "Low";
           
           const getDescription = () => {
+            // Show pattern match result if available
+            if (patternMatch) {
+              if (patternMatch.overallAssessment === "strong_match") {
+                return `✅ ${patternMatch.confidence}% pattern match - Sentiment confirms ${factCheck.verdict} verdict`;
+              } else if (patternMatch.overallAssessment === "mismatch") {
+                return `🚨 ${patternMatch.confidence}% pattern match - Sentiment inconsistent with verdict`;
+              } else if (patternMatch.overallAssessment === "weak_match") {
+                return `⚠️ ${patternMatch.confidence}% pattern match - Some inconsistencies detected`;
+              }
+            }
+            
+            // Fallback to original logic
             // Prioritize showing manipulation tactics or credibility impact
             if (manipulationTactics.length > 0) {
               const tacticCount = manipulationTactics.length;
@@ -465,11 +491,15 @@ export function FactCheckDisplay({
           
           return (
             <AnalysisOverviewCard
-              title="Sentiment Analysis"
+              title="Sentiment-Verdict Consistency"
               description={getDescription()}
               icon={<BarChart3Icon className={`h-5 w-5 ${getSentimentIconColor()}`} />}
               onClick={() => setOpenModal("sentiment")}
               variant={getSentimentVariant()}
+              metric={patternMatch ? {
+                value: patternMatch.confidence,
+                label: "% match"
+              } : undefined}
             />
           );
         })()}
