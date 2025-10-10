@@ -1,8 +1,16 @@
-import { streamText, convertToCoreMessages, UIMessage } from 'ai';
+import { streamText, convertToCoreMessages } from 'ai';
 import { textModel } from '@/lib/ai';
+import {
+  analyzeContentSentiment,
+  generateContentInsights,
+  generateVideoSummary,
+  detectNewsContent,
+  researchAndFactCheck,
+  generateCredibilityReport,
+} from '@/tools';
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+// Allow streaming responses up to 59 seconds
+export const maxDuration = 59;
 
 export async function POST(req: Request) {
   try {
@@ -13,10 +21,22 @@ export async function POST(req: Request) {
     // Use centralized Bedrock model selection used across the app
     const selectedModel = textModel(model);
 
+    // Define ToolSet (name -> tool) as required by AI SDK types
+    const tools = {
+      analyzeContentSentiment,
+      generateContentInsights,
+      generateVideoSummary,
+      detectNewsContent,
+      researchAndFactCheck,
+      generateCredibilityReport,
+    };
+
     const result = streamText({
       model: selectedModel,
       messages: convertToCoreMessages(messages),
-      system: `You are Checkmate, an AI research copilot focused on analyzing online content (news, social posts, transcripts) and assisting with fact-checking.
+      maxSteps: 10,
+      tools,
+      system: `You are Checkmate, an AI Agent focused on analyzing  content (news, social posts, transcripts, rumours) and assisting with fact-checking.
 
 Core principles:
 - Be concise, structured, and actionable.
@@ -24,14 +44,13 @@ Core principles:
 - Prefer recent, credible sources; note uncertainty when evidence is weak.
 - Ask a brief clarifying question if the request is ambiguous.
 
-Available tools/capabilities in this system (reference when deciding how to reason or format outputs):
-- Web search and external data via app external API routes; always include source links when used.
-- Translation via project utilities/providers (e.g., 
-  lib/translate.ts, components/global translation providers) when language conversion helps.
-- Transcription via /api/transcribe for audio/video inputs.
-- Analysis utilities for sentiment, stance, and bias (e.g., lib/sentiment-analysis.ts, components/analysis/*).
-- News and credibility endpoints under app/api/analyses/* and app/api/creators/* for deeper content breakdowns.
-- JSON formatting helpers (lib/json-parser.ts) for structured outputs when requested.
+Available tools in this system:
+- Sentiment analysis via analyzeContentSentiment.
+- Content insights via generateContentInsights.
+- Video summarization via generateVideoSummary.
+- News detection via detectNewsContent.
+- Web research and fact-checking via researchAndFactCheck.
+- Credibility reports via generateCredibilityReport.
 
 Response style:
 - Use clear headings and bullet points.

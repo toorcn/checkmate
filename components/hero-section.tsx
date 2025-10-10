@@ -76,30 +76,72 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
       
       if (!response.ok) throw new Error('API request failed');
       
-      // Read stream
+      // Read stream (AI SDK Data Stream Protocol)
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = '';
       const assistantMsg = { role: 'assistant', content: '', id: (Date.now() + 1).toString() };
-      
+
       setManualChatMessages(prev => [...prev, assistantMsg]);
-      
+
       while (reader) {
         const { done, value } = await reader.read();
         if (done) break;
-        
-        const chunk = decoder.decode(value);
+
+        const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
-        
-        for (const line of lines) {
+
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
+
+          // Handle AI SDK Data Stream Protocol lines: "data: {json}"
+          if (line.startsWith('data: ')) {
+            let payload: any = null;
+            try {
+              payload = JSON.parse(line.slice(6));
+            } catch {
+              continue;
+            }
+
+            const type = payload?.type;
+            // Append incremental text
+            if (type === 'text-delta' && typeof payload.delta === 'string') {
+              assistantContent += payload.delta;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+
+            // Some providers may send full text blocks
+            if (type === 'message' && typeof payload.text === 'string') {
+              assistantContent += payload.text;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+
+            // End of stream marker
+            if (type === 'done') {
+              break;
+            }
+          }
+
+          // Backward compatibility for old "0:" text stream lines
           if (line.startsWith('0:')) {
-            const text = JSON.parse(line.slice(2));
-            assistantContent += text;
-            setManualChatMessages(prev => {
-              const updated = [...prev];
-              updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
-              return updated;
-            });
+            try {
+              const text = JSON.parse(line.slice(2));
+              assistantContent += text;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            } catch {}
           }
         }
       }
