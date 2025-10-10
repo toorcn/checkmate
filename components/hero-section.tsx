@@ -18,6 +18,7 @@ import {
   ResultsSection,
 } from "@/components/hero";
 import { AnalysisData, MockResult } from "@/types/analysis";
+import { parseMarkdownToJSX } from "@/lib/analysis/markdown-parser";
 
 interface HeroSectionProps {
   initialUrl?: string;
@@ -55,6 +56,7 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
   const [manualChatMessages, setManualChatMessages] = useState<any[]>([]);
   const [manualChatStatus, setManualChatStatus] = useState<string>('ready');
   const [manualChatError, setManualChatError] = useState<any>(null);
+  const [chatInput, setChatInput] = useState<string>("");
 
   const sendManualChatMessage = async (message: { role: string; content: string }) => {
     try {
@@ -735,33 +737,35 @@ This claim appears to have originated from legitimate news sources around early 
           </div>
         ) : (
           <>
-            <UrlInputForm
-              url={url}
-              setUrl={setUrl}
-              isLoading={isLoading}
-              isMockLoading={isMockLoading}
-              onSubmit={handleSubmit}
-              onMockAnalysis={handleMockAnalysis}
-              compact={isDashboard}
-              allowNonUrl={forceChat}
-              forceChat={forceChat}
-              onToggleChat={() => setForceChat(!forceChat)}
-              hideExtras={
-                chatMode ||
-                isLoading ||
-                isMockLoading ||
-                Boolean(result?.success) ||
-                Boolean(mockResult?.success) ||
-                manualChatMessages.length > 0 ||
-                manualChatStatus === 'streaming'
-              }
-            />
+            {!chatMode && (
+              <UrlInputForm
+                url={url}
+                setUrl={setUrl}
+                isLoading={isLoading}
+                isMockLoading={isMockLoading}
+                onSubmit={handleSubmit}
+                onMockAnalysis={handleMockAnalysis}
+                compact={isDashboard}
+                allowNonUrl={forceChat}
+                forceChat={forceChat}
+                onToggleChat={() => setForceChat(!forceChat)}
+                hideExtras={
+                  chatMode ||
+                  isLoading ||
+                  isMockLoading ||
+                  Boolean(result?.success) ||
+                  Boolean(mockResult?.success) ||
+                  manualChatMessages.length > 0 ||
+                  manualChatStatus === 'streaming'
+                }
+              />
+            )}
           </>
         )}
       </div>
 
       {chatMode ? (
-        <div className="mx-auto mt-6 max-w-3xl">
+        <div className="mx-auto mt-6 max-w-3xl pb-28">
           <div className="space-y-4 rounded-lg p-4 bg-transparent">
             {chatMessages.length === 0 && (
               <p className="text-sm text-muted-foreground">Ask about current news. We will cite sources when available.</p>
@@ -770,14 +774,46 @@ This claim appears to have originated from legitimate news sources around early 
               console.log('[Chat UI] Rendering message:', i, m);
               return (
                 <div key={m.id || i} className={m.role === "user" ? "text-right" : "text-left"}>
-                  <div className={`inline-block rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                    {m.content || '(empty)'}
+                  <div className={`inline-block rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                    {m.role === 'user'
+                      ? (m.content || '(empty)')
+                      : (parseMarkdownToJSX(m.content || '')?.length
+                          ? parseMarkdownToJSX(m.content || '')
+                          : (m.content || '(empty)'))}
                   </div>
                 </div>
               );
             })}
           </div>
           {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
+          {/* Fixed bottom input bar for chat - reuse the same UrlInputForm */}
+          <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto max-w-3xl px-4 py-3">
+              <UrlInputForm
+                url={chatInput}
+                setUrl={setChatInput}
+                isLoading={manualChatStatus === 'streaming'}
+                isMockLoading={false}
+                onSubmit={async (e: React.FormEvent) => {
+                  e.preventDefault();
+                  const content = chatInput.trim();
+                  if (!content || manualChatStatus === 'streaming') return;
+                  try {
+                    await sendChatMessage({ role: 'user', content });
+                    setChatInput("");
+                  } catch (err) {
+                    console.error('[Chat Input] send error', err);
+                  }
+                }}
+                onMockAnalysis={() => {}}
+                compact
+                allowNonUrl
+                forceChat
+                onToggleChat={() => {}}
+                hideExtras
+              />
+            </div>
+          </div>
         </div>
       ) : (
         <ResultsSection
