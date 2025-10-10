@@ -135,96 +135,83 @@ export function Header() {
   }: { closeMenu?: () => void; mobile?: boolean } = {}) => {
     const { user } = useAuth();
     
+    const navLinks = [
+      { href: "/", label: "Dashboard" },
+      { href: "/home", label: "Home" },
+      { href: "/news", label: t.getNews },
+      { href: "/crowdsource", label: t.voteOnNews },
+      { href: "/api", label: "API" },
+    ];
+    
     return (
       <>
-        {pathname !== "/news" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className={
-              mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
-            }
-            asChild
-          >
-            <Link href="/news" className="inline-flex items-center">
-              <Newspaper className="h-4 w-4 mr-2" />
-              {t.getNews}
+        {navLinks.map((link) => {
+          const isActive = pathname === link.href;
+          return (
+            <Link 
+              key={link.href}
+              href={link.href} 
+              className={`text-sm transition-colors ${
+                isActive 
+                  ? "text-foreground font-medium" 
+                  : "text-muted-foreground hover:text-foreground"
+              } ${
+                mobile ? "block py-2" : ""
+              }`}
+              onClick={closeMenu}
+            >
+              {link.label}
             </Link>
-          </Button>
-        )}
-        {pathname !== "/crowdsource" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className={
-              mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
-            }
-            asChild
-          >
-            <Link href="/crowdsource" className="inline-flex items-center">
-              <Users className="h-4 w-4 mr-2" />
-              {t.voteOnNews}
-            </Link>
-          </Button>
-        )}
-        {user && pathname !== "/api" && (
-          <Button
-            variant="outline"
-            size="sm"
-            className={
-              mobile ? "w-full justify-start cursor-pointer" : "cursor-pointer"
-            }
-            asChild
-          >
-            <Link href="/api" className="inline-flex items-center">
-              <Code className="h-4 w-4 mr-2" />
-              API
-            </Link>
-          </Button>
-        )}
-        {!user && (
-          <>
-            {mobile ? (
-              <MobileGlobalTranslationToggle />
-            ) : (
-              <GlobalTranslationToggle />
-            )}
-          </>
-        )}
+          );
+        })}
         {mobile && <AvatarDropdown />}
       </>
     );
   };
 
   return (
-    <header className={`border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-400 ${isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}`}>
+    <header className={`bg-background sticky top-0 z-50 transition-all duration-400 ${isExpanded ? 'opacity-0 -translate-y-full pointer-events-none' : 'opacity-100 translate-y-0'}`}>
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#C1025C] text-white shadow-sm">
               <SearchCheck className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold">Checkmate</span>
+            <span className="text-xl font-bold tracking-tight">Checkmate</span>
           </Link>
-          {/* Desktop controls */}
-          <div className="hidden sm:flex items-center gap-3">
-            <Controls />
+          
+          {/* Desktop Navigation */}
+          <div className="hidden sm:flex items-center gap-6">
+            <nav className="flex items-center gap-6">
+              <Controls />
+            </nav>
+          </div>
+          
+          {/* Right side controls */}
+          <div className="flex items-center gap-3">
+            <GlobalTranslationToggle />
             {!useAuth().user && <ThemeToggle />}
             <AvatarDropdown />
           </div>
+          
           {/* Mobile menu */}
           <div className="sm:hidden">
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" aria-label="Open menu">
+                <Button variant="ghost" size="icon" aria-label="Open menu">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="flex flex-col gap-4 w-56 pt-8"
+                className="flex flex-col gap-6 w-56 pt-8"
               >
                 <Controls closeMenu={() => setMenuOpen(false)} mobile />
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                  <MobileGlobalTranslationToggle />
+                  <ThemeToggle />
+                </div>
               </SheetContent>
             </Sheet>
           </div>
