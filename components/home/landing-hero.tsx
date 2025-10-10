@@ -29,7 +29,7 @@ export function LandingHero() {
           </div>
 
           {/* Headline */}
-          <h1 className={`text-5xl md:text-6xl font-semibold tracking-tight mb-2 ${departureMono.className}`}>
+          <h1 className={`text-4xl md:text-5xl font-semibold tracking-tight mb-2 ${departureMono.className}`}>
             Voice of Truth at the speed of thought
           </h1>
           {/* Subheadline */}
@@ -47,7 +47,12 @@ export function LandingHero() {
               </Link>
             </Button>
             <Button variant="outline" size="sm" onClick={scrollToFeatures} className="h-10 px-5 border-border/60 bg-transparent hover:bg-muted/50">
-              Explore docs
+              Features 
+            </Button>
+            <Button variant="outline" size="sm"className="h-10 px-5 border-border/60 bg-transparent hover:bg-muted/50">
+            <Link href="/api">
+               Explore API
+               </Link>
             </Button>
           </div>
 
@@ -70,13 +75,18 @@ export function LandingHero() {
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full border-border/60 bg-transparent hover:bg-muted/50" asChild>
-                  <Link href="/api/external">
+                  <Link href="/api">
                     Explore API
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full border-border/60 bg-transparent hover:bg-muted/50" asChild>
                   <Link href="/news">
-                    View dashboard
+                    Get news
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full border-border/60 bg-transparent hover:bg-muted/50" asChild>
+                  <Link href="/crowdsource">
+                   Vote on news
                   </Link>
                 </Button>
                 <button aria-label="Play" className="ml-auto grid h-9 w-9 place-items-center rounded-full border border-border/60 bg-background hover:bg-muted/50">

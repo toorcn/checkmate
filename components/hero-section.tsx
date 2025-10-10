@@ -51,9 +51,71 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
 
   const [phase, setPhase] = useState<string>("");
 
-  // Chat hook (AI SDK v4)
-  const chatApi = (useChat as unknown as any);
-  const { messages: chatMessages, append: appendMessage, status: chatStatus, error: chatError } = chatApi({ api: "/api/chat" });
+  // Chat hook (AI SDK v4) - using manual message management
+  const [manualChatMessages, setManualChatMessages] = useState<any[]>([]);
+  const [manualChatStatus, setManualChatStatus] = useState<string>('ready');
+  const [manualChatError, setManualChatError] = useState<any>(null);
+
+  const sendManualChatMessage = async (message: { role: string; content: string }) => {
+    try {
+      setManualChatStatus('streaming');
+      setManualChatError(null);
+      
+      // Add user message immediately
+      const userMsg = { ...message, id: Date.now().toString() };
+      setManualChatMessages(prev => [...prev, userMsg]);
+      
+      // Call API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...manualChatMessages, userMsg] }),
+      });
+      
+      if (!response.ok) throw new Error('API request failed');
+      
+      // Read stream
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      const assistantMsg = { role: 'assistant', content: '', id: (Date.now() + 1).toString() };
+      
+      setManualChatMessages(prev => [...prev, assistantMsg]);
+      
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('0:')) {
+            const text = JSON.parse(line.slice(2));
+            assistantContent += text;
+            setManualChatMessages(prev => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+              return updated;
+            });
+          }
+        }
+      }
+      
+      setManualChatStatus('ready');
+    } catch (err) {
+      console.error('[sendManualChatMessage] error:', err);
+      setManualChatError(err);
+      setManualChatStatus('ready');
+    }
+  };
+  
+  const chatMessages = manualChatMessages;
+  const chatStatus = manualChatStatus;
+  const chatError = manualChatError;
+  const sendChatMessage = sendManualChatMessage;
+  
+  console.log('[Chat] Manual state - messages:', chatMessages.length, 'status:', chatStatus);
 
   // Loading phase label derived from progress
   useEffect(() => {
@@ -173,19 +235,28 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
   };
 
   const handleAnalyze = async () => {
+    console.log('[handleAnalyze] Called with url:', url, 'forceChat:', forceChat);
+    
     if (!url.trim()) {
       toast.error(t.enterUrl);
       return;
     }
 
-    if (forceChat || !isProbablyUrl(url)) {
+    const isUrl = isProbablyUrl(url);
+    console.log('[handleAnalyze] isProbablyUrl:', isUrl, 'forceChat:', forceChat);
+
+    if (forceChat || !isUrl) {
       // Switch to chat mode and send the user's message
+      console.log('[handleAnalyze] Entering chat mode, sending message');
       setChatMode(true);
       setIsInputExpanded(false);
       const content = url.trim();
       try {
-        await appendMessage({ role: "user", content });
+        console.log('[handleAnalyze] Calling sendChatMessage with:', { role: 'user', content });
+        await sendChatMessage({ role: 'user', content });
+        console.log('[handleAnalyze] sendChatMessage completed');
       } catch (e) {
+        console.error('[handleAnalyze] sendChatMessage error:', e);
         toast.error("Failed to start chat");
       }
       return;
@@ -203,6 +274,7 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[handleSubmit] Form submitted, calling handleAnalyze');
     await handleAnalyze();
   };
 
@@ -620,12 +692,14 @@ This claim appears to have originated from legitimate news sources around early 
 
   return (
     <section className={`${isDashboard ? "py-6 md:py-8" : "py-24 md:py-32"} relative`}>
-      <LoadingOverlay
-        isLoading={isLoading}
-        isMockLoading={isMockLoading || chatStatus === "streaming"}
-        progress={progress}
-        phase={phase}
-      />
+      {!chatMode && (
+        <LoadingOverlay
+          isLoading={isLoading}
+          isMockLoading={isMockLoading}
+          progress={progress}
+          phase={phase}
+        />
+      )}
       
       <div className={`text-center transition-all duration-500 ${!isInputExpanded && (result?.success || mockResult?.success) ? 'mb-8' : ''}`}>
         {!isDashboard && (
@@ -669,49 +743,39 @@ This claim appears to have originated from legitimate news sources around early 
               onSubmit={handleSubmit}
               onMockAnalysis={handleMockAnalysis}
               compact={isDashboard}
+              allowNonUrl={forceChat}
+              forceChat={forceChat}
+              onToggleChat={() => setForceChat(!forceChat)}
+              hideExtras={
+                chatMode ||
+                isLoading ||
+                isMockLoading ||
+                Boolean(result?.success) ||
+                Boolean(mockResult?.success) ||
+                manualChatMessages.length > 0 ||
+                manualChatStatus === 'streaming'
+              }
             />
-            <div className="mt-3 flex items-center justify-center gap-2">
-              <Button
-                type="button"
-                variant={forceChat ? "default" : "outline"}
-                onClick={() => setForceChat(!forceChat)}
-                className="px-3 py-1 text-sm"
-              >
-                {forceChat ? "Chat Mode: On" : "Chat Mode: Off"}
-              </Button>
-              <span className="text-xs text-muted-foreground">Auto-detects non-URLs</span>
-            </div>
           </>
         )}
       </div>
 
       {chatMode ? (
         <div className="mx-auto mt-6 max-w-3xl">
-          <div className="space-y-4 border rounded-lg p-4 bg-background">
+          <div className="space-y-4 rounded-lg p-4 bg-transparent">
             {chatMessages.length === 0 && (
               <p className="text-sm text-muted-foreground">Ask about current news. We will cite sources when available.</p>
             )}
-            {chatMessages.map((m: any, i: number) => (
-              <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
-                <div className={`inline-block rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                  {Array.isArray(m.parts)
-                    ? m.parts.map((p: any, idx: number) => {
-                        if (p.type === "text") return <span key={idx}>{p.text}</span>;
-                        if (p.type === "reasoning") return <span key={idx} className="opacity-70">{p.text}</span>;
-                        if (p.type === "source") return (
-                          <a key={idx} href={p.source?.url} target="_blank" rel="noreferrer" className="underline underline-offset-4">
-                            {p.source?.title || p.source?.url}
-                          </a>
-                        );
-                        return null;
-                      })
-                    : m.content}
+            {chatMessages.map((m: any, i: number) => {
+              console.log('[Chat UI] Rendering message:', i, m);
+              return (
+                <div key={m.id || i} className={m.role === "user" ? "text-right" : "text-left"}>
+                  <div className={`inline-block rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                    {m.content || '(empty)'}
+                  </div>
                 </div>
-              </div>
-            ))}
-            {chatStatus === "submitted" && (
-              <p className="text-sm text-muted-foreground">Thinking…</p>
-            )}
+              );
+            })}
           </div>
           {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
         </div>
