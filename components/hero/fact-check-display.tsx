@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,11 @@ export function FactCheckDisplay({
   currentData,
 }: FactCheckDisplayProps) {
   const [openModal, setOpenModal] = useState<string | null>(null);
+  const verdictDetailRef = useRef<HTMLDivElement>(null);
+
+  const scrollToVerdictDetail = () => {
+    verdictDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   // Normalize various backend verdict strings to a canonical set used by UI
   const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked" => {
@@ -355,7 +360,7 @@ export function FactCheckDisplay({
             description={getVerdictDescription(factCheck.verdict, factCheck).description}
             icon={getStatusIcon(normalizeVerdict(factCheck.verdict))}
             badge={getStatusBadge(normalizeVerdict(factCheck.verdict))}
-            onClick={() => setOpenModal("verdict")}
+            onClick={scrollToVerdictDetail}
           />
         </div>
 
@@ -365,6 +370,125 @@ export function FactCheckDisplay({
           sourcesCount={factCheck.sources?.length || 0}
           onClick={() => setOpenModal("metrics")}
         />
+
+        {/* Sentiment Analysis Card */}
+        {factCheck.sentimentAnalysis && (() => {
+          const sentiment = (factCheck.sentimentAnalysis.overall || "NEUTRAL").toUpperCase();
+          const emotionalIntensity = factCheck.sentimentAnalysis.emotionalIntensity || 0;
+          const scores = factCheck.sentimentAnalysis.scores || {};
+          const flags = factCheck.sentimentAnalysis.flags || [];
+          const keyPhrases = factCheck.sentimentAnalysis.keyPhrases || [];
+          const manipulationTactics = factCheck.sentimentAnalysis.manipulationTactics || [];
+          const credibilityImpact = factCheck.sentimentAnalysis.credibilityImpact;
+          const targetEmotions = factCheck.sentimentAnalysis.targetEmotions || [];
+          const linguisticRedFlags = factCheck.sentimentAnalysis.linguisticRedFlags || [];
+          
+          const getSentimentVariant = () => {
+            // If high emotional intensity or manipulation detected, show as warning/danger
+            if (emotionalIntensity > 0.7 || manipulationTactics.length > 0) {
+              return "danger";
+            }
+            switch (sentiment) {
+              case "POSITIVE":
+                return scores.positive > 0.85 ? "warning" : "success";
+              case "NEGATIVE":
+                return "danger";
+              case "MIXED":
+                return "warning";
+              default:
+                return "info";
+            }
+          };
+          const getSentimentIconColor = () => {
+            if (emotionalIntensity > 0.7 || manipulationTactics.length > 0) {
+              return "text-red-600 dark:text-red-400";
+            }
+            switch (sentiment) {
+              case "POSITIVE":
+                return scores.positive > 0.85 ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400";
+              case "NEGATIVE":
+                return "text-red-600 dark:text-red-400";
+              case "MIXED":
+                return "text-yellow-600 dark:text-yellow-400";
+              default:
+                return "text-blue-600 dark:text-blue-400";
+            }
+          };
+          
+          // Find the dominant score
+          const dominantScore = Math.max(
+            scores.positive || 0,
+            scores.negative || 0,
+            scores.neutral || 0,
+            scores.mixed || 0
+          );
+          const scorePercentage = Math.round(dominantScore * 100);
+          const intensityLabel = emotionalIntensity > 0.7 ? "High" : emotionalIntensity > 0.4 ? "Moderate" : "Low";
+          
+          const getDescription = () => {
+            // Prioritize showing manipulation tactics or credibility impact
+            if (manipulationTactics.length > 0) {
+              const tacticCount = manipulationTactics.length;
+              const primaryTactic = manipulationTactics[0].tactic;
+              return `⚠️ ${tacticCount} manipulation tactic${tacticCount > 1 ? 's' : ''} detected: ${primaryTactic}`;
+            }
+            
+            if (credibilityImpact && credibilityImpact.modifier < 1.0) {
+              const impactPercent = Math.round((1 - credibilityImpact.modifier) * 100);
+              return `⚠️ Reduces credibility by ${impactPercent}% due to emotional manipulation`;
+            }
+            
+            if (linguisticRedFlags.length >= 3) {
+              return `⚠️ ${linguisticRedFlags.length} linguistic red flags detected`;
+            }
+            
+            if (targetEmotions.length > 0) {
+              const emotionList = targetEmotions.slice(0, 2).join(", ");
+              return `Targets emotions: ${emotionList} • ${intensityLabel} intensity`;
+            }
+            
+            // Default description
+            const sentimentLabel = sentiment.charAt(0) + sentiment.slice(1).toLowerCase();
+            const parts = [
+              `${sentimentLabel} (${scorePercentage}%)`,
+              `${intensityLabel} intensity`
+            ];
+            
+            // Add flag or key phrase
+            if (flags.length > 0) {
+              const flagLabel = flags[0].replace(/_/g, ' ').toLowerCase();
+              parts.push(flagLabel.charAt(0).toUpperCase() + flagLabel.slice(1));
+            }
+            
+            return parts.join(' • ');
+          };
+          
+          return (
+            <AnalysisOverviewCard
+              title="Sentiment Analysis"
+              description={getDescription()}
+              icon={<BarChart3Icon className={`h-5 w-5 ${getSentimentIconColor()}`} />}
+              onClick={() => setOpenModal("sentiment")}
+              variant={getSentimentVariant()}
+            />
+          );
+        })()}
+
+        {/* Belief Drivers Card */}
+        {((factCheck.beliefDrivers && factCheck.beliefDrivers.length > 0) || 
+          (originTracingData?.beliefDrivers && originTracingData.beliefDrivers.length > 0)) && (
+          <AnalysisOverviewCard
+            title="Belief Drivers"
+            description="Psychological factors influencing belief in this content"
+            icon={<BrainIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+            onClick={() => setOpenModal("beliefDrivers")}
+            variant="info"
+            metric={{
+              value: (originTracingData?.beliefDrivers || factCheck.beliefDrivers)?.length || 0,
+              label: "factors",
+            }}
+          />
+        )}
 
         {/* Sources Card */}
         {factCheck.sources && factCheck.sources.length > 0 && (
@@ -380,59 +504,6 @@ export function FactCheckDisplay({
             }}
           />
         )}
-
-        {/* Belief Drivers Card */}
-        {factCheck.beliefDrivers && factCheck.beliefDrivers.length > 0 && (
-          <AnalysisOverviewCard
-            title="Belief Drivers"
-            description="Psychological factors influencing belief in this content"
-            icon={<BrainIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
-            onClick={() => setOpenModal("beliefDrivers")}
-            variant="info"
-            metric={{
-              value: factCheck.beliefDrivers.length,
-              label: "factors",
-            }}
-          />
-        )}
-
-        {/* Sentiment Analysis Card */}
-        {factCheck.sentimentAnalysis && (() => {
-          const sentiment = (factCheck.sentimentAnalysis.overall || "NEUTRAL").toUpperCase();
-          const getSentimentVariant = () => {
-            switch (sentiment) {
-              case "POSITIVE":
-                return "success";
-              case "NEGATIVE":
-                return "danger";
-              case "MIXED":
-                return "warning";
-              default:
-                return "info";
-            }
-          };
-          const getSentimentIconColor = () => {
-            switch (sentiment) {
-              case "POSITIVE":
-                return "text-green-600 dark:text-green-400";
-              case "NEGATIVE":
-                return "text-red-600 dark:text-red-400";
-              case "MIXED":
-                return "text-yellow-600 dark:text-yellow-400";
-              default:
-                return "text-blue-600 dark:text-blue-400";
-            }
-          };
-          return (
-            <AnalysisOverviewCard
-              title="Sentiment Analysis"
-              description={`Overall tone: ${factCheck.sentimentAnalysis.overall || "Neutral"}`}
-              icon={<BarChart3Icon className={`h-5 w-5 ${getSentimentIconColor()}`} />}
-              onClick={() => setOpenModal("sentiment")}
-              variant={getSentimentVariant()}
-            />
-          );
-        })()}
       </div>
 
       {/* Political Bias Card - Only for Malaysia Political Content */}
@@ -496,22 +567,29 @@ export function FactCheckDisplay({
         </div>
       )}
 
-      {/* Detail Modals */}
-      <AnalysisDetailModal
-        isOpen={openModal === "verdict"}
-        onClose={() => setOpenModal(null)}
-        title="Verification Status Details"
-      >
-        <VerdictDetailContent
-          verdict={normalizeVerdict(factCheck.verdict)}
-          confidence={factCheck.confidence}
-          description={getVerdictDescription(factCheck.verdict, factCheck).description}
-          explanation={factCheck.explanation}
-          statusIcon={getStatusIcon(normalizeVerdict(factCheck.verdict))}
-          statusBadge={getStatusBadge(normalizeVerdict(factCheck.verdict))}
-        />
-      </AnalysisDetailModal>
+      {/* Verdict Detail Section - Displayed below graph */}
+      <div ref={verdictDetailRef} className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-blue-500 rounded-full"></div>
+          <h4 className="font-semibold text-lg">
+            Verification Status Details
+          </h4>
+        </div>
+        <Card className="border-2">
+          <CardContent className="p-6">
+            <VerdictDetailContent
+              verdict={normalizeVerdict(factCheck.verdict)}
+              confidence={factCheck.confidence}
+              description={getVerdictDescription(factCheck.verdict, factCheck).description}
+              explanation={factCheck.explanation}
+              statusIcon={getStatusIcon(normalizeVerdict(factCheck.verdict))}
+              statusBadge={getStatusBadge(normalizeVerdict(factCheck.verdict))}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
+      {/* Detail Modals */}
       <AnalysisDetailModal
         isOpen={openModal === "metrics"}
         onClose={() => setOpenModal(null)}
@@ -571,8 +649,11 @@ export function FactCheckDisplay({
         onClose={() => setOpenModal(null)}
         title="Why People Believe This"
       >
-        {factCheck.beliefDrivers && factCheck.beliefDrivers.length > 0 && (
-          <BeliefDriversDetailContent beliefDrivers={factCheck.beliefDrivers} />
+        {((factCheck.beliefDrivers && factCheck.beliefDrivers.length > 0) || 
+          (originTracingData?.beliefDrivers && originTracingData.beliefDrivers.length > 0)) && (
+          <BeliefDriversDetailContent 
+            beliefDrivers={originTracingData?.beliefDrivers || factCheck.beliefDrivers} 
+          />
         )}
       </AnalysisDetailModal>
 
@@ -582,7 +663,10 @@ export function FactCheckDisplay({
         title="Sentiment Analysis"
       >
         {factCheck.sentimentAnalysis && (
-          <SentimentDisplay sentiment={factCheck.sentimentAnalysis} />
+          <SentimentDisplay 
+            sentiment={factCheck.sentimentAnalysis} 
+            verdict={factCheck.verdict}
+          />
         )}
       </AnalysisDetailModal>
 
