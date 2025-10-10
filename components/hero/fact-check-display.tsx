@@ -34,24 +34,39 @@ export function FactCheckDisplay({
   currentData,
 }: FactCheckDisplayProps) {
   const [isDetailedAnalysisExpanded, setIsDetailedAnalysisExpanded] = useState(false);
+  
+  // Enhanced debugging
+  console.log("=== FACT CHECK DEBUG ===");
+  console.log("Full factCheck object:", JSON.stringify(factCheck, null, 2));
+  console.log("factCheck.verdict:", factCheck?.verdict);
+  console.log("Type of verdict:", typeof factCheck?.verdict);
+  console.log("factCheck.confidence:", factCheck?.confidence);
+  console.log("factCheck.explanation preview:", factCheck?.explanation?.substring(0, 200));
 
   // Normalize various backend verdict strings to a canonical set used by UI
   const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked" => {
     const value = (status || "").toString().trim().toLowerCase();
+    console.log("Normalizing verdict - input:", status, "-> lowercase:", value);
+    
     if (value === "true" || value === "verified") return "verified";
     if (value === "false") return "false";
     if (value === "misleading") return "misleading";
     if (value === "unverified" || value === "unverifiable") return "unverified";
     if (value === "satire") return "satire";
-    if (value === "partially_true") return "partially_true";
+    if (value === "partially_true" || value === "partially true") return "partially_true";
     if (value === "outdated") return "outdated";
     if (value === "exaggerated") return "exaggerated";
     if (value === "opinion") return "opinion";
     if (value === "rumor") return "rumor";
     if (value === "conspiracy") return "conspiracy";
     if (value === "debunked") return "debunked";
+    
+    console.log("No match found, defaulting to unverified");
     return "unverified";
   };
+  
+  const normalizedVerdict = normalizeVerdict(factCheck.verdict);
+  console.log("Final normalized verdict:", normalizedVerdict);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -338,13 +353,13 @@ export function FactCheckDisplay({
       {/* Overall Verification Status Summary */}
       <Card
         className={`border-l-4 shadow-sm ${
-          factCheck.verdict === "verified"
+          normalizedVerdict === "verified"
             ? "border-l-green-500 bg-green-50/50 dark:bg-green-900/10"
-            : factCheck.verdict === "false"
+            : normalizedVerdict === "false"
               ? "border-l-red-500 bg-red-50/50 dark:bg-red-900/10"
-              : factCheck.verdict === "misleading"
+              : normalizedVerdict === "misleading"
                 ? "border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/10"
-                : factCheck.verdict === "satire"
+                : normalizedVerdict === "satire"
                   ? "border-l-purple-500 bg-purple-50/50 dark:bg-purple-900/10"
                   : "border-l-gray-500 bg-gray-50/50 dark:bg-gray-900/10"
         }`}
@@ -356,22 +371,22 @@ export function FactCheckDisplay({
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="p-1 rounded-full bg-white dark:bg-gray-800 shadow-sm">
-                    {getStatusIcon(normalizeVerdict(factCheck.verdict))}
+                    {getStatusIcon(normalizedVerdict)}
                   </div>
                   <h5 className="font-semibold text-lg">
-                    {getVerdictDescription(factCheck.verdict, factCheck).title}
+                    {getVerdictDescription(normalizedVerdict, factCheck).title}
                   </h5>
                 </div>
               </div>
               <div className="shrink-0 self-start">
-                {getStatusBadge(normalizeVerdict(factCheck.verdict))}
+                {getStatusBadge(normalizedVerdict)}
               </div>
             </div>
 
             {/* Analysis Description */}
             <div className="bg-white/60 dark:bg-gray-800/60 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50">
               <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                {getVerdictDescription(factCheck.verdict, factCheck).description}
+                {getVerdictDescription(normalizedVerdict, factCheck).description}
               </p>
             </div>
 

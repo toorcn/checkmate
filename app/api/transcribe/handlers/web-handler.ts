@@ -224,6 +224,18 @@ Please fact-check the claims from this web article content, paying special atten
 
         const resultData = factCheck.data as FactCheckData;
 
+        // Debug logging
+        logger.info("Fact-check data received", {
+          requestId: context.requestId,
+          platform: this.platform,
+          operation: "fact-check-parsing",
+          metadata: {
+            overallStatus: resultData.overallStatus,
+            confidence: resultData.confidence,
+            sourcesCount: resultData.sources?.length || 0,
+          },
+        });
+
         // Perform political bias analysis
         const politicalBiasAnalysis = await analyzePoliticalBias(
           textToFactCheck,
@@ -237,10 +249,38 @@ Please fact-check the claims from this web article content, paying special atten
           context.requestId
         );
 
+        // Normalize the verdict from backend to match TypeScript type
+        const normalizeVerdict = (status: string | undefined): FactCheckResult["verdict"] => {
+          const value = (status || "").toString().trim().toLowerCase();
+          if (value === "true" || value === "verified") return "verified";
+          if (value === "false") return "false";
+          if (value === "misleading") return "misleading";
+          if (value === "unverified" || value === "unverifiable") return "unverified";
+          if (value === "satire") return "satire";
+          if (value === "partially_true") return "partially_true";
+          if (value === "outdated") return "outdated";
+          if (value === "exaggerated") return "exaggerated";
+          if (value === "opinion") return "opinion";
+          if (value === "rumor") return "rumor";
+          if (value === "conspiracy") return "conspiracy";
+          if (value === "debunked") return "debunked";
+          return "unverified";
+        };
+
+        const normalizedVerdict = normalizeVerdict(resultData.overallStatus);
+        
+        logger.info("Verdict normalized", {
+          requestId: context.requestId,
+          platform: this.platform,
+          operation: "verdict-normalization",
+          metadata: {
+            originalStatus: resultData.overallStatus,
+            normalizedVerdict: normalizedVerdict,
+          },
+        });
+
         const factCheckResult: FactCheckResult = {
-          verdict:
-            (resultData.overallStatus as FactCheckResult["verdict"]) ||
-            "unverified",
+          verdict: normalizedVerdict,
           confidence: Math.round((resultData.confidence || 0.5) * 100),
           explanation: resultData.reasoning || "No analysis available",
           content:

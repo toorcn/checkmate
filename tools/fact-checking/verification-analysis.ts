@@ -91,6 +91,94 @@ export async function analyzeVerificationStatus(
     return { status, confidence };
   }
 
+  // First, try to extract verdict directly from the detailed analysis if it exists
+  const lowerContent = searchContent.toLowerCase();
+  
+  // Check if this looks like a detailed analysis (has markdown sections)
+  const isDetailedAnalysis = searchContent.includes("**Primary Claim Verification**") || 
+                              searchContent.includes("**DETAILED ANALYSIS") ||
+                              searchContent.includes("Primary claim is");
+  
+  if (isDetailedAnalysis) {
+    console.log("=== EXTRACTING VERDICT FROM DETAILED ANALYSIS ===");
+    console.log("Analysis content preview:", searchContent.substring(0, 500));
+    
+    // Extract verdict from prose using regex patterns
+    let status = "unverifiable";
+    let confidence = 0.5;
+    
+    // Look for "Primary claim is **X**" pattern (case-insensitive)
+    const primaryClaimMatch = searchContent.match(/primary claim (?:is|verification[:\s]+)(?:\s+)?(?:\*\*)?(\w+)(?:\*\*)?/i);
+    if (primaryClaimMatch) {
+      const extractedVerdict = primaryClaimMatch[1].toLowerCase();
+      console.log("Extracted verdict from 'primary claim' pattern:", extractedVerdict);
+      console.log("Full match:", primaryClaimMatch[0]);
+      
+      if (extractedVerdict === "false") {
+        status = "false";
+        confidence = 0.85;
+      } else if (extractedVerdict === "true" || extractedVerdict === "verified") {
+        status = "verified";
+        confidence = 0.85;
+      } else if (extractedVerdict === "misleading") {
+        status = "misleading";
+        confidence = 0.85;
+      } else if (extractedVerdict === "partially") {
+        // Look ahead for "partially true"
+        if (searchContent.match(/partially\s+true/i)) {
+          status = "partially_true";
+          confidence = 0.85;
+        }
+      }
+    } else {
+      console.log("Primary claim pattern did not match, trying alternative patterns");
+    }
+    
+    // If still unverifiable, try other patterns
+    if (status === "unverifiable") {
+      if (lowerContent.match(/claim is\s+(?:\*\*)?false(?:\*\*)?/i)) {
+        status = "false";
+        confidence = 0.85;
+      } else if (lowerContent.match(/claim is\s+(?:\*\*)?misleading(?:\*\*)?/i)) {
+        status = "misleading";
+        confidence = 0.85;
+      } else if (lowerContent.match(/claim is\s+(?:\*\*)?(?:true|verified)(?:\*\*)?/i)) {
+        status = "verified";
+        confidence = 0.85;
+      } else if (lowerContent.match(/claim is\s+(?:\*\*)?partially\s+true(?:\*\*)?/i)) {
+        status = "partially_true";
+        confidence = 0.85;
+      } else if (lowerContent.match(/(?:\*\*)?exaggerated(?:\*\*)?/i)) {
+        status = "exaggerated";
+        confidence = 0.8;
+      } else if (lowerContent.match(/(?:\*\*)?satire(?:\*\*)?/i) || lowerContent.includes("satirical")) {
+        status = "satire";
+        confidence = 0.8;
+      } else if (lowerContent.match(/(?:\*\*)?debunked(?:\*\*)?/i)) {
+        status = "debunked";
+        confidence = 0.85;
+      } else if (lowerContent.match(/(?:\*\*)?outdated(?:\*\*)?/i)) {
+        status = "outdated";
+        confidence = 0.8;
+      } else if (lowerContent.match(/(?:\*\*)?opinion(?:\*\*)?/i)) {
+        status = "opinion";
+        confidence = 0.8;
+      } else if (lowerContent.match(/(?:\*\*)?rumor(?:\*\*)?/i)) {
+        status = "rumor";
+        confidence = 0.75;
+      } else if (lowerContent.match(/(?:\*\*)?conspiracy(?:\*\*)?/i)) {
+        status = "conspiracy";
+        confidence = 0.8;
+      }
+    }
+    
+    console.log("Extracted verdict from detailed analysis:", status, "confidence:", confidence);
+    
+    if (status !== "unverifiable") {
+      return { status, confidence };
+    }
+  }
+
   try {
     /**
      * AI-Powered Verification Analysis
@@ -162,7 +250,7 @@ Respond in this exact JSON format:
     const { text: responseText } = await generateText({
       model: textModel(),
       prompt: prompt,
-      maxTokens: DEFAULT_CLASSIFY_MAX_TOKENS,
+      maxTokens: 200, // Increased from DEFAULT_CLASSIFY_MAX_TOKENS to ensure complete JSON response
       temperature: DEFAULT_CLASSIFY_TEMPERATURE,
     });
 
@@ -171,17 +259,82 @@ Respond in this exact JSON format:
        * Parse AI Response and Extract Verification Data
        * Attempts to parse JSON response and validates the results.
        */
+      console.log("=== VERIFICATION ANALYSIS DEBUG ===");
+      console.log("Raw AI response:", responseText);
+      
       const parsed = JSON.parse(responseText.trim() || "{}");
+      console.log("Parsed JSON:", parsed);
+      
       const status = parsed.status || "unverifiable";
       const confidence = Math.max(0, Math.min(1, parsed.confidence || 0.5));
 
+      console.log("Final status:", status, "confidence:", confidence);
       return { status, confidence };
-    } catch {
+    } catch (parseError) {
       /**
        * JSON Parsing Fallback
-       * If AI response isn't valid JSON, return safe defaults.
+       * If AI response isn't valid JSON, try to extract verdict from prose text
        */
-      return { status: "unverifiable", confidence: 0.5 };
+      console.error("JSON parsing failed, attempting prose extraction:", parseError);
+      console.log("Response text to extract from:", responseText.substring(0, 500));
+      
+      // Try to extract verdict from prose text
+      const lowerText = responseText.toLowerCase();
+      let status = "unverifiable";
+      let confidence = 0.5;
+      
+      // Look for explicit verdict statements in the text
+      // Check for markdown bold patterns first (e.g., "is **false**")
+      if (lowerText.match(/is\s+\*\*false\*\*/i) || lowerText.match(/claim is false/i) || lowerText.match(/primary claim.*false/i)) {
+        status = "false";
+        confidence = 0.85;
+        console.log("Detected 'false' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*true\*\*/i) || lowerText.match(/is\s+\*\*verified\*\*/i) || lowerText.match(/claim is (true|verified)/i) || lowerText.match(/primary claim.*(true|verified)/i)) {
+        status = "verified";
+        confidence = 0.85;
+        console.log("Detected 'verified' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*misleading\*\*/i) || lowerText.match(/claim is misleading/i) || lowerText.match(/primary claim.*misleading/i)) {
+        status = "misleading";
+        confidence = 0.85;
+        console.log("Detected 'misleading' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*partially\s*true\*\*/i) || lowerText.match(/claim is partially true/i) || lowerText.match(/partially correct/i)) {
+        status = "partially_true";
+        confidence = 0.8;
+        console.log("Detected 'partially_true' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*exaggerated\*\*/i) || lowerText.match(/claim is exaggerated/i)) {
+        status = "exaggerated";
+        confidence = 0.8;
+        console.log("Detected 'exaggerated' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*satire\*\*/i) || lowerText.match(/satirical/i)) {
+        status = "satire";
+        confidence = 0.8;
+        console.log("Detected 'satire' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*debunked\*\*/i) || lowerText.match(/has been debunked/i)) {
+        status = "debunked";
+        confidence = 0.85;
+        console.log("Detected 'debunked' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*outdated\*\*/i) || lowerText.match(/claim is outdated/i)) {
+        status = "outdated";
+        confidence = 0.8;
+        console.log("Detected 'outdated' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*opinion\*\*/i) || lowerText.match(/is an opinion/i)) {
+        status = "opinion";
+        confidence = 0.8;
+        console.log("Detected 'opinion' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*rumor\*\*/i) || lowerText.match(/is a rumor/i)) {
+        status = "rumor";
+        confidence = 0.7;
+        console.log("Detected 'rumor' verdict from prose");
+      } else if (lowerText.match(/is\s+\*\*conspiracy\*\*/i) || lowerText.match(/conspiracy theory/i)) {
+        status = "conspiracy";
+        confidence = 0.8;
+        console.log("Detected 'conspiracy' verdict from prose");
+      } else {
+        console.log("No clear verdict found in prose, defaulting to unverifiable");
+      }
+      
+      console.log("Final extracted verdict - status:", status, "confidence:", confidence);
+      return { status, confidence };
     }
   } catch (error) {
     /**
