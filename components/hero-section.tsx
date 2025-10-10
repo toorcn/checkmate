@@ -18,7 +18,7 @@ import {
   ResultsSection,
 } from "@/components/hero";
 import { AnalysisData, MockResult } from "@/types/analysis";
-import { parseMarkdownToJSX } from "@/lib/analysis/markdown-parser";
+import { parseMarkdownToJSX, sanitizeAssistantText } from "@/lib/analysis/markdown-parser";
 
 interface HeroSectionProps {
   initialUrl?: string;
@@ -57,6 +57,27 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
   const [manualChatStatus, setManualChatStatus] = useState<string>('ready');
   const [manualChatError, setManualChatError] = useState<any>(null);
   const [chatInput, setChatInput] = useState<string>("");
+
+  // Streaming loading messages
+  const funnyLoadingPhrases = [
+    "Trying to find info…",
+    "Consulting reputable sources…",
+    "Untangling hyperlinks…",
+    "Cross-checking facts…",
+    "Rate-limiting my enthusiasm…",
+    "AI agent crying because of bad internet…",
+    "Persuading servers to cooperate…",
+    "Caching good vibes…",
+    "Warming up credibility meters…",
+    "Refilling citation ink…"
+  ];
+  const [loadingTick, setLoadingTick] = useState(0);
+
+  useEffect(() => {
+    if (manualChatStatus !== 'streaming') return;
+    const id = setInterval(() => setLoadingTick((t) => t + 1), 1500);
+    return () => clearInterval(id);
+  }, [manualChatStatus]);
 
   const sendManualChatMessage = async (message: { role: string; content: string }) => {
     try {
@@ -125,6 +146,34 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
               });
             }
 
+            // Tool call events
+            const toolName: string | undefined = payload?.tool || payload?.toolName;
+            // Normalize event kinds possibly used by providers
+            const isToolCall = type === 'tool-call' || type === 'tool_call' || (type === 'tool' && payload?.status === 'call');
+            const isToolResult = type === 'tool-result' || type === 'tool_result' || (type === 'tool' && payload?.status === 'result');
+            if (isToolCall && toolName) {
+              const args = payload?.args ?? payload?.parameters ?? {};
+              const argsJson = safeStringify(args);
+              const toolBlock = `\n\n<tool name="${toolName}">\n${argsJson}\n</tool>\n`;
+              assistantContent += toolBlock;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+            if (isToolResult && toolName) {
+              const resultData = payload?.result ?? payload?.output ?? {};
+              const resultJson = safeStringify(resultData);
+              const toolResultBlock = `\n\n<tool-result name="${toolName}">\n${resultJson}\n</tool-result>\n`;
+              assistantContent += toolResultBlock;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+
             // End of stream marker
             if (type === 'done') {
               break;
@@ -151,6 +200,14 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
       console.error('[sendManualChatMessage] error:', err);
       setManualChatError(err);
       setManualChatStatus('ready');
+    }
+  };
+
+  const safeStringify = (obj: any) => {
+    try {
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return String(obj ?? '');
     }
   };
   
@@ -819,13 +876,68 @@ This claim appears to have originated from legitimate news sources around early 
                   <div className={`inline-block rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                     {m.role === 'user'
                       ? (m.content || '(empty)')
-                      : (parseMarkdownToJSX(m.content || '')?.length
-                          ? parseMarkdownToJSX(m.content || '')
-                          : (m.content || '(empty)'))}
+                      : (() => {
+                          const safe = sanitizeAssistantText(m.content || '');
+                          // Split content into segments for special rendering: <thinking>, <tool>, <tool-result>
+                          const parts: any[] = [];
+                          let remainder = safe;
+                          const pattern = /<(thinking|tool|tool-result)([^>]*)>[\s\S]*?<\/\1>/i;
+                          let guard = 0;
+                          while (pattern.test(remainder) && guard++ < 50) {
+                            const match = remainder.match(pattern);
+                            if (!match) break;
+                            const block = match[0];
+                            const tag = (match[1] || '').toLowerCase();
+                            const [before, after] = remainder.split(block);
+                            if (before) {
+                              const renderedBefore = parseMarkdownToJSX(before);
+                              if (renderedBefore?.length) parts.push(...renderedBefore);
+                            }
+                            const inner = block.replace(new RegExp(`^<${tag}[^>]*>`,'i'), '').replace(new RegExp(`</${tag}>$`, 'i'), '').trim();
+                            if (tag === 'thinking') {
+                              parts.push(
+                                <div key={`thinking-${parts.length}`} className="text-muted-foreground">
+                                  {parseMarkdownToJSX(inner)}
+                                </div>
+                              );
+                            } else if (tag === 'tool' || tag === 'tool-result') {
+                              const nameMatch = block.match(/name=\"([^\"]+)\"/i);
+                              const toolName = nameMatch ? nameMatch[1] : (tag === 'tool' ? 'Tool call' : 'Tool result');
+                              parts.push(
+                                <div key={`${tag}-${parts.length}`} className="rounded-md border bg-background p-2 my-2">
+                                  <div className="text-xs text-muted-foreground mb-1">{toolName}</div>
+                                  <pre className="text-xs whitespace-pre-wrap overflow-x-auto"><code>{inner}</code></pre>
+                                </div>
+                              );
+                            }
+                            remainder = after || '';
+                          }
+                          if (remainder) {
+                            const renderedAfter = parseMarkdownToJSX(remainder);
+                            if (renderedAfter?.length) parts.push(...renderedAfter);
+                          }
+                          if (parts.length) return parts;
+                          const rendered = parseMarkdownToJSX(safe);
+                          return rendered?.length ? rendered : (safe || '(empty)');
+                        })()}
                   </div>
                 </div>
               );
             })}
+            {manualChatStatus === 'streaming' && (
+              <div className="text-left">
+                <div className="inline-block rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground">
+                  <span className="inline-flex gap-1 items-center">
+                    <span>{funnyLoadingPhrases[loadingTick % funnyLoadingPhrases.length]}</span>
+                    <span className="inline-flex">
+                      <span className="w-1 h-1 bg-current rounded-full animate-pulse mr-1"></span>
+                      <span className="w-1 h-1 bg-current rounded-full animate-pulse mr-1" style={{ animationDelay: '120ms' }}></span>
+                      <span className="w-1 h-1 bg-current rounded-full animate-pulse" style={{ animationDelay: '240ms' }}></span>
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
           {/* Fixed bottom input bar for chat - reuse the same UrlInputForm */}

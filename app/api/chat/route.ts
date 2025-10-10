@@ -56,6 +56,13 @@ Response style:
 - Use clear headings and bullet points.
 - Provide a short summary first, then details.
 - End with a Sources section containing clickable links.
+
+Tool visibility and formatting (critical):
+- When you invoke a tool, emit a visible marker in your response so the UI can render it:
+  - Before the tool runs, add a block: <tool name="TOOL_NAME">\n{JSON_ARGS}\n</tool>
+  - After the tool completes, add a block: <tool-result name="TOOL_NAME">\n{JSON_RESULT}\n</tool-result>
+- Keep these blocks concise; include only relevant arguments/results. Do not include secrets or tokens.
+- Continue your normal user-facing explanation outside these blocks.
 `,
     });
 
