@@ -11,7 +11,8 @@
     "setup:cognito-client": "node scripts/setup-cognito-client.js",
     "test:cognito": "node scripts/test-cognito.js",
     "test:cognito-simple": "node scripts/simple-cognito-test.js",
-    "find:cognito-clients": "node scripts/find-cognito-clients.js"
+    "find:cognito-clients": "node scripts/find-cognito-clients.js",
+    "drizzle:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^1.0.0",

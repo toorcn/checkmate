@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "./index";
-import { analyses, creators, comments, users, sessions } from "./schema";
+import { analyses, creators, comments, users, sessions, articleAnalyses } from "./schema";
 
 export async function upsertUser(u: {
   id: string;
@@ -333,4 +333,84 @@ export async function addCreatorComment(input: {
     })
     .returning();
   return rows[0] ?? null;
+}
+
+// Article Analysis Functions
+
+export async function getArticleAnalysis(articleId: string) {
+  try {
+    const rows = await db
+      .select()
+      .from(articleAnalyses)
+      .where(eq(articleAnalyses.articleId, articleId))
+      .limit(1);
+    return rows[0] ?? null;
+  } catch (err: any) {
+    if (err?.code === "42P01") return null; // table doesn't exist yet
+    throw err;
+  }
+}
+
+export async function upsertArticleAnalysis(input: {
+  articleId: string;
+  articleUrl: string;
+  title: string;
+  description?: string | null;
+  source: string;
+  verdict: string;
+  confidence: number;
+  summary: string;
+  keyPoints: string[]; // Will be stringified to JSON
+  sentiment?: unknown; // Will be stringified to JSON
+  factsVerified?: number;
+}) {
+  try {
+    await db
+      .insert(articleAnalyses)
+      .values({
+        articleId: input.articleId,
+        articleUrl: input.articleUrl,
+        title: input.title,
+        description: input.description ?? null,
+        source: input.source,
+        verdict: input.verdict,
+        confidence: input.confidence,
+        summary: input.summary,
+        keyPoints: JSON.stringify(input.keyPoints),
+        sentiment: input.sentiment ? JSON.stringify(input.sentiment) : null,
+        factsVerified: input.factsVerified ?? 0,
+      })
+      .onConflictDoUpdate({
+        target: articleAnalyses.articleId,
+        set: {
+          verdict: input.verdict,
+          confidence: input.confidence,
+          summary: input.summary,
+          keyPoints: JSON.stringify(input.keyPoints),
+          sentiment: input.sentiment ? JSON.stringify(input.sentiment) : null,
+          factsVerified: input.factsVerified ?? 0,
+          updatedAt: new Date(),
+        },
+      });
+    return true;
+  } catch (err: any) {
+    if (err?.code === "42P01") {
+      console.warn("[db] article_analyses table missing; skipping upsert");
+      return false;
+    }
+    throw err;
+  }
+}
+
+export async function listRecentArticleAnalyses(limit = 50) {
+  try {
+    return db
+      .select()
+      .from(articleAnalyses)
+      .orderBy(desc(articleAnalyses.createdAt))
+      .limit(limit);
+  } catch (err: any) {
+    if (err?.code === "42P01") return []; // table doesn't exist yet
+    throw err;
+  }
 }
