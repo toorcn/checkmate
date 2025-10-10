@@ -37,10 +37,10 @@ export const ArticleFilters = ({
   };
 
   return (
-    <div className="flex items-center gap-3 flex-wrap">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <Filter className="h-4 w-4" />
-        <span>Filters:</span>
+    <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <Filter className="h-3.5 w-3.5" />
+        <span>Filters</span>
       </div>
 
       {/* Verdict Filter */}
@@ -50,7 +50,7 @@ export const ArticleFilters = ({
           onFiltersChange({ ...filters, verdict: value })
         }
       >
-        <SelectTrigger className="w-[180px] h-9">
+        <SelectTrigger className="w-[160px] h-8 text-xs">
           <SelectValue placeholder="All Verdicts" />
         </SelectTrigger>
         <SelectContent>
@@ -71,7 +71,7 @@ export const ArticleFilters = ({
           onFiltersChange({ ...filters, source: value })
         }
       >
-        <SelectTrigger className="w-[180px] h-9">
+        <SelectTrigger className="w-[160px] h-8 text-xs">
           <SelectValue placeholder="All Sources" />
         </SelectTrigger>
         <SelectContent>
@@ -90,9 +90,9 @@ export const ArticleFilters = ({
           variant="ghost"
           size="sm"
           onClick={handleReset}
-          className="h-9 gap-2"
+          className="h-8 gap-1.5 text-xs"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
           Reset
         </Button>
       )}

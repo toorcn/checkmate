@@ -73,15 +73,15 @@ export const ArticlePagination = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-3">
       {/* Items per page selector */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Show:</span>
+        <span className="text-xs text-muted-foreground">Show:</span>
         <Select
           value={itemsPerPage.toString()}
           onValueChange={(value) => onItemsPerPageChange(parseInt(value))}
         >
-          <SelectTrigger className="w-[70px] h-9">
+          <SelectTrigger className="w-[64px] h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -90,7 +90,7 @@ export const ArticlePagination = ({
             <SelectItem value="50">50</SelectItem>
           </SelectContent>
         </Select>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {startItem}-{endItem} of {totalItems}
         </span>
       </div>
@@ -102,9 +102,9 @@ export const ArticlePagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-9 w-9 p-0"
+          className="h-8 w-8 p-0"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3.5 w-3.5" />
         </Button>
 
         {getPageNumbers().map((page, index) => {
@@ -125,7 +125,7 @@ export const ArticlePagination = ({
               variant={currentPage === page ? "default" : "outline"}
               size="sm"
               onClick={() => onPageChange(page as number)}
-              className="h-9 w-9 p-0"
+              className="h-8 w-8 p-0"
             >
               {page}
             </Button>
@@ -137,9 +137,9 @@ export const ArticlePagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-9 w-9 p-0"
+          className="h-8 w-8 p-0"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

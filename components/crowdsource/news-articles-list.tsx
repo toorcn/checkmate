@@ -234,15 +234,15 @@ export const NewsArticlesList = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Filters and Search Bar */}
-      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-4 bg-muted/30 rounded-lg border border-border/50">
+      <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
         <ArticleSearch
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           resultsCount={filteredAndSortedArticles.length}
         />
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <ArticleFilters
             filters={filters}
             onFiltersChange={setFilters}
@@ -261,7 +261,7 @@ export const NewsArticlesList = () => {
         </div>
       ) : (
         <>
-          <div className="space-y-6">
+          <div className="space-y-4">
             {paginatedArticles.map((article) => (
               <NewsArticleCard
                 key={article.id}
