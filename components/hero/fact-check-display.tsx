@@ -43,12 +43,14 @@ interface FactCheckDisplayProps {
   factCheck: any;
   originTracingData?: any;
   currentData: any;
+  previewMode?: boolean;
 }
 
 export function FactCheckDisplay({
   factCheck,
   originTracingData,
   currentData,
+  previewMode = false,
 }: FactCheckDisplayProps) {
   const [openModal, setOpenModal] = useState<string | null>(null);
   const verdictDetailRef = useRef<HTMLDivElement>(null);
@@ -573,14 +575,14 @@ export function FactCheckDisplay({
                   url: source.url,
                   title: source.title,
                   source: source.title || new URL(source.url).hostname,
-                  credibility: Math.round((source.credibility || 0.5) * 100),
+                  credibility: source.credibility !== undefined ? Math.round(source.credibility * 100) : undefined,
                 })) ||
                 (originTracingData?.sources && originTracingData?.sources.length > 0
                   ? originTracingData.sources.map((source: any) => ({
                       url: source.url,
                       title: source.title,
                       source: source.source || new URL(source.url).hostname,
-                      credibility: Math.round((source.credibility || 0.5) * 100),
+                      credibility: source.credibility !== undefined ? Math.round(source.credibility * 100) : undefined,
                     }))
                   : [])
               }
@@ -593,6 +595,7 @@ export function FactCheckDisplay({
                   title: source.title,
                 }))
               }
+              previewMode={previewMode}
             />
           </div>
         </div>

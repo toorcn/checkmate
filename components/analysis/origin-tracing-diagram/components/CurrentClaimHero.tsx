@@ -36,8 +36,8 @@ export const CurrentClaimHero = React.memo(({ claimNode, verdict, totalSources =
 
   if (!claimNode) {
     return (
-      <div className="mb-6 p-6 bg-gradient-to-br from-slate-50 to-slate-100 backdrop-blur-xl border-2 border-slate-200 rounded-2xl shadow-xl">
-        <div className="text-center text-slate-600 text-sm">
+      <div className="mb-6 p-6 bg-gradient-to-br from-muted to-muted/50 backdrop-blur-xl border-2 border-border rounded-2xl shadow-xl">
+        <div className="text-center text-muted-foreground text-sm">
           Current claim information unavailable
         </div>
       </div>
@@ -46,10 +46,9 @@ export const CurrentClaimHero = React.memo(({ claimNode, verdict, totalSources =
 
   return (
     <div 
-      className={`mb-6 p-6 bg-gradient-to-br ${colors.gradient} backdrop-blur-xl border-2 ${colors.border} rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-3xl hover:scale-[1.02] relative overflow-hidden group`}
+      className="mb-6 p-6 bg-card/60 backdrop-blur-lg border-2 border-border rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-3xl hover:scale-[1.02] relative overflow-hidden group"
       style={{
         minHeight: '150px',
-        backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.6) 100%)',
       }}
     >
       {/* Animated border glow */}
@@ -59,11 +58,11 @@ export const CurrentClaimHero = React.memo(({ claimNode, verdict, totalSources =
         {/* Header with icon and verdict */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/80 rounded-xl shadow-md">
+            <div className="p-2 bg-card/80 rounded-xl shadow-md">
               {getVerdictIcon()}
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Current Claim
               </h3>
               <Badge className={`mt-1 ${colors.badge} font-bold text-xs shadow-sm`}>
@@ -75,25 +74,25 @@ export const CurrentClaimHero = React.memo(({ claimNode, verdict, totalSources =
 
         {/* Claim content */}
         <div className="mb-4">
-          <p className={`text-sm font-bold ${colors.text} leading-relaxed line-clamp-3`}>
+          <p className="text-sm font-bold text-foreground leading-relaxed line-clamp-3">
             {claimNode.data.label ? String(claimNode.data.label) : 'No claim text available'}
           </p>
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center gap-4 pt-3 border-t-2 border-white/50">
+        <div className="flex items-center gap-4 pt-3 border-t-2 border-border/50">
           {claimNode.data.credibility !== undefined ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-600">Credibility:</span>
-              <Badge variant="outline" className="bg-white/80 font-bold text-xs">
+              <span className="text-xs font-semibold text-muted-foreground">Credibility:</span>
+              <Badge variant="outline" className="bg-card/80 font-bold text-xs">
                 {Number(claimNode.data.credibility)}%
               </Badge>
             </div>
           ) : null}
           {totalSources > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-600">Sources:</span>
-              <Badge variant="outline" className="bg-white/80 font-bold text-xs">
+              <span className="text-xs font-semibold text-muted-foreground">Sources:</span>
+              <Badge variant="outline" className="bg-card/80 font-bold text-xs">
                 {totalSources}
               </Badge>
             </div>

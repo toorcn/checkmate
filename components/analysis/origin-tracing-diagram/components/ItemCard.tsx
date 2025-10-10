@@ -85,8 +85,8 @@ export const ItemCard = React.memo(({
           isAnimating 
             ? `${colors?.gradient ? `bg-gradient-to-br ${colors.gradient}` : 'bg-gradient-to-br from-blue-50 to-indigo-50'} ${colors?.border || 'border-blue-400'} shadow-lg scale-105` 
             : isSelected
-            ? `bg-blue-50/80 ${colors?.border || 'border-blue-500'} shadow-lg ring-2 ring-blue-400 ring-offset-1`
-            : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:shadow-lg hover:-translate-y-1'
+            ? `bg-primary/10 ${colors?.border || 'border-primary'} shadow-lg ring-2 ring-primary ring-offset-1`
+            : 'bg-card/80 border-border hover:border-muted-foreground hover:shadow-lg hover:-translate-y-1'
         }`}
       >
         {/* Animated pulse indicator for active item */}
@@ -99,7 +99,7 @@ export const ItemCard = React.memo(({
         {/* Selection indicator */}
         {isSelected && !isAnimating && (
           <div className="absolute top-2 right-2">
-            <div className="flex items-center gap-1 bg-blue-500 text-white px-2 py-1 rounded-full shadow-lg">
+            <div className="flex items-center gap-1 bg-primary text-primary-foreground px-2 py-1 rounded-full shadow-lg">
               <Eye className="w-3 h-3" />
               <span className="text-xs font-bold">Viewing</span>
             </div>
@@ -111,8 +111,8 @@ export const ItemCard = React.memo(({
           {/* Color-coded credibility circle */}
           <div 
             className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-              colors ? `${colors.gradient} bg-gradient-to-br` : 'bg-slate-100'
-            } border-2 ${colors?.border || 'border-slate-300'} shadow-sm transition-transform group-hover:scale-110`}
+              colors ? `${colors.gradient} bg-gradient-to-br` : 'bg-muted'
+            } border-2 ${colors?.border || 'border-border'} shadow-sm transition-transform group-hover:scale-110`}
           >
             <div className="opacity-80">
               {item.icon}
@@ -122,12 +122,12 @@ export const ItemCard = React.memo(({
           {/* Title */}
           <div className="flex-1 min-w-0">
             <h4 className={`text-sm font-bold leading-tight mb-1 ${
-              isAnimating ? colors?.text || 'text-blue-900' : 'text-slate-900'
-            } line-clamp-2 group-hover:text-blue-700 transition-colors`}>
+              isAnimating ? colors?.text || 'text-primary' : 'text-foreground'
+            } line-clamp-2 group-hover:text-primary transition-colors`}>
               {item.label}
             </h4>
             {node?.data.date ? (
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-muted-foreground font-medium">
                 {String(node.data.date)}
               </p>
             ) : null}
@@ -137,7 +137,7 @@ export const ItemCard = React.memo(({
         {/* Description preview (2 lines) */}
         {node && (
           <div className="mb-3">
-            <p className="text-xs text-slate-700 leading-relaxed line-clamp-2">
+            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
               {node.type === 'beliefDriver' ? (node.data.description ? String(node.data.description) : item.label) : 
                node.type === 'source' ? (node.data.label ? String(node.data.label) : item.label) :
                (node.data.label ? String(node.data.label) : item.label)}
@@ -147,23 +147,23 @@ export const ItemCard = React.memo(({
 
         {/* Prominent Credibility Bar */}
         {credibility !== null && (
-          <div className="mb-3 bg-slate-100 rounded-lg p-3">
+          <div className="mb-3 bg-muted rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-700">Credibility</span>
-              <Badge className={`text-xs font-bold ${colors?.badge || 'bg-slate-200 text-slate-800'}`}>
+              <span className="text-xs font-bold text-foreground">Credibility</span>
+              <Badge className={`text-xs font-bold ${colors?.badge || 'bg-muted text-foreground'}`}>
                 {credibility}%
               </Badge>
             </div>
-            <div className="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="relative h-2 bg-muted-foreground/20 rounded-full overflow-hidden">
               <div 
                 className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
-                  colors ? `bg-gradient-to-r ${colors.gradient}` : 'bg-slate-400'
+                  colors ? `bg-gradient-to-r ${colors.gradient}` : 'bg-muted-foreground'
                 }`}
                 style={{ width: `${credibility}%` }}
               />
             </div>
             <div className="flex items-center justify-between mt-1">
-              <span className={`text-xs font-semibold ${colors?.text || 'text-slate-600'}`}>
+              <span className={`text-xs font-semibold ${colors?.text || 'text-muted-foreground'}`}>
                 {getCredibilityTier()}
               </span>
             </div>
@@ -174,8 +174,8 @@ export const ItemCard = React.memo(({
         {metadata.length > 0 && (
           <div className="space-y-1 mb-3">
             {metadata.map((meta, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-xs text-slate-600">
-                <div className="w-1 h-1 rounded-full bg-slate-400" />
+              <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="w-1 h-1 rounded-full bg-muted-foreground" />
                 <span className="truncate">{meta}</span>
               </div>
             ))}
@@ -184,7 +184,7 @@ export const ItemCard = React.memo(({
 
         {/* Connection indicator */}
         {showConnection && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium pt-2 border-t border-slate-200">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium pt-2 border-t border-border">
             <ArrowRight className="w-3 h-3" />
             <span>Evolved to next</span>
           </div>
@@ -192,7 +192,7 @@ export const ItemCard = React.memo(({
 
         {/* Click hint */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-2 right-2">
-          <span className="text-xs text-blue-600 font-semibold">
+          <span className="text-xs text-primary font-semibold">
             Click for details
           </span>
         </div>

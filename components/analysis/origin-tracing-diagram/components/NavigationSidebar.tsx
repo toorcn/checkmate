@@ -102,16 +102,16 @@ export function NavigationSidebar({
 
   return (
     <div 
-      className={isExpanded ? "expanded-sidebar overflow-y-auto relative h-full" : "border-l border-slate-200 bg-gradient-to-b from-white to-slate-50 overflow-y-auto relative h-full w-full"}
+      className={isExpanded ? "expanded-sidebar overflow-y-auto relative h-full" : "border-l border-border bg-gradient-to-b from-background to-muted/50 overflow-y-auto relative h-full w-full"}
     >
       <div className="p-5 relative">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 p-2 bg-white/80 hover:bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all"
+          className="absolute top-3 right-3 z-10 p-2 bg-background/80 hover:bg-background border border-border rounded-lg shadow-sm hover:shadow-md transition-all"
           aria-label="Close sidebar"
         >
-          <X className="w-4 h-4 text-slate-600 hover:text-slate-900" />
+          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
         </button>
 
         {/* Hero Card */}
@@ -169,34 +169,34 @@ export function NavigationSidebar({
                     onEvolutionTimelineMouseLeave?.();
                   }
                 }}
-                className="section-card border-2 border-slate-200 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/60 backdrop-blur-lg"
+                className="section-card border-2 border-border rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-card/60 backdrop-blur-lg"
                 style={{
                   borderLeftWidth: '4px',
                   borderLeftColor: activeSection === section.id ? borderColor : undefined,
                 }}
               >
                 {/* Section header */}
-                <div className="flex items-center bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur">
+                <div className="flex items-center bg-gradient-to-r from-muted/80 to-background/80 backdrop-blur">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleSection(section.id);
                     }}
-                    className="flex-shrink-0 p-2 pl-2 hover:bg-slate-100 transition-colors rounded-l-xl spring-expand"
+                    className="flex-shrink-0 p-2 pl-2 hover:bg-muted transition-colors rounded-l-xl spring-expand"
                     aria-label={expandedSections.has(section.id) ? "Collapse section" : "Expand section"}
                   >
                     {expandedSections.has(section.id) ? (
-                      <ChevronDown className="h-4 w-4 text-slate-700 transition-transform duration-300" />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-300" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-slate-700 transition-transform duration-300" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-300" />
                     )}
                   </button>
                   <button
                     onClick={() => onSectionClick(section.id)}
                     onMouseEnter={() => onSectionMouseEnter?.(section.id)}
                     onMouseLeave={() => onSectionMouseLeave?.()}
-                    className={`flex-1 pl-1 pr-3 py-3 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
-                      activeSection === section.id ? 'bg-blue-50/70' : ''
+                    className={`flex-1 pl-1 pr-3 py-3 flex items-center justify-between text-left hover:bg-muted/50 transition-all ${
+                      activeSection === section.id ? 'bg-primary/10' : ''
                     }`}
                   >
                     <span className={`text-sm font-bold ${section.color} truncate tracking-tight`}>
@@ -213,7 +213,7 @@ export function NavigationSidebar({
                 
                 {/* Section content */}
                 {expandedSections.has(section.id) && (
-                  <div className="border-t-2 border-slate-200 bg-gradient-to-b from-slate-50/50 to-white/50 spring-expand">
+                  <div className="border-t-2 border-border bg-gradient-to-b from-muted/50 to-background/50 spring-expand">
                     {/* Render subsections if they exist */}
                     {section.subsections ? (
                       <div className="space-y-0">
@@ -225,8 +225,8 @@ export function NavigationSidebar({
                             <div 
                               key={subsection.id} 
                               className={isEvolutionTimeline 
-                                ? "border-b border-slate-100 last:border-b-0" 
-                                : "border-b-2 border-slate-200 last:border-b-0"
+                                ? "border-b border-border last:border-b-0" 
+                                : "border-b-2 border-border last:border-b-0"
                               }
                             >
                               {/* Subsection header */}
@@ -234,7 +234,7 @@ export function NavigationSidebar({
                                 ? "flex items-center bg-gradient-to-r from-slate-50/30 to-white/30" 
                                 : "flex items-center bg-gradient-to-r from-slate-100/50 to-white/50"
                               }>
-                                <div className="w-4 border-l-2 border-slate-300 ml-2" />
+                                <div className="w-4 border-l-2 border-border ml-2" />
                                 {/* Hide toggle button for evolution timeline */}
                                 {!isEvolutionTimeline && (
                                   <button
@@ -242,13 +242,13 @@ export function NavigationSidebar({
                                       e.stopPropagation();
                                       onToggleSection(subsection.id);
                                     }}
-                                    className="flex-shrink-0 p-2 hover:bg-slate-100 transition-colors"
+                                    className="flex-shrink-0 p-2 hover:bg-muted transition-colors"
                                     aria-label={expandedSections.has(subsection.id) ? "Collapse subsection" : "Expand subsection"}
                                   >
                                     {expandedSections.has(subsection.id) ? (
-                                      <ChevronDown className="h-3.5 w-3.5 text-slate-600" />
+                                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                                     ) : (
-                                      <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                                     )}
                                   </button>
                                 )}
@@ -266,8 +266,8 @@ export function NavigationSidebar({
                                       onEvolutionTimelineMouseLeave?.();
                                     }
                                   }}
-                                  className={`flex-1 ${isEvolutionTimeline ? 'pl-2' : 'pl-1'} pr-3 ${isEvolutionTimeline ? 'py-2' : 'py-2.5'} flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
-                                    activeSection === subsection.id ? 'bg-blue-50/70' : ''
+                                  className={`flex-1 ${isEvolutionTimeline ? 'pl-2' : 'pl-1'} pr-3 ${isEvolutionTimeline ? 'py-2' : 'py-2.5'} flex items-center justify-between text-left hover:bg-muted/50 transition-all ${
+                                    activeSection === subsection.id ? 'bg-primary/10' : ''
                                   }`}
                                 >
                                   <span className={`text-xs font-bold ${subsection.color} truncate tracking-tight`}>
@@ -277,8 +277,8 @@ export function NavigationSidebar({
                                     variant="outline" 
                                     className={`text-xs ml-auto flex-shrink-0 font-semibold ${
                                       isEvolutionTimeline 
-                                        ? 'bg-white/70 border-slate-200' 
-                                        : 'bg-white border-slate-300'
+                                        ? 'bg-card/70 border-border' 
+                                        : 'bg-card border-border'
                                     }`}
                                   >
                                     {subsection.items.length}
@@ -289,8 +289,8 @@ export function NavigationSidebar({
                               {/* Subsection items - always show for evolution timeline */}
                               {isSubsectionExpanded && (
                                 <div className={isEvolutionTimeline 
-                                  ? "items-masonry-grid bg-slate-50/20" 
-                                  : "items-masonry-grid bg-slate-50/30"
+                                  ? "items-masonry-grid bg-muted/20" 
+                                  : "items-masonry-grid bg-muted/30"
                                 }>
                                   {subsection.items.map((item, itemIdx) => {
                                     const isCurrentlyAnimating = 
@@ -400,8 +400,8 @@ export function NavigationSidebar({
         
         {/* Footer help text */}
         {isExpanded && (
-          <div className="mt-6 pt-4 border-t-2 border-slate-200">
-            <p className="text-xs text-slate-600 text-center font-medium bg-slate-50 px-4 py-3 rounded-lg">
+          <div className="mt-6 pt-4 border-t-2 border-border">
+            <p className="text-xs text-muted-foreground text-center font-medium bg-muted px-4 py-3 rounded-lg">
               Expanded to full width • Scroll away to collapse
             </p>
           </div>

@@ -12,12 +12,14 @@ interface UseOriginTracingAnimationProps {
   nodes: Node[];
   navSections: NavSection[];
   setNodes: (nodes: Node[] | ((nodes: Node[]) => Node[])) => void;
+  previewMode?: boolean;
 }
 
 export function useOriginTracingAnimation({
   nodes,
   navSections,
   setNodes,
+  previewMode = false,
 }: UseOriginTracingAnimationProps) {
   const { fitBounds, setCenter, getZoom, fitView } = useReactFlow();
   
@@ -51,6 +53,42 @@ export function useOriginTracingAnimation({
       }))
     );
   }, [setNodes]);
+
+  // Start animation manually
+  const startAnimation = useCallback(() => {
+    if (nodes.length === 0 || navSections.length === 0) {
+      return;
+    }
+    
+    // Find the evolution timeline section
+    const evolutionSection = navSections.find(s => s.id === 'evolution');
+    
+    if (!evolutionSection || !evolutionSection.subsections || evolutionSection.subsections.length === 0) {
+      return;
+    }
+    
+    // Collect node IDs from evolution timeline subsections in order: origin → steps → claim
+    const subsectionGroups = evolutionSection.subsections.map(subsection => ({
+      id: subsection.id,
+      nodeIds: subsection.items.map(item => item.nodeId)
+    }));
+    
+    // Filter out empty groups and flatten to get all node IDs
+    const allNodeIds = subsectionGroups
+      .filter(group => group.nodeIds.length > 0)
+      .flatMap(group => group.nodeIds);
+    
+    if (allNodeIds.length === 0) {
+      return;
+    }
+    
+    // Start the animation
+    setActiveSection('evolution');
+    setExpandedSections(new Set(['evolution', 'evolution-origin', 'evolution-steps', 'evolution-claim']));
+    setAnimatingNodes(allNodeIds);
+    setCurrentAnimationIndex(0);
+    setIsAnimating(true);
+  }, [nodes, navSections]);
   
   // Update focused node and section expansion when animation state changes
   useEffect(() => {
@@ -320,9 +358,9 @@ export function useOriginTracingAnimation({
     }
   }, [stopAnimation, isAnimating]);
   
-  // Auto-play animation on mount (runs once)
+  // Auto-play animation on mount (runs once) - disabled by default
   useEffect(() => {
-    // Only run once and only if we have nodes
+    // Only run once and only if we have nodes, but disabled by default
     if (hasAutoPlayedRef.current || nodes.length === 0 || navSections.length === 0) {
       return;
     }
@@ -516,6 +554,7 @@ export function useOriginTracingAnimation({
     
     // Actions
     stopAnimation,
+    startAnimation,
     setIsAnimating,
     handleSectionClick,
     handleItemClick,

@@ -26,7 +26,7 @@ export const SectionPreview = React.memo(({
 
     return (
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden max-w-[60px]">
+        <div className="flex-1 h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden max-w-[60px]">
           <div 
             className={`h-full bg-gradient-to-r ${colors.gradient} transition-all duration-500`}
             style={{ width: `${avgCredibility}%` }}
@@ -54,7 +54,7 @@ export const SectionPreview = React.memo(({
       {/* Item count badge */}
       <Badge 
         variant="outline" 
-        className="text-xs font-semibold bg-white/80 border-slate-300 shadow-sm"
+        className="text-xs font-semibold bg-card/80 border-border shadow-sm"
       >
         {totalItems}
       </Badge>

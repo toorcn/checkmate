@@ -189,6 +189,7 @@ export function ResultsSection({
                 factCheck={currentData.factCheck}
                 originTracingData={originTracingData}
                 currentData={currentData}
+                previewMode={true}
               />
             )}
 

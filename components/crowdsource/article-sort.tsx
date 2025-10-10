@@ -22,20 +22,20 @@ interface ArticleSortProps {
 
 export const ArticleSort = ({ sortBy, onSortChange }: ArticleSortProps) => {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <ArrowUpDown className="h-4 w-4" />
-        <span className="hidden sm:inline">Sort by:</span>
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <ArrowUpDown className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">Sort</span>
       </div>
       <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
-        <SelectTrigger className="w-[160px] h-9">
+        <SelectTrigger className="w-[140px] h-8 text-xs">
           <SelectValue placeholder="Sort by..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="recent">Most Recent</SelectItem>
-          <SelectItem value="votes">Most Votes</SelectItem>
-          <SelectItem value="credibility">Highest Credibility</SelectItem>
-          <SelectItem value="analyzed">Most Analyzed</SelectItem>
+          <SelectItem value="recent">Recent</SelectItem>
+          <SelectItem value="votes">Votes</SelectItem>
+          <SelectItem value="credibility">Credibility</SelectItem>
+          <SelectItem value="analyzed">Analyzed</SelectItem>
         </SelectContent>
       </Select>
     </div>

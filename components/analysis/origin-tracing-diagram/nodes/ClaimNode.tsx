@@ -39,10 +39,10 @@ export function ClaimNode({ data }: { data: NodeData }) {
     },
     unverified: {
       bg: 'bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50',
-      border: 'border-slate-300',
-      text: 'text-slate-900',
-      iconColor: 'text-slate-600',
-      badge: 'bg-slate-100 text-slate-800 border-slate-300'
+      border: 'border-border',
+      text: 'text-foreground',
+      iconColor: 'text-muted-foreground',
+      badge: 'bg-muted text-foreground border-border'
     },
     satire: {
       bg: 'bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50',
