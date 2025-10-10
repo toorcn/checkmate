@@ -10,6 +10,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 	const { theme } = useTheme();
 
 	const containerRef = useRef<HTMLDivElement>(null);
+	const isAnimatingRef = useRef<boolean>(false);
+	const animationIdRef = useRef<number | null>(null);
+	const lastFrameTimeRef = useRef<number>(0);
+	const watchdogIntervalRef = useRef<number | null>(null);
 	const sceneRef = useRef<{
 		scene: THREE.Scene;
 		camera: THREE.PerspectiveCamera;
@@ -46,6 +50,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 		renderer.setSize(window.innerWidth, window.innerHeight);
 		renderer.setClearColor(scene.fog.color, 0);
 
+		// Ensure we don't keep stale canvases on re-renders
+		while (containerRef.current.firstChild) {
+			containerRef.current.removeChild(containerRef.current.firstChild);
+		}
 		containerRef.current.appendChild(renderer.domElement);
 
 		// Create particles
@@ -91,11 +99,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 		scene.add(points);
 
 		let count = 0;
-		let animationId: number;
 
 		// Animation function
 		const animate = () => {
-			animationId = requestAnimationFrame(animate);
+			isAnimatingRef.current = true;
+			animationIdRef.current = requestAnimationFrame(animate);
+			lastFrameTimeRef.current = performance.now();
 
 			const positionAttribute = geometry.attributes.position;
 			const positions = positionAttribute.array as Float32Array;
@@ -138,8 +147,57 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
 		window.addEventListener('resize', handleResize);
 
-		// Start animation
+		// Handle tab visibility: resume if stopped when tab becomes visible
+		const handleVisibility = () => {
+			if (document.visibilityState === 'visible' && !isAnimatingRef.current) {
+				animate();
+			}
+		};
+		document.addEventListener('visibilitychange', handleVisibility);
+
+		// Handle WebGL context loss/restoration
+		const canvas = renderer.domElement;
+		const handleContextLost = (event: Event) => {
+			// Prevent default so the context can be restored
+			event.preventDefault();
+			if (animationIdRef.current !== null) {
+				cancelAnimationFrame(animationIdRef.current);
+				animationIdRef.current = null;
+			}
+			isAnimatingRef.current = false;
+		};
+		const handleContextRestored = () => {
+			if (!isAnimatingRef.current) {
+				animate();
+			}
+		};
+		canvas.addEventListener('webglcontextlost', handleContextLost, false);
+		canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+
+		// Start animation (ensure clean state)
+		isAnimatingRef.current = false;
+		if (animationIdRef.current !== null) {
+			cancelAnimationFrame(animationIdRef.current);
+			animationIdRef.current = null;
+		}
 		animate();
+
+		// Watchdog to auto-restart if frames stop for any reason
+		const startWatchdog = () => {
+			if (watchdogIntervalRef.current !== null) return;
+			watchdogIntervalRef.current = window.setInterval(() => {
+				const now = performance.now();
+				const timeSinceLastFrame = now - lastFrameTimeRef.current;
+				const gl = renderer.getContext();
+				const contextLost = typeof (gl as any).isContextLost === 'function' && (gl as any).isContextLost();
+				if (document.visibilityState === 'visible' && !contextLost) {
+					if (!isAnimatingRef.current || animationIdRef.current === null || timeSinceLastFrame > 1200) {
+						animate();
+					}
+				}
+			}, 1500);
+		};
+		startWatchdog();
 
 		// Store references
 		sceneRef.current = {
@@ -147,25 +205,36 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 			camera,
 			renderer,
 			particles: [points],
-			animationId,
+			animationId: animationIdRef.current ?? 0,
 			count,
 		};
 
 		// Cleanup function
 		return () => {
 			window.removeEventListener('resize', handleResize);
+			document.removeEventListener('visibilitychange', handleVisibility);
+			canvas.removeEventListener('webglcontextlost', handleContextLost, false);
+			canvas.removeEventListener('webglcontextrestored', handleContextRestored, false);
+			if (watchdogIntervalRef.current !== null) {
+				clearInterval(watchdogIntervalRef.current);
+				watchdogIntervalRef.current = null;
+			}
 
 			if (sceneRef.current) {
-				cancelAnimationFrame(sceneRef.current.animationId);
+				if (animationIdRef.current !== null) {
+					cancelAnimationFrame(animationIdRef.current);
+					animationIdRef.current = null;
+				}
+				isAnimatingRef.current = false;
 
 				// Clean up Three.js objects
-				sceneRef.current.scene.traverse((object) => {
+				sceneRef.current.scene.traverse((object: THREE.Object3D) => {
 					if (object instanceof THREE.Points) {
 						object.geometry.dispose();
 						if (Array.isArray(object.material)) {
-							object.material.forEach((material) => material.dispose());
+							object.material.forEach((material: THREE.Material) => material.dispose());
 						} else {
-							object.material.dispose();
+							(object.material as THREE.Material).dispose();
 						}
 					}
 				});

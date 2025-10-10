@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Logo } from "@/components/ui/logo";
 import { signOut } from "@/lib/better-auth-client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -174,12 +175,7 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#C1025C] text-white shadow-sm">
-              <SearchCheck className="h-5 w-5" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Checkmate</span>
-          </Link>
+          <Logo />
           
           {/* Desktop Navigation */}
           <div className="hidden sm:flex items-center gap-6">

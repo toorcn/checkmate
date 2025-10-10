@@ -19,10 +19,11 @@ import { AnalysisData, MockResult } from "@/types/analysis";
 
 interface HeroSectionProps {
   initialUrl?: string;
+  variant?: "default" | "dashboard";
 }
 
 
-export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
+export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectionProps) {
   const [url, setUrl] = useState(initialUrl);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -578,8 +579,10 @@ This claim appears to have originated from legitimate news sources around early 
   };
 
 
+  const isDashboard = variant === "dashboard";
+
   return (
-    <section className="py-24 md:py-32 relative">
+    <section className={`${isDashboard ? "py-6 md:py-8" : "py-24 md:py-32"} relative`}>
       <LoadingOverlay
         isLoading={isLoading}
         isMockLoading={isMockLoading}
@@ -588,12 +591,25 @@ This claim appears to have originated from legitimate news sources around early 
       />
       
       <div className={`text-center transition-all duration-500 ${!isInputExpanded && (result?.success || mockResult?.success) ? 'mb-8' : ''}`}>
-        <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
-          {t.heroTitle}
-        </h1>
-        
-        {!isInputExpanded && (result?.success || mockResult?.success) ? (
-          // Collapsed state - show button to expand
+        {!isDashboard && (
+          <>
+            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
+              {t.heroTitle}
+            </h1>
+            {(!(!isInputExpanded && (result?.success || mockResult?.success))) && (
+              <>
+                <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
+                  AI-Powered Fact Checking
+                </Badge>
+                <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
+                  {t.heroSubtitle}
+                </p>
+              </>
+            )}
+          </>
+        )}
+
+        {(!isDashboard && !isInputExpanded && (result?.success || mockResult?.success)) ? (
           <div className="flex justify-center">
             <Button 
               onClick={() => setIsInputExpanded(true)}
@@ -607,15 +623,7 @@ This claim appears to have originated from legitimate news sources around early 
             </Button>
           </div>
         ) : (
-          // Expanded state - show full input form
           <>
-            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
-              AI-Powered Fact Checking
-            </Badge>
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
-              {t.heroSubtitle}
-            </p>
-            
             <UrlInputForm
               url={url}
               setUrl={setUrl}
@@ -623,6 +631,7 @@ This claim appears to have originated from legitimate news sources around early 
               isMockLoading={isMockLoading}
               onSubmit={handleSubmit}
               onMockAnalysis={handleMockAnalysis}
+              compact={isDashboard}
             />
           </>
         )}
