@@ -108,7 +108,7 @@ export function FeaturesGrid() {
           {/* Additional Info */}
           <div className="pt-8 text-center">
             <p className="text-sm text-muted-foreground">
-              All features powered by AWS Bedrock (Claude 3.5 Sonnet), OpenAI Whisper, and advanced NLP algorithms
+              All features powered by AWS 
             </p>
           </div>
         </div>

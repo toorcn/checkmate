@@ -21,7 +21,7 @@ export function LandingHero() {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-24 md:py-32">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
+        <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Top badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1.5 backdrop-blur-sm">
             <Sparkles className="h-4 w-4" />
@@ -29,7 +29,7 @@ export function LandingHero() {
           </div>
 
           {/* Headline */}
-          <h1 className={`text-4xl md:text-5xl font-semibold tracking-tight mb-2 ${departureMono.className}`}>
+          <h1 className={`max-w-3xl mx-auto text-4xl md:text-5xl font-semibold tracking-tight mb-2 ${departureMono.className}`}>
             Voice of Truth at the speed of thought
           </h1>
           {/* Subheadline */}
@@ -62,7 +62,7 @@ export function LandingHero() {
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">Welcome to Checkmate — your truth companion.</p>
                 <div className="inline-flex items-center gap-2 rounded-full border border-border/60 px-3 py-1 text-xs text-muted-foreground">
-                  Jane
+                  Mohtasham
                   <span className="relative inline-flex h-2 w-2 items-center justify-center">
                     <span className="absolute inline-flex h-2 w-2 rounded-full bg-primary opacity-80" />
                   </span>

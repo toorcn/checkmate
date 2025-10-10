@@ -6,8 +6,7 @@ export function LandingContent() {
   return (
     <div className="relative">
       <LandingHero />
-            <DashboardShowcase />
-
+      <DashboardShowcase />
       <FeaturesGrid />
       
       {/* Final CTA Section */}
