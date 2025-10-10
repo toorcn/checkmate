@@ -60,20 +60,27 @@ export function FactCheckDisplay({
   // Normalize various backend verdict strings to a canonical set used by UI
   const normalizeVerdict = (status: string | undefined | null): "verified" | "false" | "misleading" | "unverified" | "satire" | "partially_true" | "outdated" | "exaggerated" | "opinion" | "rumor" | "conspiracy" | "debunked" => {
     const value = (status || "").toString().trim().toLowerCase();
+    console.log("Normalizing verdict - input:", status, "-> lowercase:", value);
+    
     if (value === "true" || value === "verified") return "verified";
     if (value === "false") return "false";
     if (value === "misleading") return "misleading";
     if (value === "unverified" || value === "unverifiable") return "unverified";
     if (value === "satire") return "satire";
-    if (value === "partially_true") return "partially_true";
+    if (value === "partially_true" || value === "partially true") return "partially_true";
     if (value === "outdated") return "outdated";
     if (value === "exaggerated") return "exaggerated";
     if (value === "opinion") return "opinion";
     if (value === "rumor") return "rumor";
     if (value === "conspiracy") return "conspiracy";
     if (value === "debunked") return "debunked";
+    
+    console.log("No match found, defaulting to unverified");
     return "unverified";
   };
+  
+  const normalizedVerdict = normalizeVerdict(factCheck.verdict);
+  console.log("Final normalized verdict:", normalizedVerdict);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
