@@ -7,13 +7,20 @@
 import { useState, useEffect, RefObject } from 'react';
 import { useDiagramExpansion } from '@/lib/hooks/useDiagramExpansion';
 
-export function useScrollExpansion(containerRef: RefObject<HTMLDivElement | null>) {
+export function useScrollExpansion(containerRef: RefObject<HTMLDivElement | null>, previewMode: boolean = false) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { setIsExpanded: setGlobalExpanded } = useDiagramExpansion();
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
+    // In preview mode, never expand
+    if (previewMode) {
+      setIsExpanded(false);
+      setGlobalExpanded(false);
+      return;
+    }
 
     // Create intersection observer to detect when diagram enters viewport
     const observer = new IntersectionObserver(
@@ -36,7 +43,7 @@ export function useScrollExpansion(containerRef: RefObject<HTMLDivElement | null
       observer.disconnect();
       setGlobalExpanded(false);
     };
-  }, [containerRef, setGlobalExpanded]);
+  }, [containerRef, setGlobalExpanded, previewMode]);
 
   return { isExpanded };
 }

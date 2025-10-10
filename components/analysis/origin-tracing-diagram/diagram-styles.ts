@@ -24,8 +24,8 @@ export const diagramStyles = `
     height: 700px !important;
     margin-left: calc(-50vw + 50%) !important;
     margin-right: calc(-50vw + 50%) !important;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%) !important;
+    box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15) !important;
     border-radius: 0 !important;
     border-left: none !important;
     border-right: none !important;
@@ -52,9 +52,9 @@ export const diagramStyles = `
   
   /* Expanded Sidebar */
   .expanded-sidebar {
-    border-left: 1px solid #e2e8f0;
-    background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.06);
+    border-left: 1px solid hsl(var(--border));
+    background: linear-gradient(to bottom, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    box-shadow: -4px 0 16px hsl(var(--foreground) / 0.06);
   }
   
   /* Enhanced Node Styles */
@@ -63,11 +63,11 @@ export const diagramStyles = `
                 filter 0.2s ease-in-out,
                 z-index 0s;
     will-change: transform, filter;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+    filter: drop-shadow(0 2px 8px hsl(var(--foreground) / 0.08));
   }
   
   .react-flow__node:hover {
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.12));
+    filter: drop-shadow(0 4px 12px hsl(var(--foreground) / 0.12));
     cursor: pointer;
   }
   
@@ -76,15 +76,15 @@ export const diagramStyles = `
     z-index: 1000 !important;
     transform: scale(1.12);
     transform-origin: center center;
-    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.25));
+    filter: drop-shadow(0 8px 24px hsl(var(--primary) / 0.25));
   }
   
   .react-flow__node.node-highlighted > div {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 
-                0 0 0 6px rgba(59, 130, 246, 0.1),
-                0 12px 36px rgba(59, 130, 246, 0.2),
-                0 20px 48px rgba(0, 0, 0, 0.12) !important;
-    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15), 
+                0 0 0 6px hsl(var(--primary) / 0.1),
+                0 12px 36px hsl(var(--primary) / 0.2),
+                0 20px 48px hsl(var(--foreground) / 0.12) !important;
+    border-color: hsl(var(--primary)) !important;
     border-width: 2px !important;
     transition: box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
                 border-color 0.3s ease, 
@@ -102,7 +102,7 @@ export const diagramStyles = `
     left: -12px;
     right: -12px;
     bottom: -12px;
-    border: 2px solid #3b82f6;
+    border: 2px solid hsl(var(--primary));
     border-radius: 18px;
     animation: pulseRing 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     pointer-events: none;
@@ -133,13 +133,13 @@ export const diagramStyles = `
     stroke-linecap: round;
     stroke-linejoin: round;
     transition: stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 1px 2px hsl(var(--foreground) / 0.1));
   }
   
   .react-flow__edge:hover .react-flow__edge-path {
     stroke-width: 4px !important;
     opacity: 1 !important;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0 2px 4px hsl(var(--foreground) / 0.2));
   }
   
   .react-flow__edge.animated .react-flow__edge-path {
@@ -157,7 +157,7 @@ export const diagramStyles = `
   .react-flow__edge.edge-highlighted .react-flow__edge-path {
     stroke-width: 3.5px !important;
     opacity: 1 !important;
-    filter: drop-shadow(0 3px 8px rgba(59, 130, 246, 0.4));
+    filter: drop-shadow(0 3px 8px hsl(var(--primary) / 0.4));
     animation: edgeHighlightPulse 2s ease-in-out infinite;
   }
   
@@ -178,7 +178,7 @@ export const diagramStyles = `
   /* Dimmed edges when another node is hovered */
   .react-flow__edge.edge-dimmed .react-flow__edge-path {
     opacity: 0.15 !important;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+    filter: drop-shadow(0 1px 2px hsl(var(--foreground) / 0.05));
   }
   
   /* Connected node highlighting (dimmed non-connected nodes) */
@@ -196,7 +196,7 @@ export const diagramStyles = `
   
   /* Enhanced edge text background */
   .react-flow__edge-textbg {
-    fill: white;
+    fill: hsl(var(--background));
     fill-opacity: 0.95;
     rx: 4;
   }
@@ -204,8 +204,8 @@ export const diagramStyles = `
   .react-flow__edge-text {
     font-size: 11px;
     font-weight: 600;
-    fill: #475569;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    fill: hsl(var(--foreground));
+    text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
   }
   
   /* Marker (arrow) enhancement */
@@ -227,13 +227,13 @@ export const diagramStyles = `
     display: flex !important;
     flex-direction: column !important;
     gap: 6px !important;
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: hsl(var(--background) / 0.95) !important;
     backdrop-filter: blur(8px) !important;
     padding: 8px !important;
     border-radius: 12px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 
-                0 2px 8px rgba(0, 0, 0, 0.04) !important;
-    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 16px hsl(var(--foreground) / 0.08), 
+                0 2px 8px hsl(var(--foreground) / 0.04) !important;
+    border: 1px solid hsl(var(--border) / 0.8) !important;
   }
   
   .react-flow__controls button,
@@ -242,30 +242,30 @@ export const diagramStyles = `
     height: 36px !important;
     min-height: 36px !important;
     border-radius: 8px !important;
-    border: 1px solid #e2e8f0 !important;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%) !important;
+    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.06) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    color: #475569 !important;
+    color: hsl(var(--muted-foreground)) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
   
   .react-flow__controls button:hover,
   .react-flow__controls .react-flow__controls-button:hover {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
-    border-color: #cbd5e1 !important;
+    background: linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--accent)) 100%) !important;
+    border-color: hsl(var(--border)) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-    color: #1e293b !important;
+    box-shadow: 0 2px 8px hsl(var(--foreground) / 0.1) !important;
+    color: hsl(var(--foreground)) !important;
   }
   
   .react-flow__controls button:active,
   .react-flow__controls .react-flow__controls-button:active {
     transform: translateY(0) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 1px 3px hsl(var(--foreground) / 0.06) !important;
   }
   
   .react-flow__controls svg {
@@ -278,18 +278,18 @@ export const diagramStyles = `
     width: 10px;
     cursor: col-resize;
     background: linear-gradient(to right, 
-                rgba(226, 232, 240, 0.4) 0%, 
-                rgba(226, 232, 240, 0.8) 50%, 
-                rgba(226, 232, 240, 0.4) 100%);
+                hsl(var(--border) / 0.4) 0%, 
+                hsl(var(--border) / 0.8) 50%, 
+                hsl(var(--border) / 0.4) 100%);
     position: relative;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .split-view-resizer:hover {
     background: linear-gradient(to right, 
-                rgba(148, 163, 184, 0.5) 0%, 
-                rgba(148, 163, 184, 1) 50%, 
-                rgba(148, 163, 184, 0.5) 100%);
+                hsl(var(--muted-foreground) / 0.5) 0%, 
+                hsl(var(--muted-foreground) / 1) 50%, 
+                hsl(var(--muted-foreground) / 0.5) 100%);
     width: 12px;
   }
   
@@ -302,28 +302,28 @@ export const diagramStyles = `
     width: 3px;
     height: 48px;
     background: linear-gradient(to bottom,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.9) 50%,
-                rgba(255, 255, 255, 0) 100%);
+                hsl(var(--background) / 0) 0%,
+                hsl(var(--background) / 0.9) 50%,
+                hsl(var(--background) / 0) 100%);
     border-radius: 3px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 8px hsl(var(--foreground) / 0.1);
   }
   
   /* Handle Styles */
   .react-flow__handle {
     width: 10px !important;
     height: 10px !important;
-    background: #3b82f6 !important;
-    border: 2px solid white !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    background: hsl(var(--primary)) !important;
+    border: 2px solid hsl(var(--background)) !important;
+    box-shadow: 0 2px 6px hsl(var(--foreground) / 0.15) !important;
     transition: all 0.2s ease !important;
   }
   
   .react-flow__handle:hover {
     width: 12px !important;
     height: 12px !important;
-    background: #2563eb !important;
-    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.4) !important;
+    background: hsl(var(--primary)) !important;
+    box-shadow: 0 3px 10px hsl(var(--primary) / 0.4) !important;
   }
   
   /* Background Pattern Enhancement */
@@ -356,12 +356,12 @@ export const diagramStyles = `
   /* Hero card border glow animation */
   @keyframes heroBorderGlow {
     0%, 100% {
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3),
-                  0 0 40px rgba(59, 130, 246, 0.1);
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3),
+                  0 0 40px hsl(var(--primary) / 0.1);
     }
     50% {
-      box-shadow: 0 0 30px rgba(59, 130, 246, 0.5),
-                  0 0 60px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 30px hsl(var(--primary) / 0.5),
+                  0 0 60px hsl(var(--primary) / 0.2);
     }
   }
   
@@ -571,8 +571,8 @@ export const diagramStyles = `
   
   /* Card hover glow effect */
   .item-masonry-card button:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
-                0 0 20px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 8px 24px hsl(var(--foreground) / 0.12),
+                0 0 20px hsl(var(--primary) / 0.15);
   }
   
   /* Responsive adjustments for masonry */

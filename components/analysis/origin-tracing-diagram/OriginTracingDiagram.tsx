@@ -29,16 +29,18 @@ function OriginTracingDiagramInternal({
   verdict = 'unverified',
   content = '',
   allLinks = [],
+  previewMode = false,
 }: OriginTracingDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [sidebarWidth, setSidebarWidth] = useState(40); // percentage - minimum 40%
-  const [sidebarVisible, setSidebarVisible] = useState(true); // Track sidebar visibility
+  const [sidebarVisible, setSidebarVisible] = useState(!previewMode); // Hide sidebar in preview mode
   const [sidebarClosing, setSidebarClosing] = useState(false); // Track closing animation
   const [isPanning, setIsPanning] = useState(false); // Track panning state
+  const [isFullscreen, setIsFullscreen] = useState(false); // Track fullscreen state
   const { fitView, setCenter, getZoom } = useReactFlow();
   
-  // Scroll-triggered expansion management
-  const { isExpanded } = useScrollExpansion(containerRef);
+  // Scroll-triggered expansion management - disabled in preview mode
+  const { isExpanded } = useScrollExpansion(containerRef, previewMode);
   
   // Scroll diagram into view when user interacts with it
   const scrollDiagramIntoView = useCallback(() => {
@@ -111,6 +113,7 @@ function OriginTracingDiagramInternal({
     isAnimating,
     focusedNodeId,
     stopAnimation,
+    startAnimation,
     setIsAnimating,
     handleSectionClick: originalHandleSectionClick,
     handleItemClick: _handleItemClick, // Not used anymore with overlay
@@ -123,6 +126,7 @@ function OriginTracingDiagramInternal({
     nodes,
     navSections,
     setNodes,
+    previewMode,
   });
   
   // Wrap interaction handlers to include scroll-into-view
@@ -351,6 +355,53 @@ function OriginTracingDiagramInternal({
     }, 450); // Wait for slide-in animation (400ms) + small buffer
   }, [fitView]);
 
+  // Handle fullscreen toggle
+  const handleToggleFullscreen = useCallback(() => {
+    setIsFullscreen(!isFullscreen);
+    if (!isFullscreen) {
+      // Opening fullscreen - show sidebar and fit view
+      setSidebarVisible(true);
+      // Prevent body scroll when fullscreen is active
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        fitView({
+          padding: 0.15,
+          includeHiddenNodes: false,
+          minZoom: 0.2,
+          maxZoom: 1.2,
+          duration: 800,
+        });
+      }, 100);
+    } else {
+      // Closing fullscreen - restore body scroll
+      document.body.style.overflow = 'unset';
+    }
+  }, [isFullscreen, fitView]);
+
+  // Cleanup body scroll lock on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  // Handle Escape key to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isFullscreen) {
+        handleToggleFullscreen();
+      }
+    };
+
+    if (isFullscreen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen, handleToggleFullscreen]);
+
   // Early return if no data
   if (!originTracing?.hypothesizedOrigin && !beliefDrivers.length && !sources.length) {
     return null;
@@ -359,143 +410,293 @@ function OriginTracingDiagramInternal({
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: diagramStyles }} />
-      <div
-        ref={containerRef}
-        className={
-          isExpanded 
-            ? "react-flow-expanded-container"
-            : "h-[700px] sm:h-[600px] md:h-[700px] shadow-2xl mb-6 bg-white border-2 border-slate-200 rounded-2xl overflow-hidden"
-        }
-      >
-        <div className="h-full flex flex-col">
-          {/* Header Controls */}
-          <GraphControls
-            isExpanded={isExpanded}
-            isAnimating={isAnimating}
-            sidebarVisible={sidebarVisible}
-            onPauseAnimation={() => setIsAnimating(false)}
-            onStopAnimation={stopAnimation}
-            onFitView={handleFitView}
-            onCloseSidebar={handleCloseSidebar}
-          />
-          
-          {/* Split view container */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Graph panel */}
-            <div 
-              className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 graph-panel"
-              style={{ width: sidebarVisible ? `${100 - sidebarWidth}%` : '100%' }}
-            >
-              {/* Detail Overlay */}
-              {detailOverlayNode && detailOverlayItem && (
-                <DetailOverlay
-                  node={detailOverlayNode}
-                  item={detailOverlayItem}
-                  onClose={closeDetailOverlay}
+      {isFullscreen ? (
+        // True fullscreen overlay
+        <div className="fixed inset-0 z-50 bg-background">
+          <div
+            ref={containerRef}
+            className="h-full w-full overflow-hidden"
+          >
+            <div className="h-full flex flex-col">
+              {/* Header Controls */}
+              <GraphControls
+                isExpanded={isExpanded || isFullscreen}
+                isAnimating={isAnimating}
+                sidebarVisible={sidebarVisible}
+                previewMode={previewMode}
+                isFullscreen={isFullscreen}
+                onPauseAnimation={() => setIsAnimating(false)}
+                onStopAnimation={stopAnimation}
+                onStartAnimation={startAnimation}
+                onFitView={handleFitView}
+                onCloseSidebar={handleCloseSidebar}
+                onToggleFullscreen={handleToggleFullscreen}
+              />
+              
+              {/* Split view container */}
+              <div className="flex-1 flex overflow-hidden">
+                {/* Graph panel */}
+                <div 
+                  className="relative bg-gradient-to-br from-background via-muted/30 to-accent/20 graph-panel"
+                  style={{ width: sidebarVisible ? `${100 - sidebarWidth}%` : '100%' }}
+                >
+                  {/* Detail Overlay */}
+                  {detailOverlayNode && detailOverlayItem && (
+                    <DetailOverlay
+                      node={detailOverlayNode}
+                      item={detailOverlayItem}
+                      onClose={closeDetailOverlay}
+                    />
+                  )}
+                  
+                  <ReactFlow
+                    nodes={nodesWithHoverClasses}
+                    edges={edgesWithHoverClasses}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onPaneClick={handlePaneClick}
+                    onNodeClick={handleNodeClick}
+                    onNodeMouseEnter={onNodeMouseEnter}
+                    onNodeMouseLeave={onNodeMouseLeave}
+                    onMoveStart={handleMoveStart}
+                    onMoveEnd={handleMoveEnd}
+                    nodeTypes={nodeTypes}
+                    fitView
+                    fitViewOptions={{ 
+                      padding: 0.15,
+                      includeHiddenNodes: false,
+                      minZoom: 0.2,
+                      maxZoom: 1.2
+                    }}
+                    minZoom={0.2}
+                    maxZoom={1.2}
+                    attributionPosition="bottom-left"
+                    defaultViewport={{ x: 0, y: 0, zoom: 0.35 }}
+                    proOptions={{ hideAttribution: false }}
+                    style={{ width: '100%', height: '100%' }}
+                    className="react-flow-mobile-container"
+                    nodesDraggable={false}
+                    nodesConnectable={false}
+                    elementsSelectable={true}
+                    panOnDrag={true}
+                    zoomOnScroll={true}
+                    zoomOnPinch={true}
+                    zoomOnDoubleClick={false}
+                    preventScrolling={false}
+                    selectNodesOnDrag={false}
+                    multiSelectionKeyCode={null}
+                  >
+                    <Background 
+                      gap={20} 
+                      size={1.5} 
+                      color="hsl(var(--muted-foreground))" 
+                      style={{ opacity: 0.3 }}
+                    />
+                  </ReactFlow>
+                </div>
+                
+                {/* Resizer - only show when sidebar is visible and not closing */}
+                {sidebarVisible && !sidebarClosing && (
+                  <SplitViewResizer
+                    containerRef={containerRef}
+                    sidebarWidth={sidebarWidth}
+                    onSidebarWidthChange={setSidebarWidth}
+                  />
+                )}
+                
+                {/* Navigation sidebar */}
+                {sidebarVisible && (
+                  <div 
+                    className={sidebarClosing ? 'sidebar-slide-out' : 'sidebar-slide-in'}
+                    style={{ width: `${sidebarWidth}%` }}
+                  >
+                    <NavigationSidebar
+                      navSections={navSections}
+                      expandedSections={expandedSections}
+                      activeSection={activeSection}
+                      animatingNodes={animatingNodes}
+                      currentAnimationIndex={currentAnimationIndex}
+                      isAnimating={isAnimating}
+                      nodes={nodes}
+                      isExpanded={isExpanded}
+                      selectedNodeId={detailOverlayNodeId}
+                      onToggleSection={toggleSection}
+                      onSectionClick={handleSectionClick}
+                      onItemDetailClick={openDetailOverlay}
+                      onItemMouseEnter={onSidebarItemMouseEnter}
+                      onItemMouseLeave={onSidebarItemMouseLeave}
+                      onSectionMouseEnter={handleSectionMouseEnter}
+                      onSectionMouseLeave={handleSectionMouseLeave}
+                      onEvolutionTimelineMouseEnter={handleEvolutionTimelineMouseEnter}
+                      onEvolutionTimelineMouseLeave={handleEvolutionTimelineMouseLeave}
+                      onClose={handleCloseSidebar}
+                    />
+                  </div>
+                )}
+                
+                {/* Show open button when sidebar is closed */}
+                {!sidebarVisible && (
+                  <button
+                    onClick={handleOpenSidebar}
+                    className="absolute top-20 right-4 z-50 p-3 bg-background border-2 border-border rounded-lg shadow-lg hover:shadow-xl hover:border-primary transition-all reopen-button-slide-in"
+                    aria-label="Open navigation sidebar"
+                  >
+                    <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Normal/preview mode
+        <div
+          ref={containerRef}
+          className={
+            previewMode
+              ? "h-[400px] sm:h-[350px] md:h-[400px] shadow-lg mb-4 bg-card border border-border rounded-lg overflow-hidden"
+              : isExpanded
+                ? "react-flow-expanded-container"
+                : "h-[700px] sm:h-[600px] md:h-[700px] shadow-2xl mb-6 bg-card border-2 border-border rounded-2xl overflow-hidden"
+          }
+        >
+          <div className="h-full flex flex-col">
+            {/* Header Controls */}
+            <GraphControls
+              isExpanded={isExpanded}
+              isAnimating={isAnimating}
+              sidebarVisible={sidebarVisible}
+              previewMode={previewMode}
+              isFullscreen={isFullscreen}
+              onPauseAnimation={() => setIsAnimating(false)}
+              onStopAnimation={stopAnimation}
+              onStartAnimation={startAnimation}
+              onFitView={handleFitView}
+              onCloseSidebar={handleCloseSidebar}
+              onToggleFullscreen={handleToggleFullscreen}
+            />
+            
+            {/* Split view container */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Graph panel */}
+              <div 
+                className="relative bg-gradient-to-br from-background via-muted/30 to-accent/20 graph-panel"
+                style={{ width: sidebarVisible ? `${100 - sidebarWidth}%` : '100%' }}
+              >
+                {/* Detail Overlay */}
+                {detailOverlayNode && detailOverlayItem && (
+                  <DetailOverlay
+                    node={detailOverlayNode}
+                    item={detailOverlayItem}
+                    onClose={closeDetailOverlay}
+                  />
+                )}
+                
+                <ReactFlow
+                  nodes={nodesWithHoverClasses}
+                  edges={edgesWithHoverClasses}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={onConnect}
+                  onPaneClick={handlePaneClick}
+                  onNodeClick={handleNodeClick}
+                  onNodeMouseEnter={onNodeMouseEnter}
+                  onNodeMouseLeave={onNodeMouseLeave}
+                  onMoveStart={handleMoveStart}
+                  onMoveEnd={handleMoveEnd}
+                  nodeTypes={nodeTypes}
+                  fitView
+                  fitViewOptions={{ 
+                    padding: 0.15,
+                    includeHiddenNodes: false,
+                    minZoom: 0.2,
+                    maxZoom: 1.2
+                  }}
+                  minZoom={0.2}
+                  maxZoom={1.2}
+                  attributionPosition="bottom-left"
+                  defaultViewport={{ x: 0, y: 0, zoom: 0.35 }}
+                  proOptions={{ hideAttribution: false }}
+                  style={{ width: '100%', height: '100%' }}
+                  className="react-flow-mobile-container"
+                  nodesDraggable={false}
+                  nodesConnectable={false}
+                  elementsSelectable={true}
+                  panOnDrag={true}
+                  zoomOnScroll={true}
+                  zoomOnPinch={true}
+                  zoomOnDoubleClick={false}
+                  preventScrolling={false}
+                  selectNodesOnDrag={false}
+                  multiSelectionKeyCode={null}
+                >
+                  <Background 
+                    gap={20} 
+                    size={1.5} 
+                    color="hsl(var(--muted-foreground))" 
+                    style={{ opacity: 0.3 }}
+                  />
+                </ReactFlow>
+              </div>
+              
+              {/* Resizer - only show when sidebar is visible and not closing */}
+              {sidebarVisible && !sidebarClosing && (
+                <SplitViewResizer
+                  containerRef={containerRef}
+                  sidebarWidth={sidebarWidth}
+                  onSidebarWidthChange={setSidebarWidth}
                 />
               )}
               
-              <ReactFlow
-                nodes={nodesWithHoverClasses}
-                edges={edgesWithHoverClasses}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onPaneClick={handlePaneClick}
-                onNodeClick={handleNodeClick}
-                onNodeMouseEnter={onNodeMouseEnter}
-                onNodeMouseLeave={onNodeMouseLeave}
-                onMoveStart={handleMoveStart}
-                onMoveEnd={handleMoveEnd}
-                nodeTypes={nodeTypes}
-                fitView
-                fitViewOptions={{ 
-                  padding: 0.15,
-                  includeHiddenNodes: false,
-                  minZoom: 0.2,
-                  maxZoom: 1.2
-                }}
-                minZoom={0.2}
-                maxZoom={1.2}
-                attributionPosition="bottom-left"
-                defaultViewport={{ x: 0, y: 0, zoom: 0.35 }}
-                proOptions={{ hideAttribution: false }}
-                style={{ width: '100%', height: '100%' }}
-                className="react-flow-mobile-container"
-                nodesDraggable={false}
-                nodesConnectable={false}
-                elementsSelectable={true}
-                panOnDrag={true}
-                zoomOnScroll={true}
-                zoomOnPinch={true}
-                zoomOnDoubleClick={false}
-                preventScrolling={false}
-                selectNodesOnDrag={false}
-                multiSelectionKeyCode={null}
-              >
-                <Background 
-                  gap={20} 
-                  size={1.5} 
-                  color="#cbd5e1" 
-                  style={{ opacity: 0.3 }}
-                />
-              </ReactFlow>
+              {/* Navigation sidebar */}
+              {sidebarVisible && (
+                <div 
+                  className={sidebarClosing ? 'sidebar-slide-out' : 'sidebar-slide-in'}
+                  style={{ width: `${sidebarWidth}%` }}
+                >
+                  <NavigationSidebar
+                    navSections={navSections}
+                    expandedSections={expandedSections}
+                    activeSection={activeSection}
+                    animatingNodes={animatingNodes}
+                    currentAnimationIndex={currentAnimationIndex}
+                    isAnimating={isAnimating}
+                    nodes={nodes}
+                    isExpanded={isExpanded}
+                    selectedNodeId={detailOverlayNodeId}
+                    onToggleSection={toggleSection}
+                    onSectionClick={handleSectionClick}
+                    onItemDetailClick={openDetailOverlay}
+                    onItemMouseEnter={onSidebarItemMouseEnter}
+                    onItemMouseLeave={onSidebarItemMouseLeave}
+                    onSectionMouseEnter={handleSectionMouseEnter}
+                    onSectionMouseLeave={handleSectionMouseLeave}
+                    onEvolutionTimelineMouseEnter={handleEvolutionTimelineMouseEnter}
+                    onEvolutionTimelineMouseLeave={handleEvolutionTimelineMouseLeave}
+                    onClose={handleCloseSidebar}
+                  />
+                </div>
+              )}
+              
+              {/* Show open button when sidebar is closed */}
+              {!sidebarVisible && (
+                <button
+                  onClick={handleOpenSidebar}
+                  className="absolute top-20 right-4 z-50 p-3 bg-background border-2 border-border rounded-lg shadow-lg hover:shadow-xl hover:border-primary transition-all reopen-button-slide-in"
+                  aria-label="Open navigation sidebar"
+                >
+                  <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              )}
             </div>
-            
-            {/* Resizer - only show when sidebar is visible and not closing */}
-            {sidebarVisible && !sidebarClosing && (
-              <SplitViewResizer
-                containerRef={containerRef}
-                sidebarWidth={sidebarWidth}
-                onSidebarWidthChange={setSidebarWidth}
-              />
-            )}
-            
-            {/* Navigation sidebar */}
-            {sidebarVisible && (
-              <div 
-                className={sidebarClosing ? 'sidebar-slide-out' : 'sidebar-slide-in'}
-                style={{ width: `${sidebarWidth}%` }}
-              >
-                <NavigationSidebar
-                  navSections={navSections}
-                  expandedSections={expandedSections}
-                  activeSection={activeSection}
-                  animatingNodes={animatingNodes}
-                  currentAnimationIndex={currentAnimationIndex}
-                  isAnimating={isAnimating}
-                  nodes={nodes}
-                  isExpanded={isExpanded}
-                  selectedNodeId={detailOverlayNodeId}
-                  onToggleSection={toggleSection}
-                  onSectionClick={handleSectionClick}
-                  onItemDetailClick={openDetailOverlay}
-                  onItemMouseEnter={onSidebarItemMouseEnter}
-                  onItemMouseLeave={onSidebarItemMouseLeave}
-                  onSectionMouseEnter={handleSectionMouseEnter}
-                  onSectionMouseLeave={handleSectionMouseLeave}
-                  onEvolutionTimelineMouseEnter={handleEvolutionTimelineMouseEnter}
-                  onEvolutionTimelineMouseLeave={handleEvolutionTimelineMouseLeave}
-                  onClose={handleCloseSidebar}
-                />
-              </div>
-            )}
-            
-            {/* Show open button when sidebar is closed */}
-            {!sidebarVisible && (
-              <button
-                onClick={handleOpenSidebar}
-                className="absolute top-20 right-4 z-50 p-3 bg-white border-2 border-slate-300 rounded-lg shadow-lg hover:shadow-xl hover:border-blue-400 transition-all reopen-button-slide-in"
-                aria-label="Open navigation sidebar"
-              >
-                <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            )}
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

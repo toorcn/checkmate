@@ -43,12 +43,14 @@ interface FactCheckDisplayProps {
   factCheck: any;
   originTracingData?: any;
   currentData: any;
+  previewMode?: boolean;
 }
 
 export function FactCheckDisplay({
   factCheck,
   originTracingData,
   currentData,
+  previewMode = false,
 }: FactCheckDisplayProps) {
   const [openModal, setOpenModal] = useState<string | null>(null);
   const verdictDetailRef = useRef<HTMLDivElement>(null);
@@ -593,6 +595,7 @@ export function FactCheckDisplay({
                   title: source.title,
                 }))
               }
+              previewMode={previewMode}
             />
           </div>
         </div>

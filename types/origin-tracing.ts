@@ -38,6 +38,7 @@ export interface OriginTracingDiagramProps {
   verdict?: 'verified' | 'misleading' | 'false' | 'unverified' | 'satire';
   content?: string;
   allLinks?: Array<{ url: string; title?: string }>;
+  previewMode?: boolean;
 }
 
 export interface NodeData {

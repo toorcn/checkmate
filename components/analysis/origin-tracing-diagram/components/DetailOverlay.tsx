@@ -92,36 +92,36 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
       }}
     >
       <div
-        className={`relative bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border-2 ${colors?.border || 'border-slate-300'} overflow-hidden`}
+        className={`relative bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl border-2 ${colors?.border || 'border-border'} overflow-hidden`}
         style={{
           borderTopWidth: '4px',
           boxShadow: `0 -10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px ${colors?.border ? 'rgba(59, 130, 246, 0.1)' : 'rgba(203, 213, 225, 0.5)'}`,
         }}
       >
         {/* Compact Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50/50">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/50">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Color-coded circle */}
             <div
               className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                colors ? `${colors.gradient} bg-gradient-to-br` : 'bg-slate-100'
-              } border-2 ${colors?.border || 'border-slate-300'} shadow-sm`}
+                colors ? `${colors.gradient} bg-gradient-to-br` : 'bg-muted'
+              } border-2 ${colors?.border || 'border-border'} shadow-sm`}
             >
               <div className="opacity-80 scale-75">{item.icon}</div>
             </div>
 
             {/* Title & Credibility inline */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-slate-900 leading-tight truncate">
+              <h3 className="text-sm font-bold text-foreground leading-tight truncate">
                 {item.label}
               </h3>
               {credibility !== null && (
-                <Badge className={`${colors?.badge || 'bg-slate-200 text-slate-800'} font-bold text-xs flex-shrink-0`}>
+                <Badge className={`${colors?.badge || 'bg-muted text-foreground'} font-bold text-xs flex-shrink-0`}>
                   {credibility}%
                 </Badge>
               )}
               {node?.data.date ? (
-                <span className="text-xs text-slate-500 font-medium flex-shrink-0">
+                <span className="text-xs text-muted-foreground font-medium flex-shrink-0">
                   {String(node.data.date)}
                 </span>
               ) : null}
@@ -131,7 +131,7 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
           {/* Close button */}
           <button
             onClick={onClose}
-            className="flex-shrink-0 ml-2 p-1 rounded-lg hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-700"
+            className="flex-shrink-0 ml-2 p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             aria-label="Close details"
           >
             <X className="w-4 h-4" />
@@ -142,7 +142,7 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
         <div className="overflow-y-auto max-h-[180px] px-4 py-3 space-y-3">
           {/* Description - Most important, shown first */}
           <div>
-            <div className={`text-sm text-slate-700 leading-relaxed bg-gradient-to-br ${colors?.gradient || 'from-slate-50 to-slate-100'} p-3 rounded-lg`}>
+            <div className={`text-sm text-foreground leading-relaxed bg-gradient-to-br ${colors?.gradient || 'from-muted to-muted/50'} p-3 rounded-lg`}>
               {getDescription()}
             </div>
           </div>
@@ -152,13 +152,13 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
             {/* Metadata compact */}
             {metadata.length > 0 && (
               <div className="flex-1">
-                <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg">
+                <div className="grid grid-cols-2 gap-2 bg-muted p-3 rounded-lg">
                   {metadata.map((meta, idx) => (
                     <div key={idx} className="space-y-0.5">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         {meta.label}
                       </p>
-                      <p className="text-xs font-medium text-slate-800 truncate">
+                      <p className="text-xs font-medium text-foreground truncate">
                         {meta.value}
                       </p>
                     </div>
@@ -170,8 +170,8 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
             {/* Impact compact */}
             {node.data.impact && typeof node.data.impact === 'string' ? (
               <div className="flex-1">
-                <div className="text-xs text-slate-700 leading-relaxed bg-amber-50/80 p-3 rounded-lg h-full">
-                  <p className="font-bold text-slate-900 mb-1 text-xs">Impact</p>
+                <div className="text-xs text-foreground leading-relaxed bg-muted/80 p-3 rounded-lg h-full">
+                  <p className="font-bold text-foreground mb-1 text-xs">Impact</p>
                   {String(node.data.impact)}
                 </div>
               </div>
@@ -186,7 +186,7 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
                 href={node.data.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center justify-center gap-2 flex-1 text-xs ${colors?.text || 'text-blue-700'} hover:text-blue-900 font-semibold transition-all bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-lg border ${colors?.border || 'border-slate-200'} hover:shadow-md`}
+                className={`flex items-center justify-center gap-2 flex-1 text-xs ${colors?.text || 'text-primary'} hover:text-primary font-semibold transition-all bg-muted hover:bg-muted/80 px-3 py-2 rounded-lg border ${colors?.border || 'border-border'} hover:shadow-md`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -196,7 +196,7 @@ export const DetailOverlay = React.memo(({ node, item, onClose }: DetailOverlayP
 
             {/* References count button */}
             {node.data.references && Array.isArray(node.data.references) && node.data.references.length > 0 ? (
-              <div className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted rounded-lg border border-border">
                 <span>{node.data.references.length} {node.data.references.length === 1 ? 'Reference' : 'References'}</span>
               </div>
             ) : null}
