@@ -182,7 +182,7 @@ export function NavigationSidebar({
                       e.stopPropagation();
                       onToggleSection(section.id);
                     }}
-                    className="flex-shrink-0 p-3 hover:bg-slate-100 transition-colors rounded-l-xl spring-expand"
+                    className="flex-shrink-0 p-2 pl-2 hover:bg-slate-100 transition-colors rounded-l-xl spring-expand"
                     aria-label={expandedSections.has(section.id) ? "Collapse section" : "Expand section"}
                   >
                     {expandedSections.has(section.id) ? (
@@ -195,7 +195,7 @@ export function NavigationSidebar({
                     onClick={() => onSectionClick(section.id)}
                     onMouseEnter={() => onSectionMouseEnter?.(section.id)}
                     onMouseLeave={() => onSectionMouseLeave?.()}
-                    className={`flex-1 px-3 py-3 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
+                    className={`flex-1 pl-1 pr-3 py-3 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
                       activeSection === section.id ? 'bg-blue-50/70' : ''
                     }`}
                   >
@@ -217,96 +217,129 @@ export function NavigationSidebar({
                     {/* Render subsections if they exist */}
                     {section.subsections ? (
                       <div className="space-y-0">
-                        {section.subsections.map((subsection) => (
-                          <div key={subsection.id} className="border-b-2 border-slate-200 last:border-b-0">
-                            {/* Subsection header */}
-                            <div className="flex items-center bg-gradient-to-r from-slate-100/50 to-white/50">
-                              <div className="w-4 border-l-2 border-slate-300 ml-3" />
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onToggleSection(subsection.id);
-                                }}
-                                className="flex-shrink-0 p-2.5 hover:bg-slate-100 transition-colors"
-                                aria-label={expandedSections.has(subsection.id) ? "Collapse subsection" : "Expand subsection"}
-                              >
-                                {expandedSections.has(subsection.id) ? (
-                                  <ChevronDown className="h-3.5 w-3.5 text-slate-600" />
-                                ) : (
-                                  <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                        {section.subsections.map((subsection, subsectionIdx) => {
+                          // Auto-expand evolution timeline subsections
+                          const isSubsectionExpanded = isEvolutionTimeline || expandedSections.has(subsection.id);
+                          
+                          return (
+                            <div 
+                              key={subsection.id} 
+                              className={isEvolutionTimeline 
+                                ? "border-b border-slate-100 last:border-b-0" 
+                                : "border-b-2 border-slate-200 last:border-b-0"
+                              }
+                            >
+                              {/* Subsection header */}
+                              <div className={isEvolutionTimeline 
+                                ? "flex items-center bg-gradient-to-r from-slate-50/30 to-white/30" 
+                                : "flex items-center bg-gradient-to-r from-slate-100/50 to-white/50"
+                              }>
+                                <div className="w-4 border-l-2 border-slate-300 ml-2" />
+                                {/* Hide toggle button for evolution timeline */}
+                                {!isEvolutionTimeline && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onToggleSection(subsection.id);
+                                    }}
+                                    className="flex-shrink-0 p-2 hover:bg-slate-100 transition-colors"
+                                    aria-label={expandedSections.has(subsection.id) ? "Collapse subsection" : "Expand subsection"}
+                                  >
+                                    {expandedSections.has(subsection.id) ? (
+                                      <ChevronDown className="h-3.5 w-3.5 text-slate-600" />
+                                    ) : (
+                                      <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                                    )}
+                                  </button>
                                 )}
-                              </button>
-                              <button
-                                onClick={() => onSectionClick(subsection.id)}
-                                onMouseEnter={() => {
-                                  onSectionMouseEnter?.(subsection.id);
-                                  if (isEvolutionTimeline) {
-                                    onEvolutionTimelineMouseEnter?.();
-                                  }
-                                }}
-                                onMouseLeave={() => {
-                                  onSectionMouseLeave?.();
-                                  if (isEvolutionTimeline) {
-                                    onEvolutionTimelineMouseLeave?.();
-                                  }
-                                }}
-                                className={`flex-1 px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
-                                  activeSection === subsection.id ? 'bg-blue-50/70' : ''
-                                }`}
-                              >
-                                <span className={`text-xs font-bold ${subsection.color} truncate tracking-tight`}>
-                                  {subsection.title}
-                                </span>
-                                <Badge variant="outline" className="text-xs ml-auto flex-shrink-0 font-semibold bg-white border-slate-300">
-                                  {subsection.items.length}
-                                </Badge>
-                              </button>
-                            </div>
-                            
-                            {/* Subsection items */}
-                            {expandedSections.has(subsection.id) && (
-                              <div className="items-masonry-grid bg-slate-50/30">
-                                {subsection.items.map((item, itemIdx) => {
-                                  const isCurrentlyAnimating = 
-                                    isAnimating && 
-                                    activeSection === subsection.id && 
-                                    animatingNodes[currentAnimationIndex] === item.nodeId;
-                                  const itemNode = nodes.find(n => n.id === item.nodeId) || null;
-                                  const showConnection = itemIdx < subsection.items.length - 1 && subsection.id.includes('evolution');
-                                  
-                                  return (
-                                    <ItemCard
-                                      key={item.id}
-                                      item={item}
-                                      node={itemNode}
-                                      isAnimating={isCurrentlyAnimating}
-                                      isSelected={selectedNodeId === item.nodeId}
-                                      onItemClick={() => onItemDetailClick(item.nodeId, item)}
-                                      onMouseEnter={() => {
-                                        // For evolution timeline, only trigger sequential highlight, not individual hover
-                                        if (isEvolutionTimeline) {
-                                          onEvolutionTimelineMouseEnter?.();
-                                        } else {
-                                          onItemMouseEnter?.(item.nodeId);
-                                        }
-                                      }}
-                                      onMouseLeave={() => {
-                                        // For evolution timeline, only stop sequential highlight, not individual hover
-                                        if (isEvolutionTimeline) {
-                                          onEvolutionTimelineMouseLeave?.();
-                                        } else {
-                                          onItemMouseLeave?.();
-                                        }
-                                      }}
-                                      showConnection={showConnection}
-                                      index={itemIdx}
-                                    />
-                                  );
-                                })}
+                                <button
+                                  onClick={() => onSectionClick(subsection.id)}
+                                  onMouseEnter={() => {
+                                    onSectionMouseEnter?.(subsection.id);
+                                    if (isEvolutionTimeline) {
+                                      onEvolutionTimelineMouseEnter?.();
+                                    }
+                                  }}
+                                  onMouseLeave={() => {
+                                    onSectionMouseLeave?.();
+                                    if (isEvolutionTimeline) {
+                                      onEvolutionTimelineMouseLeave?.();
+                                    }
+                                  }}
+                                  className={`flex-1 ${isEvolutionTimeline ? 'pl-2' : 'pl-1'} pr-3 ${isEvolutionTimeline ? 'py-2' : 'py-2.5'} flex items-center justify-between text-left hover:bg-slate-50/50 transition-all ${
+                                    activeSection === subsection.id ? 'bg-blue-50/70' : ''
+                                  }`}
+                                >
+                                  <span className={`text-xs font-bold ${subsection.color} truncate tracking-tight`}>
+                                    {subsection.title}
+                                  </span>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ml-auto flex-shrink-0 font-semibold ${
+                                      isEvolutionTimeline 
+                                        ? 'bg-white/70 border-slate-200' 
+                                        : 'bg-white border-slate-300'
+                                    }`}
+                                  >
+                                    {subsection.items.length}
+                                  </Badge>
+                                </button>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              
+                              {/* Subsection items - always show for evolution timeline */}
+                              {isSubsectionExpanded && (
+                                <div className={isEvolutionTimeline 
+                                  ? "items-masonry-grid bg-slate-50/20" 
+                                  : "items-masonry-grid bg-slate-50/30"
+                                }>
+                                  {subsection.items.map((item, itemIdx) => {
+                                    const isCurrentlyAnimating = 
+                                      isAnimating && 
+                                      activeSection === subsection.id && 
+                                      animatingNodes[currentAnimationIndex] === item.nodeId;
+                                    const itemNode = nodes.find(n => n.id === item.nodeId) || null;
+                                    
+                                    // For evolution timeline, show connection between all items across subsections
+                                    const isLastItemInSubsection = itemIdx === subsection.items.length - 1;
+                                    const isLastSubsection = subsectionIdx === section.subsections!.length - 1;
+                                    const showConnection = isEvolutionTimeline 
+                                      ? !(isLastItemInSubsection && isLastSubsection) // Show connection except for very last item
+                                      : itemIdx < subsection.items.length - 1 && subsection.id.includes('evolution');
+                                    
+                                    return (
+                                      <ItemCard
+                                        key={item.id}
+                                        item={item}
+                                        node={itemNode}
+                                        isAnimating={isCurrentlyAnimating}
+                                        isSelected={selectedNodeId === item.nodeId}
+                                        onItemClick={() => onItemDetailClick(item.nodeId, item)}
+                                        onMouseEnter={() => {
+                                          // For evolution timeline, only trigger sequential highlight, not individual hover
+                                          if (isEvolutionTimeline) {
+                                            onEvolutionTimelineMouseEnter?.();
+                                          } else {
+                                            onItemMouseEnter?.(item.nodeId);
+                                          }
+                                        }}
+                                        onMouseLeave={() => {
+                                          // For evolution timeline, only stop sequential highlight, not individual hover
+                                          if (isEvolutionTimeline) {
+                                            onEvolutionTimelineMouseLeave?.();
+                                          } else {
+                                            onItemMouseLeave?.();
+                                          }
+                                        }}
+                                        showConnection={showConnection}
+                                        index={itemIdx}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       /* Render regular section items */
