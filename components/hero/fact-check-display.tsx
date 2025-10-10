@@ -5,6 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   CheckCircleIcon,
   AlertCircleIcon,
   ShieldCheckIcon,
@@ -506,34 +512,22 @@ export function FactCheckDisplay({
 
         {/* Belief Drivers Card */}
         {((factCheck.beliefDrivers && factCheck.beliefDrivers.length > 0) || 
-          (originTracingData?.beliefDrivers && originTracingData.beliefDrivers.length > 0)) && (
-          <AnalysisOverviewCard
-            title="Belief Drivers"
-            description="Psychological factors influencing belief in this content"
-            icon={<BrainIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
-            onClick={() => setOpenModal("beliefDrivers")}
-            variant="info"
-            metric={{
-              value: (originTracingData?.beliefDrivers || factCheck.beliefDrivers)?.length || 0,
-              label: "factors",
-            }}
-          />
-        )}
-
-        {/* Sources Card */}
-        {factCheck.sources && factCheck.sources.length > 0 && (
-          <AnalysisOverviewCard
-            title="Sources & Evidence"
-            description={`${factCheck.sources.length} credible sources analyzed for verification`}
-            icon={<FileTextIcon className="h-5 w-5 text-green-600 dark:text-green-400" />}
-            onClick={() => setOpenModal("sources")}
-            variant="success"
-            metric={{
-              value: factCheck.sources.length,
-              label: "sources",
-            }}
-          />
-        )}
+          (originTracingData?.beliefDrivers && originTracingData.beliefDrivers.length > 0)) && (() => {
+          const drivers = originTracingData?.beliefDrivers || factCheck.beliefDrivers;
+          const top3Drivers = drivers.slice(0, 3).map((driver: any) => driver.name);
+          const totalCount = drivers.length;
+          
+          return (
+            <AnalysisOverviewCard
+              title="Belief Drivers"
+              description={`Top psychological factors influencing belief${totalCount > 3 ? ` (${totalCount} total)` : ''}`}
+              icon={<BrainIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+              onClick={() => setOpenModal("beliefDrivers")}
+              variant="info"
+              listItems={top3Drivers}
+            />
+          );
+        })()}
       </div>
 
       {/* Political Bias Card - Only for Malaysia Political Content */}
@@ -618,6 +612,30 @@ export function FactCheckDisplay({
           </CardContent>
         </Card>
       </div>
+
+      {/* Sources Card - Full Display */}
+      {factCheck.sources && factCheck.sources.length > 0 && (
+        <div className="mt-6">
+          <Accordion type="single" collapsible defaultValue="sources" className="w-full">
+            <AccordionItem value="sources" className="border-2 rounded-lg px-6 !border-b-2">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+                  <h4 className="font-semibold text-lg">
+                    Sources & Evidence
+                  </h4>
+                  <Badge variant="secondary" className="ml-2">
+                    {factCheck.sources.length} {factCheck.sources.length === 1 ? 'source' : 'sources'}
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-6">
+                <SourcesDetailContent sources={factCheck.sources} />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
 
       {/* Detail Modals */}
       <AnalysisDetailModal

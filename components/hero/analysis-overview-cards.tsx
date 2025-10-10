@@ -13,6 +13,7 @@ interface OverviewCardProps {
     value: string | number;
     label: string;
   };
+  listItems?: string[];
 }
 
 export function AnalysisOverviewCard({
@@ -22,6 +23,7 @@ export function AnalysisOverviewCard({
   onClick,
   variant = "default",
   metric,
+  listItems,
 }: OverviewCardProps) {
   const variantStyles = {
     default: "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-900",
@@ -47,6 +49,19 @@ export function AnalysisOverviewCard({
               <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                 {description}
               </p>
+              {listItems && listItems.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {listItems.map((item, index) => (
+                    <li
+                      key={index}
+                      className="text-xs text-gray-700 dark:text-gray-300 flex items-start gap-1.5"
+                    >
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span className="line-clamp-1">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {metric && (
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-lg font-bold">{metric.value}</span>
