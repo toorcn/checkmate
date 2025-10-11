@@ -754,20 +754,49 @@ This claim appears to have originated from legitimate news sources around early 
             }
           : undefined,
         factCheck: dataSource.factCheck
-          ? {
-              verdict: (dataSource.factCheck as any).verdict,
-              confidence: (dataSource.factCheck as any).confidence,
-              explanation: (dataSource.factCheck as any).explanation,
-              content: (dataSource.factCheck as any).content,
-              originTracing: (dataSource.factCheck as any).originTracing,
-              beliefDrivers: (dataSource.factCheck as any).beliefDrivers,
-              sources: (dataSource.factCheck as any).sources?.map((source: any) => ({
-                title: source.title,
-                url: source.url,
-                source: source.title,
-                relevance: source.credibility || source.relevance || 0.5,
-              })),
-            }
+          ? (() => {
+              const fc: any = dataSource.factCheck as any;
+              const merged: any = {
+                verdict: fc.verdict,
+                confidence: fc.confidence,
+                explanation: fc.explanation,
+                content: fc.content,
+                originTracing: fc.originTracing,
+                beliefDrivers: fc.beliefDrivers,
+                sources: fc.sources?.map((source: any) => ({
+                  title: source.title,
+                  url: source.url,
+                  source: source.title,
+                  relevance: source.credibility ?? source.relevance ?? 0.5,
+                })),
+              };
+
+              // Persist political bias analysis when available
+              if (fc.politicalBias) {
+                merged.politicalBias = fc.politicalBias;
+              }
+
+              // Persist additional flags or verification status when present
+              if (fc.isVerified !== undefined) {
+                merged.isVerified = fc.isVerified;
+              }
+              if (fc.flags) {
+                merged.flags = fc.flags;
+              }
+
+              // Support legacy aggregated results
+              if (fc.results) {
+                merged.results = fc.results;
+              }
+
+              // Carry claim/allLinks either from factCheck or from originTracingData fallback
+              const claim = fc.claim ?? (dataSource as any)?.originTracingData?.claim;
+              const allLinks = fc.allLinks ?? (dataSource as any)?.originTracingData?.allLinks;
+              if (claim) merged.claim = claim;
+              if (allLinks) merged.allLinks = allLinks;
+
+              return merged;
+            })()
           : undefined,
         requiresFactCheck: dataSource.requiresFactCheck,
         creatorCredibilityRating:

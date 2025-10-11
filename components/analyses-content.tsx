@@ -5,7 +5,6 @@ import { useTikTokAnalysisById } from "@/lib/hooks/use-saved-analyses";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -33,6 +32,8 @@ import { CreatorCredibilityDisplay } from "@/components/creator-credibility-disp
 import { SentimentDisplay } from "@/components/analysis/sentiment-display";
 import { useLanguage } from "@/components/global-translation-provider";
 import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
+import { FactCheckDisplay } from "@/components/hero/fact-check-display";
+import { MetadataDisplay } from "@/components/hero/metadata-display";
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -185,8 +186,19 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
     );
   }
 
+  // Prepare originTracingData from factCheck for diagram display
+  const originTracingData = analysis.factCheck ? {
+    originTracing: (analysis.factCheck as any).originTracing,
+    beliefDrivers: (analysis.factCheck as any).beliefDrivers,
+    sources: (analysis.factCheck as any).sources,
+    verdict: (analysis.factCheck as any).verdict,
+    content: (analysis.factCheck as any).content,
+    claim: (analysis.factCheck as any).claim,
+    allLinks: (analysis.factCheck as any).allLinks,
+  } : undefined;
+
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
       <Button asChild variant="outline" size="sm">
         <Link href="/news">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -194,7 +206,15 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
         </Link>
       </Button>
 
-      <div className="space-y-6 text-left">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircleIcon className="h-5 w-5 text-primary" />
+            {t.analysisComplete}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6 text-left">
         {/* Video Metadata */}
         <div className="border-2 rounded-lg px-6 py-4 !border-b-2">
           <div className="space-y-4">
@@ -378,335 +398,18 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
           </div>
         )}
 
-        {/* Fact-Check Results */}
+        {/* Fact-Check Results - Use same component as Hero */}
         {analysis.factCheck && (
-          <div className="border-2 rounded-lg px-6 py-4 !border-b-2 space-y-4">
-            <h4 className="font-medium flex items-center gap-2 text-lg">
-              <ClipboardCheck className="h-5 w-5" />
-              {t.factCheckResults}
-            </h4>
-
-            {/* New format with verdict, explanation, etc. */}
-            {analysis.factCheck.verdict && (
-              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <h5 className="font-medium text-base mb-2">
-                          {t.overallVerificationStatus}
-                        </h5>
-                        {analysis.factCheck.content && (
-                          <div className="text-sm text-muted-foreground mb-2">
-                            <AnalysisRenderer
-                              content={analysis.factCheck.content}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {getStatusIcon(analysis.factCheck.verdict)}
-                        {getStatusBadge(analysis.factCheck.verdict)}
-                      </div>
-                    </div>
-
-                    {/* Origin Tracing Diagram (matches HeroSection) */}
-                    {(analysis.factCheck as any)?.originTracing
-                      ?.hypothesizedOrigin && (
-                      <div className="mt-4">
-                        <p className="font-medium mb-3 text-base">
-                          Origin Tracing & Belief Evolution:
-                        </p>
-                        <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                          <OriginTracingDiagram
-                            originTracing={
-                              (analysis.factCheck as any).originTracing
-                            }
-                            beliefDrivers={
-                              (analysis.factCheck as any).beliefDrivers
-                            }
-                            sources={(analysis.factCheck as any).sources?.map(
-                              (s: any) => ({
-                                url: s.url,
-                                title: s.title || s.source,
-                                source: s.source || s.title,
-                                credibility:
-                                  s.credibility !== undefined ? s.credibility : s.relevance !== undefined ? s.relevance : undefined,
-                              })
-                            )}
-                            verdict={(analysis.factCheck as any).verdict}
-                            content={(analysis.factCheck as any).content}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Expandable Detailed Analysis Section */}
-                    {analysis.factCheck.explanation && (
-                      <div className="bg-muted p-4 rounded-lg">
-                        <p className="font-medium mb-3 text-base">
-                          {t.analysis}:
-                        </p>
-                        <div>
-                          {(() => {
-                            const explanation = (analysis.factCheck as any)
-                              .explanation as string;
-                            const shouldTruncate = explanation.length > 500;
-                            const contentToShow =
-                              shouldTruncate && !isAnalysisExpanded
-                                ? explanation.substring(0, 500) + "..."
-                                : explanation;
-                            return <AnalysisRenderer content={contentToShow} />;
-                          })()}
-                        </div>
-                        {(() => {
-                          const explanation = (analysis.factCheck as any)
-                            .explanation as string;
-                          if (!explanation || explanation.length <= 500)
-                            return null;
-                          return (
-                            <button
-                              onClick={() =>
-                                setIsAnalysisExpanded(!isAnalysisExpanded)
-                              }
-                              className="mt-4 text-primary hover:text-primary/80 font-medium transition-colors text-sm flex items-center gap-1"
-                            >
-                              {isAnalysisExpanded ? (
-                                <>
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                  {t.showLess}
-                                </>
-                              ) : (
-                                <>
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                  {t.showMore}
-                                </>
-                              )}
-                            </button>
-                          );
-                        })()}
-                      </div>
-                    )}
-
-                    {analysis.factCheck.sources &&
-                      analysis.factCheck.sources.length > 0 && (
-                        <div>
-                          <p className="text-xs font-medium mb-2">
-                            {t.sources} ({analysis.factCheck.sources.length}{" "}
-                            {t.sourcesFound}):
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {analysis.factCheck.sources
-                              .slice(0, 5)
-                              .map((source: any, sourceIndex: number) => (
-                                <Button
-                                  key={sourceIndex}
-                                  size="sm"
-                                  variant="outline"
-                                  asChild
-                                >
-                                  <a
-                                    href={source.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs"
-                                  >
-                                    {source.source ||
-                                      new URL(source.url).hostname}
-                                    <ExternalLink className="h-3 w-3 ml-1" />
-                                  </a>
-                                </Button>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-
-                    {/* Origin Tracing Text (Fallback) */}
-                    {analysis.factCheck.originTracing?.hypothesizedOrigin && (
-                      <div className="bg-muted p-4 rounded-lg">
-                        <p className="font-medium mb-2 text-base">Origin:</p>
-                        <div className="text-sm text-muted-foreground">
-                          <AnalysisRenderer
-                            content={
-                              analysis.factCheck.originTracing
-                                .hypothesizedOrigin
-                            }
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Why People Believe This */}
-                    {analysis.factCheck.beliefDrivers &&
-                      analysis.factCheck.beliefDrivers.length > 0 && (
-                        <div className="bg-muted p-4 rounded-lg">
-                          <p className="font-medium mb-2 text-base">
-                            Why People Believe This:
-                          </p>
-                          <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                            {analysis.factCheck.beliefDrivers
-                              .slice(0, 5)
-                              .map(
-                                (
-                                  d: { name: string; description: string },
-                                  i: number
-                                ) => (
-                                  <li key={i}>
-                                    <span className="font-medium">
-                                      {d.name}:
-                                    </span>{" "}
-                                    {d.description}
-                                  </li>
-                                )
-                              )}
-                          </ul>
-                        </div>
-                      )}
-
-                    {/* Political Bias Meter - Only for Malaysia Political Content */}
-                    {analysis.factCheck.politicalBias?.isMalaysiaPolitical &&
-                      analysis.factCheck.politicalBias?.malaysiaBiasScore !== undefined && (
-                        <PoliticalBiasMeter
-                          biasScore={analysis.factCheck.politicalBias.malaysiaBiasScore}
-                          explanation={analysis.factCheck.politicalBias.explanation}
-                          keyQuote={analysis.factCheck.politicalBias.keyQuote}
-                          confidence={analysis.factCheck.politicalBias.confidence}
-                          biasIndicators={analysis.factCheck.politicalBias.biasIndicators}
-                          politicalTopics={analysis.factCheck.politicalBias.politicalTopics}
-                        />
-                      )}
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      {analysis.factCheck.confidence && (
-                        <span>
-                          {t.confidence}: {analysis.factCheck.confidence}%
-                        </span>
-                      )}
-                      {analysis.factCheck.isVerified !== undefined && (
-                        <span>
-                          {t.verified}:{" "}
-                          {analysis.factCheck.isVerified ? t.yes : t.no}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-              </div>
-            )}
-
-            {/* Legacy format with results array */}
-            {analysis.factCheck.results &&
-              analysis.factCheck.results.length > 0 &&
-              analysis.factCheck.results.map((result: any, index: number) => {
-                const isExpanded = expandedClaims[index] || false;
-                const analysisText = result.analysis || "";
-                const shouldTruncate = analysisText.length > 300;
-
-                return (
-                  <div
-                    key={index}
-                    className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors"
-                  >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-base mb-2">
-                              {t.claim}
-                            </h5>
-                            <div className="text-sm text-muted-foreground mb-2">
-                              <AnalysisRenderer content={result.claim} />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {getStatusIcon(result.status)}
-                            {getStatusBadge(result.status)}
-                          </div>
-                        </div>
-
-                        {analysisText && (
-                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                            <p className="font-medium mb-3 text-base">
-                              {t.analysis}:
-                            </p>
-                            <div>
-                              <AnalysisRenderer
-                                content={
-                                  shouldTruncate && !isExpanded
-                                    ? analysisText.substring(0, 300) + "..."
-                                    : analysisText
-                                }
-                              />
-                            </div>
-                            {shouldTruncate && (
-                              <button
-                                onClick={() =>
-                                  setExpandedClaims((prev) => ({
-                                    ...prev,
-                                    [index]: !isExpanded,
-                                  }))
-                                }
-                                className="mt-4 text-primary hover:text-primary/80 font-medium transition-colors text-sm flex items-center gap-1"
-                              >
-                                {isExpanded ? (
-                                  <>
-                                    <ChevronUpIcon className="h-4 w-4" />
-                                    {t.showLess}
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDownIcon className="h-4 w-4" />
-                                    {t.showMore}
-                                  </>
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        )}
-
-                        {result.sources && result.sources.length > 0 && (
-                          <div>
-                            <p className="text-xs font-medium mb-2">
-                              {t.sources} ({result.sources.length}{" "}
-                              {t.sourcesFound}):
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {result.sources
-                                .slice(0, 5)
-                                .map(
-                                  (sourceUrl: string, sourceIndex: number) => (
-                                    <Button
-                                      key={sourceIndex}
-                                      size="sm"
-                                      variant="outline"
-                                      asChild
-                                    >
-                                      <a
-                                        href={sourceUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs"
-                                      >
-                                        {new URL(sourceUrl).hostname}
-                                        <ExternalLink className="h-3 w-3 ml-1" />
-                                      </a>
-                                    </Button>
-                                  )
-                                )}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>
-                            {t.confidence}:{" "}
-                            {Math.round(result.confidence * 100)}%
-                          </span>
-                        </div>
-                      </div>
-                  </div>
-                );
-              })}
-          </div>
+          <FactCheckDisplay
+            factCheck={analysis.factCheck}
+            originTracingData={originTracingData}
+            currentData={analysis}
+            previewMode={false}
+          />
         )}
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
