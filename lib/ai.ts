@@ -10,7 +10,7 @@ if (process.env.APP_SECRET_ACCESS_KEY && !process.env.AWS_SECRET_ACCESS_KEY) {
   process.env.AWS_SECRET_ACCESS_KEY = process.env.APP_SECRET_ACCESS_KEY;
 }
 // Resolve model id without importing global config (avoids pulling in unrelated env validation)
-const DEFAULT_MODEL_FALLBACK = "anthropic.claude-3-haiku-20240307-v1:0";
+const DEFAULT_MODEL_FALLBACK = "amazon.nova-lite-v1:0";
 export const defaultTextModelId = process.env.BEDROCK_MODEL_ID || DEFAULT_MODEL_FALLBACK;
 
 // Factory for the text-generation model used across the app
