@@ -23,6 +23,7 @@ import {
   XCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  TrendingUpIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -195,43 +196,55 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
 
       <div className="space-y-6 text-left">
         {/* Video Metadata */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">
-              {analysis.metadata?.title || t.analysis}
-            </CardTitle>
-            <CardDescription className="flex items-center gap-4 pt-1">
-              <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4" />
-                {analysis.metadata?.creator || t.unknownCreator}
-              </span>
-              {analysis.metadata?.platform && (
-                <Badge variant="secondary" className="text-xs">
-                  {analysis.metadata.platform === "twitter"
-                    ? "Twitter/X"
-                    : "TikTok"}
-                </Badge>
-              )}
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                {formatDate(
-                  (analysis as any).createdAt || (analysis as any)._creationTime
-                )}
-              </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="border-2 rounded-lg px-6 py-4 !border-b-2">
+          <div className="space-y-4">
+            <h4 className="font-medium flex items-center gap-2 text-lg">
+              <User className="h-5 w-5" />
+              Video Information
+            </h4>
+            <div className="space-y-3">
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
+                <div className="space-y-2">
+                  <h5 className="font-medium text-base">
+                    {analysis.metadata?.title || t.analysis}
+                  </h5>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <User className="h-4 w-4" />
+                      {analysis.metadata?.creator || t.unknownCreator}
+                    </span>
+                    {analysis.metadata?.platform && (
+                      <Badge variant="secondary" className="text-xs">
+                        {analysis.metadata.platform === "twitter"
+                          ? "Twitter/X"
+                          : "TikTok"}
+                      </Badge>
+                    )}
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      {formatDate(
+                        (analysis as any).createdAt || (analysis as any)._creationTime
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4">
             {analysis.metadata?.description &&
               analysis.metadata.description !== analysis.metadata.title && (
-                <div className="mb-4 text-sm text-muted-foreground">
-                  <strong>{t.description}:</strong>{" "}
-                  {analysis.metadata.description}
+                <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors mb-4">
+                  <div className="text-sm text-muted-foreground">
+                    <strong>{t.description}:</strong>{" "}
+                    {analysis.metadata.description}
+                  </div>
                 </div>
               )}
 
             {/* Creator Credibility Rating */}
             {analysis.metadata?.creator && analysis.metadata?.platform && (
-              <div className="mb-4">
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors mb-4">
                 <CreatorCredibilityDisplay
                   creatorId={analysis.metadata.creator}
                   platform={analysis.metadata.platform}
@@ -278,19 +291,19 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Transcription */}
         {analysis.transcription &&
           analysis.transcription.text &&
           analysis.transcription.text.length > 0 && (
-            <div className="space-y-3">
+            <div className="border-2 rounded-lg px-6 py-4 !border-b-2 space-y-3">
               <h4 className="font-medium flex items-center gap-2 text-lg">
                 <ShieldCheckIcon className="h-5 w-5" />
                 {t.transcription}
               </h4>
-              <div className="p-4 bg-muted rounded-lg">
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
                 <div className="text-sm leading-relaxed">
                   <AnalysisRenderer content={analysis.transcription.text} />
                 </div>
@@ -305,40 +318,46 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
 
         {/* News Detection */}
         {analysis.newsDetection && (
-          <div className="space-y-3">
+          <div className="border-2 rounded-lg px-6 py-4 !border-b-2 space-y-3">
             <h4 className="font-medium flex items-center gap-2 text-lg">
               <AlertCircleIcon className="h-5 w-5" />
               {t.contentAnalysis}
             </h4>
-            <div className="p-4 bg-muted rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">{t.contentType}:</span>
-                <Badge
-                  variant={
-                    analysis.newsDetection.contentType === "news_factual"
-                      ? "destructive"
-                      : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {analysis.newsDetection.contentType.replace("_", " ")}
-                </Badge>
+            <div className="space-y-3">
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{t.contentType}:</span>
+                  <Badge
+                    variant={
+                      analysis.newsDetection.contentType === "news_factual"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                    className="capitalize"
+                  >
+                    {analysis.newsDetection.contentType.replace("_", " ")}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">{t.requiresFactCheck}:</span>
-                <Badge
-                  variant={
-                    analysis.requiresFactCheck ? "destructive" : "secondary"
-                  }
-                >
-                  {analysis.requiresFactCheck ? t.yes : t.no}
-                </Badge>
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{t.requiresFactCheck}:</span>
+                  <Badge
+                    variant={
+                      analysis.requiresFactCheck ? "destructive" : "secondary"
+                    }
+                  >
+                    {analysis.requiresFactCheck ? t.yes : t.no}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">{t.confidence}:</span>
-                <span className="text-sm font-medium">
-                  {Math.round(analysis.newsDetection.confidence * 100)}%
-                </span>
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{t.confidence}:</span>
+                  <span className="text-sm font-medium">
+                    {Math.round(analysis.newsDetection.confidence * 100)}%
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -346,16 +365,22 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
 
         {/* Sentiment Analysis */}
         {(analysis.factCheck as any)?.sentimentAnalysis && (
-          <div className="mt-6">
-            <SentimentDisplay
-              sentiment={(analysis.factCheck as any).sentimentAnalysis}
-            />
+          <div className="border-2 rounded-lg px-6 py-4 !border-b-2 space-y-3">
+            <h4 className="font-medium flex items-center gap-2 text-lg">
+              <TrendingUpIcon className="h-5 w-5" />
+              Sentiment Analysis
+            </h4>
+            <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
+              <SentimentDisplay
+                sentiment={(analysis.factCheck as any).sentimentAnalysis}
+              />
+            </div>
           </div>
         )}
 
         {/* Fact-Check Results */}
         {analysis.factCheck && (
-          <div className="space-y-4">
+          <div className="border-2 rounded-lg px-6 py-4 !border-b-2 space-y-4">
             <h4 className="font-medium flex items-center gap-2 text-lg">
               <ClipboardCheck className="h-5 w-5" />
               {t.factCheckResults}
@@ -363,21 +388,7 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
 
             {/* New format with verdict, explanation, etc. */}
             {analysis.factCheck.verdict && (
-              <Card
-                className={`border-l-4 ${
-                  analysis.factCheck.verdict === "true" ||
-                  analysis.factCheck.verdict === "verified"
-                    ? "border-l-green-500"
-                    : analysis.factCheck.verdict === "false"
-                    ? "border-l-red-500"
-                    : analysis.factCheck.verdict === "misleading"
-                    ? "border-l-yellow-500"
-                    : analysis.factCheck.verdict === "satire"
-                    ? "border-l-purple-500"
-                    : "border-l-gray-500"
-                }`}
-              >
-                <CardContent className="p-4">
+              <div className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
@@ -578,8 +589,7 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             )}
 
             {/* Legacy format with results array */}
@@ -591,19 +601,10 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                 const shouldTruncate = analysisText.length > 300;
 
                 return (
-                  <Card
+                  <div
                     key={index}
-                    className={`border-l-4 ${
-                      result.status === "true"
-                        ? "border-l-green-500"
-                        : result.status === "false"
-                        ? "border-l-red-500"
-                        : result.status === "misleading"
-                        ? "border-l-yellow-500"
-                        : "border-l-gray-500"
-                    }`}
+                    className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors"
                   >
-                    <CardContent className="p-4">
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
@@ -700,8 +701,7 @@ export function AnalysisPage({ analysisId }: { analysisId: string }) {
                           </span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                  </div>
                 );
               })}
           </div>

@@ -39,6 +39,7 @@ export function AnalysisDetailModal({
 interface VerdictDetailContentProps {
   verdict: string;
   confidence: number;
+  verdictDefinition?: string;
   description: string;
   explanation?: string;
   statusIcon: React.ReactNode;
@@ -46,8 +47,9 @@ interface VerdictDetailContentProps {
 }
 
 export function VerdictDetailContent({
-  verdict,
+  verdict: _verdict,
   confidence,
+  verdictDefinition,
   description,
   explanation,
   statusIcon,
@@ -70,6 +72,18 @@ export function VerdictDetailContent({
         </div>
         {statusBadge}
       </div>
+
+      {/* Verdict Definition */}
+      {verdictDefinition && (
+        <div className="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/20">
+          <h4 className="font-medium mb-2 flex items-center gap-2">
+            <span className="text-primary">What does this verdict mean?</span>
+          </h4>
+          <p className="text-sm text-foreground leading-relaxed">
+            {verdictDefinition}
+          </p>
+        </div>
+      )}
 
       {/* Description */}
       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
@@ -122,9 +136,9 @@ export function SourcesDetailContent({ sources }: SourcesDetailContentProps) {
                 {source.credibility !== undefined && (
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 max-w-[200px]">
-                      <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                          className="h-full bg-primary rounded-full transition-all duration-300"
                           style={{
                             width: `${Math.round(source.credibility * 100)}%`,
                           }}
@@ -173,17 +187,17 @@ export function BeliefDriversDetailContent({
         {beliefDrivers.map((driver: any, index: number) => (
           <div
             key={index}
-            className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+            className="bg-muted/30 rounded-lg p-4 border border-border"
           >
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <span className="text-sm font-semibold text-foreground">
                   {index + 1}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-sm mb-1">{driver.name}</h4>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-foreground">
                   {driver.description}
                 </p>
               </div>

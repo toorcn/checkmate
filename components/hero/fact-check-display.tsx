@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -25,11 +24,13 @@ import {
 import { OriginTracingDiagram } from "@/components/analysis/origin-tracing-diagram";
 import { SentimentDisplay } from "@/components/analysis/sentiment-display";
 import { PoliticalBiasMeter } from "@/components/ui/political-bias-meter";
-import { FactCheckResult, AnalysisData } from "@/types/analysis";
+import { FactCheckResult } from "@/types/analysis";
 import {
   VerdictOverviewCard,
   AnalysisOverviewCard,
   MetricsOverviewCard,
+  SentimentOverviewCard,
+  PoliticalBiasOverviewCard,
 } from "./analysis-overview-cards";
 import {
   AnalysisDetailModal,
@@ -38,6 +39,202 @@ import {
   BeliefDriversDetailContent,
 } from "./analysis-detail-modal";
 import { calculateSentimentVerdictCorrelation } from "@/lib/sentiment-verdict-correlation";
+
+interface VerdictGlossaryItem {
+  verdict: string;
+  label: string;
+  definition: string;
+  icon: React.ReactNode;
+  badge: React.ReactNode;
+}
+
+function VerdictGlossary() {
+  const verdictTypes: VerdictGlossaryItem[] = [
+    {
+      verdict: "verified",
+      label: "Verified",
+      definition: "Clear evidence from multiple credible sources supports the claims made in this content.",
+      icon: <CheckCircleIcon className="h-4 w-4 text-foreground" />,
+      badge: (
+        <Badge className="bg-primary/10 text-primary border border-primary/20">
+          <ShieldCheckIcon className="h-3 w-3 mr-1" />
+          Verified
+        </Badge>
+      ),
+    },
+    {
+      verdict: "false",
+      label: "False Information",
+      definition: "The claims are factually incorrect and contradicted by credible evidence from reliable sources.",
+      icon: <XCircleIcon className="h-4 w-4 text-destructive" />,
+      badge: (
+        <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
+          <XCircleIcon className="h-3 w-3 mr-1" />
+          False Information
+        </Badge>
+      ),
+    },
+    {
+      verdict: "misleading",
+      label: "Misleading Content",
+      definition: "The content lacks important context, presents selective information, or draws unsupported conclusions.",
+      icon: <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertTriangleIcon className="h-3 w-3 mr-1" />
+          Misleading Content
+        </Badge>
+      ),
+    },
+    {
+      verdict: "unverified",
+      label: "Insufficient Evidence",
+      definition: "Not enough credible evidence is available to verify or debunk the claims. Further investigation needed.",
+      icon: <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertCircleIcon className="h-3 w-3 mr-1" />
+          Insufficient Evidence
+        </Badge>
+      ),
+    },
+    {
+      verdict: "satire",
+      label: "Satirical Content",
+      definition: "This content is satirical, parody, or comedy in nature and should not be interpreted as factual.",
+      icon: <span className="text-muted-foreground text-sm">🎭</span>,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <SmileIcon className="h-3 w-3 mr-1" />
+          Satirical Content
+        </Badge>
+      ),
+    },
+    {
+      verdict: "partially_true",
+      label: "Partially True",
+      definition: "Contains both accurate and inaccurate elements. Some claims are supported while others are not.",
+      icon: <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertTriangleIcon className="h-3 w-3 mr-1" />
+          Partially True
+        </Badge>
+      ),
+    },
+    {
+      verdict: "outdated",
+      label: "Outdated Information",
+      definition: "This information was accurate at one time but has been superseded by newer evidence or developments.",
+      icon: <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertCircleIcon className="h-3 w-3 mr-1" />
+          Outdated Information
+        </Badge>
+      ),
+    },
+    {
+      verdict: "exaggerated",
+      label: "Exaggerated Claims",
+      definition: "Based on some truth, but overstates or sensationalizes the facts beyond what evidence supports.",
+      icon: <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertTriangleIcon className="h-3 w-3 mr-1" />
+          Exaggerated Claims
+        </Badge>
+      ),
+    },
+    {
+      verdict: "opinion",
+      label: "Opinion",
+      definition: "Expresses subjective views or personal beliefs rather than factual claims that can be verified.",
+      icon: <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertCircleIcon className="h-3 w-3 mr-1" />
+          Opinion
+        </Badge>
+      ),
+    },
+    {
+      verdict: "rumor",
+      label: "Rumor",
+      definition: "Unverified information circulating without credible sources or confirmation.",
+      icon: <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />,
+      badge: (
+        <Badge className="bg-muted text-muted-foreground border border-border">
+          <AlertCircleIcon className="h-3 w-3 mr-1" />
+          Rumor
+        </Badge>
+      ),
+    },
+    {
+      verdict: "conspiracy",
+      label: "Conspiracy Theory",
+      definition: "Claims about secret plots or hidden agendas without credible evidence to support them.",
+      icon: <XCircleIcon className="h-4 w-4 text-destructive" />,
+      badge: (
+        <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
+          <XCircleIcon className="h-3 w-3 mr-1" />
+          Conspiracy Theory
+        </Badge>
+      ),
+    },
+    {
+      verdict: "debunked",
+      label: "Debunked",
+      definition: "This claim has been thoroughly disproven by multiple credible sources and scientific evidence.",
+      icon: <XCircleIcon className="h-4 w-4 text-destructive" />,
+      badge: (
+        <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
+          <XCircleIcon className="h-3 w-3 mr-1" />
+          Debunked
+        </Badge>
+      ),
+    },
+  ];
+
+  return (
+    <Accordion type="single" collapsible className="w-full mb-6">
+      <AccordionItem value="glossary" className="border-2 rounded-lg px-6 !border-b-2">
+        <AccordionTrigger className="hover:no-underline">
+          <div className="flex items-center gap-2">
+            <FileTextIcon className="h-5 w-5 text-muted-foreground" />
+            <h4 className="font-medium text-base">Understanding Verdict Types</h4>
+            <Badge variant="outline" className="ml-2">
+              {verdictTypes.length} types
+            </Badge>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-6 pt-2">
+          <p className="text-sm text-muted-foreground mb-4">
+            Our analysis uses these verdict types to classify content accuracy. Each verdict is assigned based on evidence quality and source credibility.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {verdictTypes.map((item) => (
+              <div
+                key={item.verdict}
+                className="bg-muted/30 rounded-lg p-3 border border-border hover:border-primary/20 transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">{item.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-1">{item.badge}</div>
+                    <p className="text-xs text-foreground leading-relaxed">
+                      {item.definition}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
 
 interface FactCheckDisplayProps {
   factCheck: any;
@@ -87,32 +284,32 @@ export function FactCheckDisplay({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "verified":
-        return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
+        return <CheckCircleIcon className="h-4 w-4 text-foreground" />;
       case "false":
-        return <XCircleIcon className="h-4 w-4 text-red-600" />;
+        return <XCircleIcon className="h-4 w-4 text-destructive" />;
       case "misleading":
-        return <AlertTriangleIcon className="h-4 w-4 text-orange-500" />;
+        return <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />;
       case "unverified":
       case "unverifiable":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-500" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "satire":
-        return <span className="text-purple-500 text-sm">🎭</span>;
+        return <span className="text-muted-foreground text-sm">🎭</span>;
       case "partially_true":
-        return <AlertTriangleIcon className="h-4 w-4 text-yellow-600" />;
+        return <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />;
       case "outdated":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-600" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "exaggerated":
-        return <AlertTriangleIcon className="h-4 w-4 text-orange-600" />;
+        return <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />;
       case "opinion":
-        return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "rumor":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-400" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "conspiracy":
-        return <XCircleIcon className="h-4 w-4 text-red-500" />;
+        return <XCircleIcon className="h-4 w-4 text-destructive" />;
       case "debunked":
-        return <XCircleIcon className="h-4 w-4 text-red-700" />;
+        return <XCircleIcon className="h-4 w-4 text-destructive" />;
       default:
-        return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -120,21 +317,21 @@ export function FactCheckDisplay({
     switch (status) {
       case "verified":
         return (
-          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700">
+          <Badge className="bg-primary/10 text-primary border border-primary/20">
             <ShieldCheckIcon className="h-3 w-3 mr-1" />
             Verified
           </Badge>
         );
       case "false":
         return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+          <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
             <XCircleIcon className="h-3 w-3 mr-1" />
             False Information
           </Badge>
         );
       case "misleading":
         return (
-          <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Misleading Content
           </Badge>
@@ -142,70 +339,70 @@ export function FactCheckDisplay({
       case "unverified":
       case "unverifiable":
         return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Insufficient Evidence
           </Badge>
         );
       case "satire":
         return (
-          <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <SmileIcon className="h-3 w-3 mr-1" />
             Satirical Content
           </Badge>
         );
       case "partially_true":
         return (
-          <Badge className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Partially True
           </Badge>
         );
       case "outdated":
         return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Outdated Information
           </Badge>
         );
       case "exaggerated":
         return (
-          <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Exaggerated Claims
           </Badge>
         );
       case "opinion":
         return (
-          <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Opinion
           </Badge>
         );
       case "rumor":
         return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Rumor
           </Badge>
         );
       case "conspiracy":
         return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+          <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
             <XCircleIcon className="h-3 w-3 mr-1" />
             Conspiracy Theory
           </Badge>
         );
       case "debunked":
         return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+          <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
             <XCircleIcon className="h-3 w-3 mr-1" />
             Debunked
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <SearchIcon className="h-3 w-3 mr-1" />
             Under Review
           </Badge>
@@ -213,147 +410,167 @@ export function FactCheckDisplay({
     }
   };
 
-  const getAnalysisSummary = (factCheck: FactCheckResult) => {
-    // Extract a meaningful summary from the analysis content
+  const getVerificationReasoning = (factCheck: FactCheckResult) => {
+    // Extract the reasoning for why the AI assigned this verdict
     if (factCheck.explanation) {
-      // Get first meaningful paragraph from explanation
-      const paragraphs = factCheck.explanation
-        .split("\n")
-        .filter((p) => p.trim().length > 50);
-      if (paragraphs.length > 0) {
-        // Get the first substantial paragraph and limit its length
-        const firstParagraph = paragraphs[0].trim();
-        // Break into sentences and take first few if it's too long
-        if (firstParagraph.length > 300) {
-          const sentences = firstParagraph.split(/[.!?]+/).filter(s => s.trim().length > 0);
-          if (sentences.length > 1) {
-            // Take first 2-3 sentences for better readability
-            const summary = sentences.slice(0, Math.min(3, sentences.length)).join('. ');
-            return summary + (sentences.length > 3 ? '.' : '');
-          }
+      const explanation = factCheck.explanation.trim();
+      
+      // Look for reasoning patterns in the explanation
+      const reasoningPatterns = [
+        /(?:because|since|as|reasoning:|rationale:|this is (?:because|due to|since))[\s:]*([^.]+\.(?:\s+[^.]+\.)?)/i,
+        /(?:the (?:evidence|sources|research) (?:shows?|indicates?|suggests?|confirms?))[\s:]*([^.]+\.(?:\s+[^.]+\.)?)/i,
+        /(?:based on|according to)[\s:]*([^.]+\.(?:\s+[^.]+\.)?)/i,
+      ];
+
+      for (const pattern of reasoningPatterns) {
+        const match = explanation.match(pattern);
+        if (match && match[1]) {
+          const reasoning = match[1].trim();
+          return reasoning.length > 180 ? reasoning.substring(0, 180) + '...' : reasoning;
         }
-        return firstParagraph;
       }
+
+      // If no specific reasoning pattern found, extract key sentences that explain the verdict
+      const sentences = explanation.split(/[.!?]+/).filter(s => s.trim().length > 20);
+      
+      // Look for sentences with key verdict-related words
+      const keyWords = ['evidence', 'sources', 'credible', 'confirmed', 'contradicted', 'supports', 'indicates', 'shows', 'research', 'verified', 'false', 'misleading'];
+      const relevantSentences = sentences.filter(s => 
+        keyWords.some(word => s.toLowerCase().includes(word))
+      ).slice(0, 2);
+
+      if (relevantSentences.length > 0) {
+        const reasoning = relevantSentences.join('. ').trim() + '.';
+        return reasoning.length > 180 ? reasoning.substring(0, 180) + '...' : reasoning;
+      }
+
+      // Fallback: use first 1-2 sentences
+      const fallback = sentences.slice(0, 2).join('. ').trim();
+      return fallback.length > 180 ? fallback.substring(0, 180) + '...' : (fallback + (fallback.endsWith('.') ? '' : '.'));
     }
 
-    // Fallback to content if explanation is not available
-    if (factCheck.content) {
-      const cleanContent = factCheck.content.trim();
-      return cleanContent.length > 200
-        ? cleanContent.substring(0, 200) + "..."
-        : cleanContent;
-    }
-
-    // Final fallback
-    return "Analysis summary is being generated based on credible sources and fact-checking methodology.";
+    return "Analysis based on available sources and evidence.";
   };
 
   const getVerdictDescription = (
     status: string,
     factCheck?: FactCheckResult
   ) => {
-    // If we have factCheck data, use the actual analysis summary for description
-    const analysisDescription = factCheck
-      ? getAnalysisSummary(factCheck)
-      : null;
+    // Extract reasoning from the analysis to explain why this verdict was chosen
+    const reasoning = factCheck ? getVerificationReasoning(factCheck) : null;
 
     switch (status) {
       case "verified":
         return {
           title: "Content Verified",
+          verdictDefinition: "Clear evidence from multiple credible sources supports the claims made in this content.",
           description:
-            analysisDescription ||
+            reasoning ||
             "Clear evidence supports the claims made in this content. Multiple credible sources confirm the accuracy of the information presented.",
         };
       case "true":
         return {
           title: "Factually Accurate",
+          verdictDefinition: "Clear evidence from multiple credible sources supports the claims made in this content.",
           description:
-            analysisDescription ||
+            reasoning ||
             "The information presented is factually correct based on available evidence from reliable sources.",
         };
       case "false":
         return {
           title: "False Information",
+          verdictDefinition: "The claims are factually incorrect and contradicted by credible evidence from reliable sources.",
           description:
-            analysisDescription ||
+            reasoning ||
             "The claims made in this content are factually incorrect and contradicted by credible evidence from reliable sources.",
         };
       case "misleading":
         return {
           title: "Misleading Content",
+          verdictDefinition: "The content lacks important context, presents selective information, or draws unsupported conclusions.",
           description:
-            analysisDescription ||
+            reasoning ||
             "While some elements may be factually correct, the content lacks important context, presents selective information, or draws unsupported conclusions that could mislead viewers.",
         };
       case "unverifiable":
+      case "unverified":
         return {
           title: "Insufficient Evidence",
+          verdictDefinition: "Not enough credible evidence is available to verify or debunk the claims. Further investigation needed.",
           description:
-            analysisDescription ||
+            reasoning ||
             "There is not enough credible evidence available to verify or debunk the claims made in this content. Further investigation may be needed.",
         };
       case "satire":
         return {
           title: "Satirical Content",
+          verdictDefinition: "This content is satirical, parody, or comedy in nature and should not be interpreted as factual.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This content appears to be satirical, parody, or comedy in nature. It should not be interpreted as factual information.",
         };
       case "partially_true":
         return {
           title: "Partially True",
+          verdictDefinition: "Contains both accurate and inaccurate elements. Some claims are supported while others are not.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This content contains both accurate and inaccurate elements. Some claims are supported by evidence while others are not.",
         };
       case "outdated":
         return {
           title: "Outdated Information",
+          verdictDefinition: "This information was accurate at one time but has been superseded by newer evidence or developments.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This information was accurate at one time but has been superseded by newer evidence or developments.",
         };
       case "exaggerated":
         return {
           title: "Exaggerated Claims",
+          verdictDefinition: "Based on some truth, but overstates or sensationalizes the facts beyond what evidence supports.",
           description:
-            analysisDescription ||
+            reasoning ||
             "While based on some truth, this content overstates or sensationalizes the facts beyond what evidence supports.",
         };
       case "opinion":
         return {
           title: "Opinion",
+          verdictDefinition: "Expresses subjective views or personal beliefs rather than factual claims that can be verified.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This content expresses subjective views or personal beliefs rather than factual claims that can be verified.",
         };
       case "rumor":
         return {
           title: "Rumor",
+          verdictDefinition: "Unverified information circulating without credible sources or confirmation.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This appears to be unverified information circulating without credible sources or confirmation.",
         };
       case "conspiracy":
         return {
           title: "Conspiracy Theory",
+          verdictDefinition: "Claims about secret plots or hidden agendas without credible evidence to support them.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This content involves claims about secret plots or hidden agendas without credible evidence to support them.",
         };
       case "debunked":
         return {
           title: "Debunked",
+          verdictDefinition: "This claim has been thoroughly disproven by multiple credible sources and scientific evidence.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This claim has been thoroughly disproven by multiple credible sources and scientific evidence.",
         };
       default:
         return {
           title: "Overall Verification Status",
+          verdictDefinition: "This content is under analysis to determine its accuracy.",
           description:
-            analysisDescription ||
+            reasoning ||
             "This content is currently being analyzed. The verification process is ongoing and results will be updated when available.",
         };
     }
@@ -366,6 +583,9 @@ export function FactCheckDisplay({
         Fact-Check Analysis
       </h4>
 
+      {/* Verdict Types Glossary */}
+      <VerdictGlossary />
+
       {/* Overview Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Verdict Overview Card */}
@@ -373,7 +593,8 @@ export function FactCheckDisplay({
           <VerdictOverviewCard
             verdict={normalizeVerdict(factCheck.verdict)}
             confidence={factCheck.confidence}
-            description={getVerdictDescription(factCheck.verdict, factCheck).description}
+            verdictDefinition={getVerdictDescription(factCheck.verdict, factCheck).verdictDefinition}
+            reasoning={getVerdictDescription(factCheck.verdict, factCheck).description}
             icon={getStatusIcon(normalizeVerdict(factCheck.verdict))}
             badge={getStatusBadge(normalizeVerdict(factCheck.verdict))}
             onClick={scrollToVerdictDetail}
@@ -393,7 +614,6 @@ export function FactCheckDisplay({
           const emotionalIntensity = factCheck.sentimentAnalysis.emotionalIntensity || 0;
           const scores = factCheck.sentimentAnalysis.scores || {};
           const flags = factCheck.sentimentAnalysis.flags || [];
-          const keyPhrases = factCheck.sentimentAnalysis.keyPhrases || [];
           const manipulationTactics = factCheck.sentimentAnalysis.manipulationTactics || [];
           const credibilityImpact = factCheck.sentimentAnalysis.credibilityImpact;
           const targetEmotions = factCheck.sentimentAnalysis.targetEmotions || [];
@@ -430,17 +650,17 @@ export function FactCheckDisplay({
           };
           const getSentimentIconColor = () => {
             if (emotionalIntensity > 0.7 || manipulationTactics.length > 0) {
-              return "text-red-600 dark:text-red-400";
+              return "text-destructive";
             }
             switch (sentiment) {
               case "POSITIVE":
-                return scores.positive > 0.85 ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400";
+                return scores.positive > 0.85 ? "text-muted-foreground" : "text-primary";
               case "NEGATIVE":
-                return "text-red-600 dark:text-red-400";
+                return "text-destructive";
               case "MIXED":
-                return "text-yellow-600 dark:text-yellow-400";
+                return "text-muted-foreground";
               default:
-                return "text-blue-600 dark:text-blue-400";
+                return "text-muted-foreground";
             }
           };
           
@@ -505,16 +725,15 @@ export function FactCheckDisplay({
           };
           
           return (
-            <AnalysisOverviewCard
+            <SentimentOverviewCard
               title="Sentiment-Verdict Consistency"
               description={getDescription()}
               icon={<BarChart3Icon className={`h-5 w-5 ${getSentimentIconColor()}`} />}
               onClick={() => setOpenModal("sentiment")}
               variant={getSentimentVariant()}
-              metric={patternMatch ? {
-                value: patternMatch.confidence,
-                label: "% match"
-              } : undefined}
+              patternMatchConfidence={patternMatch?.confidence}
+              sentimentScores={scores}
+              overall={sentiment}
             />
           );
         })()}
@@ -530,33 +749,70 @@ export function FactCheckDisplay({
             <AnalysisOverviewCard
               title="Belief Drivers"
               description={`Top psychological factors influencing belief${totalCount > 3 ? ` (${totalCount} total)` : ''}`}
-              icon={<BrainIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+              icon={<BrainIcon className="h-5 w-5 text-muted-foreground" />}
               onClick={() => setOpenModal("beliefDrivers")}
               variant="info"
               listItems={top3Drivers}
             />
           );
         })()}
-      </div>
 
-      {/* Political Bias Card - Only for Malaysia Political Content */}
-      {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
-        (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (
-          <AnalysisOverviewCard
-            title="Political Bias Analysis"
-            description="Analysis of political leaning in Malaysian context"
-            icon={<BarChart3Icon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
-            onClick={() => setOpenModal("politicalBias")}
-            variant="info"
-          />
-        )}
+        {/* Political Bias Card - For All News */}
+        {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
+          (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (() => {
+            const biasScore = (currentData.factCheck as any).politicalBias.malaysiaBiasScore;
+            const confidence = (currentData.factCheck as any).politicalBias.confidence;
+            
+            // Get bias category (same logic as PoliticalBiasMeter)
+            const getBiasCategory = (score: number): {
+              label: string;
+              position: "left" | "center" | "right";
+              color: string;
+            } => {
+              if (score <= 30) {
+                return {
+                  label: "Likely leaning toward Opposition",
+                  position: "left",
+                  color: "text-blue-600 dark:text-blue-400",
+                };
+              } else if (score >= 70) {
+                return {
+                  label: "Likely leaning toward Pro-Government",
+                  position: "right",
+                  color: "text-green-600 dark:text-green-400",
+                };
+              } else {
+                return {
+                  label: "Appears Neutral / Mixed",
+                  position: "center",
+                  color: "text-gray-600 dark:text-gray-400",
+                };
+              }
+            };
+            
+            const biasCategory = getBiasCategory(biasScore);
+            
+            return (
+              <PoliticalBiasOverviewCard
+                title="Political Bias Analysis"
+                description="Analysis of political leaning in all news"
+                icon={<BarChart3Icon className="h-5 w-5 text-muted-foreground" />}
+                onClick={() => setOpenModal("politicalBias")}
+                variant="info"
+                biasScore={biasScore}
+                confidence={confidence}
+                biasCategory={biasCategory}
+              />
+            );
+          })()}
+      </div>
 
       {/* Origin Tracing Section - Full Display */}
       {(factCheck.originTracing?.hypothesizedOrigin ||
         originTracingData?.originTracing?.hypothesizedOrigin) && (
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+            <div className="w-1 h-6 bg-primary rounded-full"></div>
             <h4 className="font-semibold text-lg">
               Origin Tracing & Belief Evolution
             </h4>
@@ -614,6 +870,7 @@ export function FactCheckDisplay({
             <VerdictDetailContent
               verdict={normalizeVerdict(factCheck.verdict)}
               confidence={factCheck.confidence}
+              verdictDefinition={getVerdictDescription(factCheck.verdict, factCheck).verdictDefinition}
               description={getVerdictDescription(factCheck.verdict, factCheck).description}
               explanation={factCheck.explanation}
               statusIcon={getStatusIcon(normalizeVerdict(factCheck.verdict))}
@@ -655,36 +912,36 @@ export function FactCheckDisplay({
       >
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+            <div className="bg-muted/30 rounded-lg p-4 border border-border">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 Confidence Level
               </h4>
               <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                <span className="text-3xl font-bold text-primary">
                   {factCheck.confidence}%
                 </span>
               </div>
-              <div className="mt-3 h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+              <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 dark:bg-blue-400 rounded-full transition-all duration-300"
+                  className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{ width: `${factCheck.confidence}%` }}
                 />
               </div>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Based on source credibility and evidence strength
               </p>
             </div>
 
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-              <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
+            <div className="bg-muted/30 rounded-lg p-4 border border-border">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 Sources Analyzed
               </h4>
               <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold text-green-600 dark:text-green-400">
+                <span className="text-3xl font-bold text-foreground">
                   {factCheck.sources?.length || 0}
                 </span>
               </div>
-              <p className="text-xs text-green-700 dark:text-green-300 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Credible sources verified for accuracy
               </p>
             </div>

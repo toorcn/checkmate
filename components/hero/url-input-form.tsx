@@ -99,7 +99,7 @@ export function UrlInputForm({
           {compact ? (
             <Textarea
               placeholder={t.urlPlaceholder}
-              className={`w-full min-h-28 md:min-h-32 pr-14 rounded-2xl bg-background/40 border border-border/60 focus:border-primary/60 transition-colors duration-200 leading-6 ${urlTouched && !isValidUrl ? "border-red-400 focus:border-red-500" : ""}`}
+              className={`w-full min-h-28 md:min-h-32 pr-14 rounded-2xl bg-background/40 border border-border/60 focus:border-primary/60 transition-colors duration-200 leading-6 ${urlTouched && !isValidUrl ? "border-destructive/60 focus:border-destructive" : ""}`}
               value={url}
               onChange={(e) => { setUrl(e.target.value); if (!urlTouched) setUrlTouched(true); }}
               onBlur={() => setUrlTouched(true)}
@@ -121,7 +121,7 @@ export function UrlInputForm({
           ) : (
             <Input
               placeholder={t.urlPlaceholder}
-              className={`w-full h-14 pr-14 rounded-xl bg-background/40 border border-border/60 focus:border-primary/60 transition-colors duration-200 ${urlTouched && !isValidUrl ? "border-red-400 focus:border-red-500" : ""}`}
+              className={`w-full h-14 pr-14 rounded-xl bg-background/40 border border-border/60 focus:border-primary/60 transition-colors duration-200 ${urlTouched && !isValidUrl ? "border-destructive/60 focus:border-destructive" : ""}`}
               value={url}
               onChange={(e) => { setUrl(e.target.value); if (!urlTouched) setUrlTouched(true); }}
               onBlur={() => setUrlTouched(true)}
@@ -165,7 +165,7 @@ export function UrlInputForm({
       {!compact && !hideExtras && (
         <div id="url-help" className="text-left">
           {urlError ? (
-            <p className="text-xs text-red-600 mt-1">{urlError}</p>
+            <p className="text-xs text-destructive mt-1">{urlError}</p>
           ) : (
             <p className="text-xs text-muted-foreground mt-1">
               {allowNonUrl 
@@ -182,7 +182,7 @@ export function UrlInputForm({
             onClick={onMockAnalysis}
             variant="outline"
             size="sm"
-            className="px-4 h-9 text-sm bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/20 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-200"
+            className="px-4 h-9 text-sm bg-muted/50 hover:bg-muted transition-all duration-200"
             disabled={isLoading || isMockLoading || !isValidUrl}
             aria-label="Run demo analysis"
           >
@@ -270,7 +270,7 @@ export function UrlInputForm({
 
       {!compact && !hideExtras && (
         <div className="text-center">
-          <p className="text-xs text-purple-600 dark:text-purple-400 bg-purple-50/80 dark:bg-purple-900/20 px-3 py-1.5 rounded-md inline-block border border-purple-200/50 dark:border-purple-800/50">
+          <p className="text-xs text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-md inline-block border border-border/50">
             Demo simulates full analysis with realistic data—no API costs!
           </p>
         </div>

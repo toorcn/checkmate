@@ -23,10 +23,11 @@ import { parseMarkdownToJSX, sanitizeAssistantText } from "@/lib/analysis/markdo
 interface HeroSectionProps {
   initialUrl?: string;
   variant?: "default" | "dashboard";
+  onAnalysisComplete?: (isComplete: boolean) => void;
 }
 
 
-export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectionProps) {
+export function HeroSection({ initialUrl = "", variant = "default", onAnalysisComplete }: HeroSectionProps) {
   const [url, setUrl] = useState(initialUrl);
   const [chatMode, setChatMode] = useState(false);
   const [forceChat, setForceChat] = useState(false);
@@ -308,6 +309,7 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
     if (result) {
       if (result.success) {
         setIsInputExpanded(false); // Collapse input when results are shown
+        onAnalysisComplete?.(true); // Notify parent that analysis is complete
         // Trigger translation if auto-translation is enabled and language is not English
         if (enableAutoTranslation && language !== "en") {
           // Small delay to allow DOM to update with new content
@@ -319,7 +321,7 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
         toast.error(result.error);
       }
     }
-  }, [result, t, enableAutoTranslation, language, translateCurrentPage]);
+  }, [result, t, enableAutoTranslation, language, translateCurrentPage, onAnalysisComplete]);
 
   const isProbablyUrl = (value: string) => {
     const trimmed = value.trim();
@@ -389,6 +391,7 @@ export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectio
     setIsInputExpanded(true);
     resetProgress();
     reset();
+    onAnalysisComplete?.(false); // Notify parent that analysis is reset
   };
 
   const handleMockAnalysis = async () => {
@@ -692,6 +695,7 @@ This claim appears to have originated from legitimate news sources around early 
     setMockResult(mockData);
     setIsMockLoading(false);
     setIsInputExpanded(false); // Collapse input when mock results are shown
+    onAnalysisComplete?.(true); // Notify parent that analysis is complete
     toast.success("Mock Analysis Complete! (No API costs incurred)");
     
     // Trigger translation if auto-translation is enabled and language is not English
@@ -939,7 +943,7 @@ This claim appears to have originated from legitimate news sources around early 
               </div>
             )}
           </div>
-          {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
+          {chatError && <p className="mt-2 text-sm text-destructive">{String(chatError)}</p>}
           {/* Fixed bottom input bar for chat - reuse the same UrlInputForm */}
           <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="mx-auto max-w-3xl px-4 py-3">
