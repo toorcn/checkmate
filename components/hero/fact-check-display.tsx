@@ -758,53 +758,77 @@ export function FactCheckDisplay({
         })()}
 
         {/* Political Bias Card - For All News */}
-        {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
-          (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (() => {
-            const biasScore = (currentData.factCheck as any).politicalBias.malaysiaBiasScore;
-            const confidence = (currentData.factCheck as any).politicalBias.confidence;
+        {(currentData.factCheck as any)?.politicalBias && (() => {
+          const politicalBias = (currentData.factCheck as any).politicalBias;
+          
+          // Use Malaysia-specific score if available, otherwise use general bias analysis
+          let biasScore: number;
+          let confidence: number;
+          
+          if (politicalBias.isMalaysiaPolitical && politicalBias.malaysiaBiasScore !== undefined) {
+            // Malaysia-specific analysis
+            biasScore = politicalBias.malaysiaBiasScore;
+            confidence = politicalBias.confidence || 0.7;
+          } else {
+            // General political bias analysis - convert biasDirection and biasIntensity to a score
+            const biasDirection = politicalBias.biasDirection;
+            const biasIntensity = politicalBias.biasIntensity || 0;
+            confidence = politicalBias.confidence || 0.6;
             
-            // Get bias category (same logic as PoliticalBiasMeter)
-            const getBiasCategory = (score: number): {
-              label: string;
-              position: "left" | "center" | "right";
-              color: string;
-            } => {
-              if (score <= 30) {
-                return {
-                  label: "Likely leaning toward Opposition",
-                  position: "left",
-                  color: "text-blue-600 dark:text-blue-400",
-                };
-              } else if (score >= 70) {
-                return {
-                  label: "Likely leaning toward Pro-Government",
-                  position: "right",
-                  color: "text-green-600 dark:text-green-400",
-                };
-              } else {
-                return {
-                  label: "Appears Neutral / Mixed",
-                  position: "center",
-                  color: "text-gray-600 dark:text-gray-400",
-                };
-              }
-            };
-            
-            const biasCategory = getBiasCategory(biasScore);
-            
-            return (
-              <PoliticalBiasOverviewCard
-                title="Political Bias Analysis"
-                description="Analysis of political leaning in all news"
-                icon={<BarChart3Icon className="h-5 w-5 text-muted-foreground" />}
-                onClick={() => setOpenModal("politicalBias")}
-                variant="info"
-                biasScore={biasScore}
-                confidence={confidence}
-                biasCategory={biasCategory}
-              />
-            );
-          })()}
+            // Convert general bias to 0-100 score
+            if (biasDirection === "left") {
+              biasScore = Math.round(30 - (biasIntensity * 30)); // 0-30 range
+            } else if (biasDirection === "right") {
+              biasScore = Math.round(70 + (biasIntensity * 30)); // 70-100 range
+            } else if (biasDirection === "center") {
+              biasScore = Math.round(40 + (biasIntensity * 20)); // 40-60 range
+            } else {
+              biasScore = 50; // Neutral/none
+            }
+          }
+          
+          // Get bias category (same logic as PoliticalBiasMeter)
+          const getBiasCategory = (score: number): {
+            label: string;
+            position: "left" | "center" | "right";
+            color: string;
+          } => {
+            if (score <= 30) {
+              return {
+                label: "Likely leaning toward Opposition",
+                position: "left",
+                color: "text-blue-600 dark:text-blue-400",
+              };
+            } else if (score >= 70) {
+              return {
+                label: "Likely leaning toward Pro-Government",
+                position: "right",
+                color: "text-green-600 dark:text-green-400",
+              };
+            } else {
+              return {
+                label: "Appears Neutral / Mixed",
+                position: "center",
+                color: "text-gray-600 dark:text-gray-400",
+              };
+            }
+          };
+          
+          const biasCategory = getBiasCategory(biasScore);
+          
+          return (
+            <PoliticalBiasOverviewCard
+              title="Political Bias Analysis"
+              description="Analysis of political leaning in all news"
+              icon={<BarChart3Icon className="h-5 w-5 text-muted-foreground" />}
+              onClick={() => setOpenModal("politicalBias")}
+              variant="info"
+              biasScore={biasScore}
+              confidence={confidence}
+              biasCategory={biasCategory}
+            />
+          );
+        })()}
       </div>
 
       {/* Origin Tracing Section - Full Display */}
@@ -990,17 +1014,60 @@ export function FactCheckDisplay({
         onClose={() => setOpenModal(null)}
         title="Political Bias Analysis"
       >
-        {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
-          (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (
+        {(currentData.factCheck as any)?.politicalBias && (() => {
+          const politicalBias = (currentData.factCheck as any).politicalBias;
+          
+          // Use Malaysia-specific score if available, otherwise use general bias analysis
+          let biasScore: number;
+          let explanation: string;
+          let keyQuote: string;
+          let confidence: number;
+          let biasIndicators: string[];
+          let politicalTopics: string[];
+          
+          if (politicalBias.isMalaysiaPolitical && politicalBias.malaysiaBiasScore !== undefined) {
+            // Malaysia-specific analysis
+            biasScore = politicalBias.malaysiaBiasScore;
+            explanation = politicalBias.explanation || "Malaysia political bias analysis completed.";
+            keyQuote = politicalBias.keyQuote || "";
+            confidence = politicalBias.confidence || 0.7;
+            biasIndicators = politicalBias.biasIndicators || [];
+            politicalTopics = politicalBias.politicalTopics || [];
+          } else {
+            // General political bias analysis - convert biasDirection and biasIntensity to a score
+            const biasDirection = politicalBias.biasDirection;
+            const biasIntensity = politicalBias.biasIntensity || 0;
+            confidence = politicalBias.confidence || 0.6;
+            biasIndicators = politicalBias.biasIndicators || [];
+            politicalTopics = politicalBias.politicalTopics || [];
+            
+            // Convert general bias to 0-100 score
+            if (biasDirection === "left") {
+              biasScore = Math.round(30 - (biasIntensity * 30)); // 0-30 range
+            } else if (biasDirection === "right") {
+              biasScore = Math.round(70 + (biasIntensity * 30)); // 70-100 range
+            } else if (biasDirection === "center") {
+              biasScore = Math.round(40 + (biasIntensity * 20)); // 40-60 range
+            } else {
+              biasScore = 50; // Neutral/none
+            }
+            
+            // Generate explanation for general political bias
+            explanation = politicalBias.explanation || `General political bias analysis shows ${biasDirection} leaning with ${Math.round(biasIntensity * 100)}% intensity.`;
+            keyQuote = "";
+          }
+          
+          return (
             <PoliticalBiasMeter
-              biasScore={(currentData.factCheck as any).politicalBias.malaysiaBiasScore}
-              explanation={(currentData.factCheck as any).politicalBias.explanation}
-              keyQuote={(currentData.factCheck as any).politicalBias.keyQuote}
-              confidence={(currentData.factCheck as any).politicalBias.confidence}
-              biasIndicators={(currentData.factCheck as any).politicalBias.biasIndicators}
-              politicalTopics={(currentData.factCheck as any).politicalBias.politicalTopics}
+              biasScore={biasScore}
+              explanation={explanation}
+              keyQuote={keyQuote}
+              confidence={confidence}
+              biasIndicators={biasIndicators}
+              politicalTopics={politicalTopics}
             />
-          )}
+          );
+        })()}
       </AnalysisDetailModal>
     </div>
   );
