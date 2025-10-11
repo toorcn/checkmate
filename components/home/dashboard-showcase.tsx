@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export function DashboardShowcase() {
   return (
-    <section className="py-20 md:py-32 bg-muted/30">
+    <section className="py-20 md:py-32 bg-background">
       <ContainerScroll
         titleComponent={
           <div className="space-y-6 pb-8">

@@ -10,7 +10,7 @@ export function LandingContent() {
       <FeaturesGrid />
       
       {/* Final CTA Section */}
-      <section className="py-20 md:py-32 bg-primary/5">
+      <section className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
