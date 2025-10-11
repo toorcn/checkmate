@@ -37,12 +37,23 @@ export function DashboardShowcase() {
           </div>
         }
       >
+        {/* Light mode image */}
         <Image
-          src="/readme/assests/sc-3.png"
+          src="/daahboard-light.png"
           alt="Fact-Check Dashboard - Comprehensive analysis results with credibility scoring"
           width={1400}
           height={900}
-          className="mx-auto rounded-2xl object-cover h-full object-left-top"
+          className="block dark:hidden mx-auto rounded-2xl object-cover h-full object-left-top"
+          draggable={false}
+          priority
+        />
+        {/* Dark mode image */}
+        <Image
+          src="/dashboard-dark.png"
+          alt="Fact-Check Dashboard - Comprehensive analysis results with credibility scoring"
+          width={1400}
+          height={900}
+          className="hidden dark:block mx-auto rounded-2xl object-cover h-full object-left-top"
           draggable={false}
           priority
         />
