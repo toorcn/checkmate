@@ -2,25 +2,20 @@ import { bedrock } from "@ai-sdk/amazon-bedrock";
 
 // Centralized AI model helpers for Bedrock
 
-// Default Bedrock text model id from env (with reasonable default in config)
-if (!process.env.BEDROCK_MODEL_ID) {
-  throw new Error("BEDROCK_MODEL_ID is not set");
-}
-
+// Normalize credentials/env for Bedrock
 if (process.env.APP_ACCESS_KEY_ID && !process.env.AWS_ACCESS_KEY_ID) {
   process.env.AWS_ACCESS_KEY_ID = process.env.APP_ACCESS_KEY_ID;
 }
 if (process.env.APP_SECRET_ACCESS_KEY && !process.env.AWS_SECRET_ACCESS_KEY) {
   process.env.AWS_SECRET_ACCESS_KEY = process.env.APP_SECRET_ACCESS_KEY;
 }
-export const defaultTextModelId = process.env.BEDROCK_MODEL_ID;
+// Resolve model id without importing global config (avoids pulling in unrelated env validation)
+const DEFAULT_MODEL_FALLBACK = "anthropic.claude-3-haiku-20240307-v1:0";
+export const defaultTextModelId = process.env.BEDROCK_MODEL_ID || DEFAULT_MODEL_FALLBACK;
 
 // Factory for the text-generation model used across the app
 export function textModel(modelId?: string) {
   const resolvedModelId = modelId || defaultTextModelId;
-  if (!resolvedModelId) {
-    throw new Error("BEDROCK_MODEL_ID is not set");
-  }
   return bedrock(resolvedModelId);
 }
 

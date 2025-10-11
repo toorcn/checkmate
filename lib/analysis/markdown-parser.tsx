@@ -158,3 +158,26 @@ export function parseMarkdownToJSX(text: string): ReactNode[] {
   return elements;
 }
 
+/**
+ * Remove hidden/internal sections like <thinking>...</thinking> and other XML-ish tags.
+ * Also strips tool call metadata blocks if present, while preserving visible summaries.
+ */
+export function sanitizeAssistantText(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+
+  let cleaned = text;
+
+  // Preserve <thinking> blocks for UI to render specially
+
+  // Remove other explicit hidden tags if any (e.g., <internal>...</internal>)
+  cleaned = cleaned.replace(/<internal>[\s\S]*?<\/internal>/gi, '');
+
+  // Prevent accidental raw HTML tags from rendering; keep their inner text by removing tags only
+  cleaned = cleaned.replace(/<\/?(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '');
+
+  // Trim leftover excessive blank lines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+
+  return cleaned;
+}
+

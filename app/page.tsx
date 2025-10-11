@@ -1,5 +1,5 @@
 import { PageLayout } from "@/components/ui/page-layout";
-import { HomePageContent } from "@/components/home-page-content";
+import DashboardHome from "@/components/home/DashboardHome";
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -11,7 +11,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <PageLayout variant="gradient">
-      <HomePageContent initialUrl={linkParam} />
+      <DashboardHome initialUrl={linkParam} />
     </PageLayout>
   );
 }

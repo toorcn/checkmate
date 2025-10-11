@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useChat } from "@ai-sdk/react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+// no extra inputs; reuse existing UrlInputForm
 import { useTikTokAnalysis } from "@/lib/hooks/use-tiktok-analysis";
 import { useSaveTikTokAnalysisWithCredibility } from "@/lib/hooks/use-saved-analyses";
 import { useAnimatedProgress } from "@/lib/hooks/use-animated-progress";
@@ -16,14 +18,18 @@ import {
   ResultsSection,
 } from "@/components/hero";
 import { AnalysisData, MockResult } from "@/types/analysis";
+import { parseMarkdownToJSX, sanitizeAssistantText } from "@/lib/analysis/markdown-parser";
 
 interface HeroSectionProps {
   initialUrl?: string;
+  variant?: "default" | "dashboard";
 }
 
 
-export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
+export function HeroSection({ initialUrl = "", variant = "default" }: HeroSectionProps) {
   const [url, setUrl] = useState(initialUrl);
+  const [chatMode, setChatMode] = useState(false);
+  const [forceChat, setForceChat] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -45,6 +51,172 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
   const { t, translateCurrentPage, enableAutoTranslation, language } = useGlobalTranslation();
 
   const [phase, setPhase] = useState<string>("");
+
+  // Chat hook (AI SDK v4) - using manual message management
+  const [manualChatMessages, setManualChatMessages] = useState<any[]>([]);
+  const [manualChatStatus, setManualChatStatus] = useState<string>('ready');
+  const [manualChatError, setManualChatError] = useState<any>(null);
+  const [chatInput, setChatInput] = useState<string>("");
+
+  // Streaming loading messages
+  const funnyLoadingPhrases = [
+    "Trying to find info…",
+    "Consulting reputable sources…",
+    "Untangling hyperlinks…",
+    "Cross-checking facts…",
+    "Rate-limiting my enthusiasm…",
+    "AI agent crying because of bad internet…",
+    "Persuading servers to cooperate…",
+    "Caching good vibes…",
+    "Warming up credibility meters…",
+    "Refilling citation ink…"
+  ];
+  const [loadingTick, setLoadingTick] = useState(0);
+
+  useEffect(() => {
+    if (manualChatStatus !== 'streaming') return;
+    const id = setInterval(() => setLoadingTick((t) => t + 1), 1500);
+    return () => clearInterval(id);
+  }, [manualChatStatus]);
+
+  const sendManualChatMessage = async (message: { role: string; content: string }) => {
+    try {
+      setManualChatStatus('streaming');
+      setManualChatError(null);
+      
+      // Add user message immediately
+      const userMsg = { ...message, id: Date.now().toString() };
+      setManualChatMessages(prev => [...prev, userMsg]);
+      
+      // Call API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...manualChatMessages, userMsg] }),
+      });
+      
+      if (!response.ok) throw new Error('API request failed');
+      
+      // Read stream (AI SDK Data Stream Protocol)
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      const assistantMsg = { role: 'assistant', content: '', id: (Date.now() + 1).toString() };
+
+      setManualChatMessages(prev => [...prev, assistantMsg]);
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
+
+          // Handle AI SDK Data Stream Protocol lines: "data: {json}"
+          if (line.startsWith('data: ')) {
+            let payload: any = null;
+            try {
+              payload = JSON.parse(line.slice(6));
+            } catch {
+              continue;
+            }
+
+            const type = payload?.type;
+            // Append incremental text
+            if (type === 'text-delta' && typeof payload.delta === 'string') {
+              assistantContent += payload.delta;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+
+            // Some providers may send full text blocks
+            if (type === 'message' && typeof payload.text === 'string') {
+              assistantContent += payload.text;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+
+            // Tool call events
+            const toolName: string | undefined = payload?.tool || payload?.toolName;
+            // Normalize event kinds possibly used by providers
+            const isToolCall = type === 'tool-call' || type === 'tool_call' || (type === 'tool' && payload?.status === 'call');
+            const isToolResult = type === 'tool-result' || type === 'tool_result' || (type === 'tool' && payload?.status === 'result');
+            if (isToolCall && toolName) {
+              const args = payload?.args ?? payload?.parameters ?? {};
+              const argsJson = safeStringify(args);
+              const toolBlock = `\n\n<tool name="${toolName}">\n${argsJson}\n</tool>\n`;
+              assistantContent += toolBlock;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+            if (isToolResult && toolName) {
+              const resultData = payload?.result ?? payload?.output ?? {};
+              const resultJson = safeStringify(resultData);
+              const toolResultBlock = `\n\n<tool-result name="${toolName}">\n${resultJson}\n</tool-result>\n`;
+              assistantContent += toolResultBlock;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            }
+
+            // End of stream marker
+            if (type === 'done') {
+              break;
+            }
+          }
+
+          // Backward compatibility for old "0:" text stream lines
+          if (line.startsWith('0:')) {
+            try {
+              const text = JSON.parse(line.slice(2));
+              assistantContent += text;
+              setManualChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { ...assistantMsg, content: assistantContent };
+                return updated;
+              });
+            } catch {}
+          }
+        }
+      }
+      
+      setManualChatStatus('ready');
+    } catch (err) {
+      console.error('[sendManualChatMessage] error:', err);
+      setManualChatError(err);
+      setManualChatStatus('ready');
+    }
+  };
+
+  const safeStringify = (obj: any) => {
+    try {
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return String(obj ?? '');
+    }
+  };
+  
+  const chatMessages = manualChatMessages;
+  const chatStatus = manualChatStatus;
+  const chatError = manualChatError;
+  const sendChatMessage = sendManualChatMessage;
+  
+  console.log('[Chat] Manual state - messages:', chatMessages.length, 'status:', chatStatus);
 
   // Loading phase label derived from progress
   useEffect(() => {
@@ -149,13 +321,49 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
     }
   }, [result, t, enableAutoTranslation, language, translateCurrentPage]);
 
+  const isProbablyUrl = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    try {
+      // Allow missing scheme by trying to prepend https
+      // If it parses as URL with a hostname and a dot, treat as URL
+      const candidate = trimmed.match(/^https?:\/\//i) ? trimmed : `https://${trimmed}`;
+      const u = new URL(candidate);
+      return Boolean(u.hostname && u.hostname.includes("."));
+    } catch {
+      return false;
+    }
+  };
+
   const handleAnalyze = async () => {
+    console.log('[handleAnalyze] Called with url:', url, 'forceChat:', forceChat);
+    
     if (!url.trim()) {
       toast.error(t.enterUrl);
       return;
     }
 
-    // Update URL with query parameter
+    const isUrl = isProbablyUrl(url);
+    console.log('[handleAnalyze] isProbablyUrl:', isUrl, 'forceChat:', forceChat);
+
+    if (forceChat || !isUrl) {
+      // Switch to chat mode and send the user's message
+      console.log('[handleAnalyze] Entering chat mode, sending message');
+      setChatMode(true);
+      setIsInputExpanded(false);
+      const content = url.trim();
+      try {
+        console.log('[handleAnalyze] Calling sendChatMessage with:', { role: 'user', content });
+        await sendChatMessage({ role: 'user', content });
+        console.log('[handleAnalyze] sendChatMessage completed');
+      } catch (e) {
+        console.error('[handleAnalyze] sendChatMessage error:', e);
+        toast.error("Failed to start chat");
+      }
+      return;
+    }
+
+    // URL flow (existing behavior)
     const params = new URLSearchParams();
     params.set("link", url.trim());
     router.replace(`?${params.toString()}`);
@@ -167,11 +375,14 @@ export function HeroSection({ initialUrl = "" }: HeroSectionProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[handleSubmit] Form submitted, calling handleAnalyze');
     await handleAnalyze();
   };
 
   const handleReset = () => {
     setUrl("");
+    setChatMode(false);
+    setForceChat(false);
     setIsSaved(false);
     setSavedId(null);
     setMockResult(null);
@@ -578,22 +789,39 @@ This claim appears to have originated from legitimate news sources around early 
   };
 
 
+  const isDashboard = variant === "dashboard";
+
   return (
-    <section className="py-24 md:py-32 relative">
-      <LoadingOverlay
-        isLoading={isLoading}
-        isMockLoading={isMockLoading}
-        progress={progress}
-        phase={phase}
-      />
+    <section className={`${isDashboard ? "py-6 md:py-8" : "py-24 md:py-32"} relative`}>
+      {!chatMode && (
+        <LoadingOverlay
+          isLoading={isLoading}
+          isMockLoading={isMockLoading}
+          progress={progress}
+          phase={phase}
+        />
+      )}
       
       <div className={`text-center transition-all duration-500 ${!isInputExpanded && (result?.success || mockResult?.success) ? 'mb-8' : ''}`}>
-        <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
-          {t.heroTitle}
-        </h1>
-        
-        {!isInputExpanded && (result?.success || mockResult?.success) ? (
-          // Collapsed state - show button to expand
+        {!isDashboard && (
+          <>
+            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl">
+              {t.heroTitle}
+            </h1>
+            {(!(!isInputExpanded && (result?.success || mockResult?.success))) && (
+              <>
+                <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
+                  AI-Powered Fact Checking
+                </Badge>
+                <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
+                  {t.heroSubtitle}
+                </p>
+              </>
+            )}
+          </>
+        )}
+
+        {(!isDashboard && !isInputExpanded && (result?.success || mockResult?.success || chatMode)) ? (
           <div className="flex justify-center">
             <Button 
               onClick={() => setIsInputExpanded(true)}
@@ -607,39 +835,154 @@ This claim appears to have originated from legitimate news sources around early 
             </Button>
           </div>
         ) : (
-          // Expanded state - show full input form
           <>
-            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
-              AI-Powered Fact Checking
-            </Badge>
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
-              {t.heroSubtitle}
-            </p>
-            
-            <UrlInputForm
-              url={url}
-              setUrl={setUrl}
-              isLoading={isLoading}
-              isMockLoading={isMockLoading}
-              onSubmit={handleSubmit}
-              onMockAnalysis={handleMockAnalysis}
-            />
+            {!chatMode && (
+              <UrlInputForm
+                url={url}
+                setUrl={setUrl}
+                isLoading={isLoading}
+                isMockLoading={isMockLoading}
+                onSubmit={handleSubmit}
+                onMockAnalysis={handleMockAnalysis}
+                compact={isDashboard}
+                allowNonUrl={forceChat}
+                forceChat={forceChat}
+                onToggleChat={() => setForceChat(!forceChat)}
+                hideExtras={
+                  chatMode ||
+                  isLoading ||
+                  isMockLoading ||
+                  Boolean(result?.success) ||
+                  Boolean(mockResult?.success) ||
+                  manualChatMessages.length > 0 ||
+                  manualChatStatus === 'streaming'
+                }
+              />
+            )}
           </>
         )}
       </div>
 
-      <ResultsSection
-        result={result as any}
-        mockResult={mockResult}
-        isSignedIn={isSignedIn}
-        isSaving={isSaving}
-        isSaved={isSaved}
-        savedId={savedId}
-        onSaveAnalysis={handleSaveAnalysis}
-        onCopySummary={handleCopySummary}
-        onShare={handleShare}
-        onReset={handleReset}
-      />
+      {chatMode ? (
+        <div className="mx-auto mt-6 max-w-3xl pb-28">
+          <div className="space-y-4 rounded-lg p-4 bg-transparent">
+            {chatMessages.length === 0 && (
+              <p className="text-sm text-muted-foreground">Ask about current news. We will cite sources when available.</p>
+            )}
+            {chatMessages.map((m: any, i: number) => {
+              console.log('[Chat UI] Rendering message:', i, m);
+              return (
+                <div key={m.id || i} className={m.role === "user" ? "text-right" : "text-left"}>
+                  <div className={`inline-block rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                    {m.role === 'user'
+                      ? (m.content || '(empty)')
+                      : (() => {
+                          const safe = sanitizeAssistantText(m.content || '');
+                          // Split content into segments for special rendering: <thinking>, <tool>, <tool-result>
+                          const parts: any[] = [];
+                          let remainder = safe;
+                          const pattern = /<(thinking|tool|tool-result)([^>]*)>[\s\S]*?<\/\1>/i;
+                          let guard = 0;
+                          while (pattern.test(remainder) && guard++ < 50) {
+                            const match = remainder.match(pattern);
+                            if (!match) break;
+                            const block = match[0];
+                            const tag = (match[1] || '').toLowerCase();
+                            const [before, after] = remainder.split(block);
+                            if (before) {
+                              const renderedBefore = parseMarkdownToJSX(before);
+                              if (renderedBefore?.length) parts.push(...renderedBefore);
+                            }
+                            const inner = block.replace(new RegExp(`^<${tag}[^>]*>`,'i'), '').replace(new RegExp(`</${tag}>$`, 'i'), '').trim();
+                            if (tag === 'thinking') {
+                              parts.push(
+                                <div key={`thinking-${parts.length}`} className="text-muted-foreground">
+                                  {parseMarkdownToJSX(inner)}
+                                </div>
+                              );
+                            } else if (tag === 'tool' || tag === 'tool-result') {
+                              const nameMatch = block.match(/name=\"([^\"]+)\"/i);
+                              const toolName = nameMatch ? nameMatch[1] : (tag === 'tool' ? 'Tool call' : 'Tool result');
+                              parts.push(
+                                <div key={`${tag}-${parts.length}`} className="rounded-md border bg-background p-2 my-2">
+                                  <div className="text-xs text-muted-foreground mb-1">{toolName}</div>
+                                  <pre className="text-xs whitespace-pre-wrap overflow-x-auto"><code>{inner}</code></pre>
+                                </div>
+                              );
+                            }
+                            remainder = after || '';
+                          }
+                          if (remainder) {
+                            const renderedAfter = parseMarkdownToJSX(remainder);
+                            if (renderedAfter?.length) parts.push(...renderedAfter);
+                          }
+                          if (parts.length) return parts;
+                          const rendered = parseMarkdownToJSX(safe);
+                          return rendered?.length ? rendered : (safe || '(empty)');
+                        })()}
+                  </div>
+                </div>
+              );
+            })}
+            {manualChatStatus === 'streaming' && (
+              <div className="text-left">
+                <div className="inline-block rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground">
+                  <span className="inline-flex gap-1 items-center">
+                    <span>{funnyLoadingPhrases[loadingTick % funnyLoadingPhrases.length]}</span>
+                    <span className="inline-flex">
+                      <span className="w-1 h-1 bg-current rounded-full animate-pulse mr-1"></span>
+                      <span className="w-1 h-1 bg-current rounded-full animate-pulse mr-1" style={{ animationDelay: '120ms' }}></span>
+                      <span className="w-1 h-1 bg-current rounded-full animate-pulse" style={{ animationDelay: '240ms' }}></span>
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
+          {/* Fixed bottom input bar for chat - reuse the same UrlInputForm */}
+          <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto max-w-3xl px-4 py-3">
+              <UrlInputForm
+                url={chatInput}
+                setUrl={setChatInput}
+                isLoading={manualChatStatus === 'streaming'}
+                isMockLoading={false}
+                onSubmit={async (e: React.FormEvent) => {
+                  e.preventDefault();
+                  const content = chatInput.trim();
+                  if (!content || manualChatStatus === 'streaming') return;
+                  try {
+                    await sendChatMessage({ role: 'user', content });
+                    setChatInput("");
+                  } catch (err) {
+                    console.error('[Chat Input] send error', err);
+                  }
+                }}
+                onMockAnalysis={() => {}}
+                compact
+                allowNonUrl
+                forceChat
+                onToggleChat={() => {}}
+                hideExtras
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <ResultsSection
+          result={result as any}
+          mockResult={mockResult}
+          isSignedIn={isSignedIn}
+          isSaving={isSaving}
+          isSaved={isSaved}
+          savedId={savedId}
+          onSaveAnalysis={handleSaveAnalysis}
+          onCopySummary={handleCopySummary}
+          onShare={handleShare}
+          onReset={handleReset}
+        />
+      )}
     </section>
   );
 }
