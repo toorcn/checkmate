@@ -169,39 +169,21 @@ export function UrlInputForm({
           ) : (
             <p className="text-xs text-muted-foreground mt-1">
               {allowNonUrl 
-                ? "Enter a URL to analyze or ask a question about recent news" 
-                : "Paste a TikTok or Twitter(X) link. Example: https://www.tiktok.com/@user/video/123"}
+                ? "Ask a question or paste a link. Links are analyzed (TikTok preferred); plain text starts a chat." 
+                : "Paste a TikTok link to analyze. Example: https://www.tiktok.com/@10newsau/video/7556222799589821716"}
             </p>
           )}
         </div>
       )}
 
-      {!compact && !hideExtras && (
-        <div className="flex justify-center">
-          <Button
-            onClick={onMockAnalysis}
-            variant="outline"
-            size="sm"
-            className="px-4 h-9 text-sm bg-muted/50 hover:bg-muted transition-all duration-200"
-            disabled={isLoading || isMockLoading || !isValidUrl}
-            aria-label="Run demo analysis"
-          >
-            {isMockLoading ? (
-              <LoaderIcon className="h-3 w-3 mr-1.5 animate-spin" />
-            ) : (
-              <ShieldIcon className="h-3 w-3 mr-1.5" />
-            )}
-            {isMockLoading ? "Running..." : "Try Demo"}
-          </Button>
-        </div>
-      )}
 
       {!compact && !hideExtras && (
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs mt-2">
           <span className="text-muted-foreground">Try a sample:</span>
-          <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://www.tiktok.com/@scout2015/video/6718335390845095173")}>TikTok</Button>
+          <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://www.tiktok.com/@10newsau/video/7556222799589821716?q=us%20news&t=1760187193219")}>
+            TikTok
+          </Button>
           <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://x.com/3dom13/status/1630577536877961217")}>Twitter/X</Button>
-          <Button size="sm" variant="secondary" className="h-7 px-2" onClick={() => handleSelectSample("https://example.com/article")}>Web</Button>
         </div>
       )}
 
@@ -212,7 +194,7 @@ export function UrlInputForm({
           <button
             type="button"
             className="hover:text-foreground/90 transition-colors"
-            onClick={() => handleSelectSample("https://www.tiktok.com/@scout2015/video/6718335390845095173")}
+            onClick={() => handleSelectSample("https://www.tiktok.com/@10newsau/video/7556222799589821716?q=us%20news&t=1760187193219")}
           >
             Show me a TikTok analysis
           </button>
@@ -223,44 +205,9 @@ export function UrlInputForm({
           >
             Analyze a Twitter/X link
           </button>
-          <button
-            type="button"
-            className="hover:text-foreground/90 transition-colors"
-            onClick={() => handleSelectSample("https://example.com/article")}
-          >
-            Check a web article
-          </button>
         </div>
       )}
 
-      {compact && !hideExtras && (
-        <div className="mt-4 flex justify-center">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 px-3"
-            disabled={isLoading || isMockLoading}
-            onClick={() => {
-              const defaultSample = url?.trim() ? url.trim() : "https://www.tiktok.com/@scout2015/video/6718335390845095173";
-              if (!url?.trim()) {
-                setUrl(defaultSample);
-                setUrlTouched(true);
-                setTimeout(() => onMockAnalysis(), 0);
-              } else {
-                onMockAnalysis();
-              }
-            }}
-            aria-label="Run demo analysis"
-          >
-            {isMockLoading ? (
-              <LoaderIcon className="h-3 w-3 mr-1.5 animate-spin" />
-            ) : (
-              <ShieldIcon className="h-3 w-3 mr-1.5" />
-            )}
-            {isMockLoading ? "Running Demo..." : "Run Demo"}
-          </Button>
-        </div>
-      )}
 
       {!compact && !hideExtras && (
         <p className="text-sm text-muted-foreground text-center">
@@ -268,13 +215,6 @@ export function UrlInputForm({
         </p>
       )}
 
-      {!compact && !hideExtras && (
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-md inline-block border border-border/50">
-            Demo simulates full analysis with realistic data—no API costs!
-          </p>
-        </div>
-      )}
     </div>
   );
 }
