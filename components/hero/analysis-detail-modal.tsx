@@ -39,6 +39,7 @@ export function AnalysisDetailModal({
 interface VerdictDetailContentProps {
   verdict: string;
   confidence: number;
+  verdictDefinition?: string;
   description: string;
   explanation?: string;
   statusIcon: React.ReactNode;
@@ -46,8 +47,9 @@ interface VerdictDetailContentProps {
 }
 
 export function VerdictDetailContent({
-  verdict,
+  verdict: _verdict,
   confidence,
+  verdictDefinition,
   description,
   explanation,
   statusIcon,
@@ -70,6 +72,18 @@ export function VerdictDetailContent({
         </div>
         {statusBadge}
       </div>
+
+      {/* Verdict Definition */}
+      {verdictDefinition && (
+        <div className="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/20">
+          <h4 className="font-medium mb-2 flex items-center gap-2">
+            <span className="text-primary">What does this verdict mean?</span>
+          </h4>
+          <p className="text-sm text-foreground leading-relaxed">
+            {verdictDefinition}
+          </p>
+        </div>
+      )}
 
       {/* Description */}
       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">

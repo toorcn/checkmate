@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRightIcon, TrendingUpIcon, ShieldCheckIcon, BrainIcon } from "lucide-react";
+import { ArrowRightIcon, TrendingUpIcon, ShieldCheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 interface OverviewCardProps {
   title: string;
@@ -82,7 +83,8 @@ export function AnalysisOverviewCard({
 interface VerdictOverviewCardProps {
   verdict: string;
   confidence: number;
-  description: string;
+  verdictDefinition: string;
+  reasoning: string;
   icon: React.ReactNode;
   badge: React.ReactNode;
   onClick: () => void;
@@ -91,16 +93,25 @@ interface VerdictOverviewCardProps {
 export function VerdictOverviewCard({
   verdict,
   confidence,
-  description,
+  verdictDefinition,
+  reasoning,
   icon,
   badge,
   onClick,
 }: VerdictOverviewCardProps) {
-  const getVariant = (verdict: string) => {
-    if (verdict === "verified" || verdict === "true") return "success";
-    if (verdict === "false" || verdict === "debunked") return "danger";
-    if (verdict === "misleading" || verdict === "exaggerated") return "warning";
-    return "default";
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only trigger the main onClick if not clicking the toggle button
+    const target = e.target as HTMLElement;
+    if (!target.closest('[data-toggle-button]')) {
+      onClick();
+    }
+  };
+
+  const toggleExpanded = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
   };
 
   return (
@@ -116,7 +127,7 @@ export function VerdictOverviewCard({
                 ? "border-l-muted-foreground bg-card"
                 : "border-l-muted-foreground bg-card"
       }`}
-      onClick={onClick}
+      onClick={handleCardClick}
     >
       <CardContent className="p-4">
         <div className="space-y-3">
@@ -127,12 +138,42 @@ export function VerdictOverviewCard({
               </div>
               <h4 className="font-semibold text-base">Verification Status</h4>
             </div>
-            {badge}
+            <div className="flex items-center gap-2">
+              {badge}
+              <button
+                data-toggle-button
+                onClick={toggleExpanded}
+                className="p-1 rounded-md hover:bg-muted/50 transition-colors"
+                aria-label={isExpanded ? "Collapse details" : "Expand details"}
+              >
+                {isExpanded ? (
+                  <ChevronUpIcon className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
-            {description}
-          </p>
+          {isExpanded && (
+            <>
+              {/* Verdict Definition - What this status means */}
+              <div className="bg-muted/30 rounded-md p-2.5 border border-border/50">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Status Meaning:</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {verdictDefinition}
+                </p>
+              </div>
+
+              {/* AI Reasoning - Why the agent thinks this */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Reasoning:</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {reasoning}
+                </p>
+              </div>
+            </>
+          )}
 
           <div className="flex items-center gap-2 pt-2">
             <div className="flex-1">
@@ -148,9 +189,20 @@ export function VerdictOverviewCard({
             </span>
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-between">
+            <button
+              data-toggle-button
+              onClick={toggleExpanded}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              {isExpanded ? (
+                <>Hide Details <ChevronUpIcon className="h-3 w-3" /></>
+              ) : (
+                <>Show Details <ChevronDownIcon className="h-3 w-3" /></>
+              )}
+            </button>
             <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-              View Details <ArrowRightIcon className="h-3 w-3" />
+              View Full Analysis <ArrowRightIcon className="h-3 w-3" />
             </span>
           </div>
         </div>
@@ -211,6 +263,168 @@ export function MetricsOverviewCard({
           <p className="text-xs text-muted-foreground">
             Click to view detailed metrics and source credibility
           </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface SentimentScore {
+  positive: number;
+  negative: number;
+  neutral: number;
+  mixed: number;
+}
+
+interface SentimentOverviewCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  variant?: "default" | "success" | "warning" | "danger" | "info";
+  patternMatchConfidence?: number;
+  sentimentScores: SentimentScore;
+  overall: string;
+}
+
+export function SentimentOverviewCard({
+  title,
+  description,
+  icon,
+  onClick,
+  variant = "default",
+  patternMatchConfidence,
+  sentimentScores,
+  overall,
+}: SentimentOverviewCardProps) {
+  const variantStyles = {
+    default: "border hover:border-muted-foreground/20 bg-card",
+    success: "border hover:border-primary/30 bg-card shadow-sm",
+    warning: "border hover:border-muted-foreground/30 bg-card",
+    danger: "border-destructive/20 hover:border-destructive/30 bg-card",
+    info: "border hover:border-muted-foreground/30 bg-card",
+  };
+
+  // Get the dominant sentiment bar color
+  const getSentimentBarColor = (sentimentType: string) => {
+    switch (sentimentType.toLowerCase()) {
+      case "positive":
+        return "bg-green-500";
+      case "negative":
+        return "bg-red-500";
+      case "neutral":
+        return "bg-gray-500";
+      case "mixed":
+        return "bg-yellow-500";
+      default:
+        return "bg-gray-400";
+    }
+  };
+
+  return (
+    <Card
+      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${variantStyles[variant]} border-l-4`}
+      onClick={onClick}
+    >
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="p-2 rounded-lg bg-muted/30 shrink-0">
+                {icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-sm mb-1">{title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {description}
+                </p>
+              </div>
+            </div>
+            <ArrowRightIcon className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+          </div>
+
+          {/* Pattern Match Confidence Badge */}
+          {patternMatchConfidence !== undefined && (
+            <div className="flex items-center justify-between bg-muted/20 rounded-md px-2 py-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Pattern Match</span>
+              <span className={`text-xs font-bold ${
+                patternMatchConfidence >= 80
+                  ? "text-green-600 dark:text-green-400"
+                  : patternMatchConfidence >= 60
+                  ? "text-blue-600 dark:text-blue-400"
+                  : patternMatchConfidence >= 40
+                  ? "text-orange-600 dark:text-orange-400"
+                  : "text-red-600 dark:text-red-400"
+              }`}>
+                {patternMatchConfidence}%
+              </span>
+            </div>
+          )}
+
+          {/* Sentiment Bar Graph Preview */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Sentiment Breakdown</span>
+              <span className="text-xs font-semibold text-foreground">
+                {overall}
+              </span>
+            </div>
+            <div className="space-y-1">
+              {/* Positive */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-green-600 dark:text-green-400 w-14">Positive</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${getSentimentBarColor("positive")} transition-all duration-300`}
+                    style={{ width: `${sentimentScores.positive * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground w-8 text-right">
+                  {Math.round(sentimentScores.positive * 100)}%
+                </span>
+              </div>
+              {/* Negative */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-red-600 dark:text-red-400 w-14">Negative</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${getSentimentBarColor("negative")} transition-all duration-300`}
+                    style={{ width: `${sentimentScores.negative * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground w-8 text-right">
+                  {Math.round(sentimentScores.negative * 100)}%
+                </span>
+              </div>
+              {/* Neutral */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-600 dark:text-gray-400 w-14">Neutral</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${getSentimentBarColor("neutral")} transition-all duration-300`}
+                    style={{ width: `${sentimentScores.neutral * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground w-8 text-right">
+                  {Math.round(sentimentScores.neutral * 100)}%
+                </span>
+              </div>
+              {/* Mixed */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-yellow-600 dark:text-yellow-400 w-14">Mixed</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${getSentimentBarColor("mixed")} transition-all duration-300`}
+                    style={{ width: `${sentimentScores.mixed * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground w-8 text-right">
+                  {Math.round(sentimentScores.mixed * 100)}%
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
