@@ -87,32 +87,32 @@ export function FactCheckDisplay({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "verified":
-        return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
+        return <CheckCircleIcon className="h-4 w-4 text-foreground" />;
       case "false":
-        return <XCircleIcon className="h-4 w-4 text-red-600" />;
+        return <XCircleIcon className="h-4 w-4 text-destructive" />;
       case "misleading":
-        return <AlertTriangleIcon className="h-4 w-4 text-orange-500" />;
+        return <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />;
       case "unverified":
       case "unverifiable":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-500" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "satire":
-        return <span className="text-purple-500 text-sm">🎭</span>;
+        return <span className="text-muted-foreground text-sm">🎭</span>;
       case "partially_true":
-        return <AlertTriangleIcon className="h-4 w-4 text-yellow-600" />;
+        return <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />;
       case "outdated":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-600" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "exaggerated":
-        return <AlertTriangleIcon className="h-4 w-4 text-orange-600" />;
+        return <AlertTriangleIcon className="h-4 w-4 text-muted-foreground" />;
       case "opinion":
-        return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "rumor":
-        return <AlertCircleIcon className="h-4 w-4 text-gray-400" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
       case "conspiracy":
-        return <XCircleIcon className="h-4 w-4 text-red-500" />;
+        return <XCircleIcon className="h-4 w-4 text-destructive" />;
       case "debunked":
-        return <XCircleIcon className="h-4 w-4 text-red-700" />;
+        return <XCircleIcon className="h-4 w-4 text-destructive" />;
       default:
-        return <AlertCircleIcon className="h-4 w-4 text-blue-500" />;
+        return <AlertCircleIcon className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -120,21 +120,21 @@ export function FactCheckDisplay({
     switch (status) {
       case "verified":
         return (
-          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700">
+          <Badge className="bg-primary/10 text-primary border border-primary/20">
             <ShieldCheckIcon className="h-3 w-3 mr-1" />
             Verified
           </Badge>
         );
       case "false":
         return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+          <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
             <XCircleIcon className="h-3 w-3 mr-1" />
             False Information
           </Badge>
         );
       case "misleading":
         return (
-          <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Misleading Content
           </Badge>
@@ -142,70 +142,70 @@ export function FactCheckDisplay({
       case "unverified":
       case "unverifiable":
         return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Insufficient Evidence
           </Badge>
         );
       case "satire":
         return (
-          <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <SmileIcon className="h-3 w-3 mr-1" />
             Satirical Content
           </Badge>
         );
       case "partially_true":
         return (
-          <Badge className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Partially True
           </Badge>
         );
       case "outdated":
         return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Outdated Information
           </Badge>
         );
       case "exaggerated":
         return (
-          <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertTriangleIcon className="h-3 w-3 mr-1" />
             Exaggerated Claims
           </Badge>
         );
       case "opinion":
         return (
-          <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Opinion
           </Badge>
         );
       case "rumor":
         return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <AlertCircleIcon className="h-3 w-3 mr-1" />
             Rumor
           </Badge>
         );
       case "conspiracy":
         return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+          <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
             <XCircleIcon className="h-3 w-3 mr-1" />
             Conspiracy Theory
           </Badge>
         );
       case "debunked":
         return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+          <Badge className="bg-destructive/10 text-destructive border border-destructive/20">
             <XCircleIcon className="h-3 w-3 mr-1" />
             Debunked
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-600">
+          <Badge className="bg-muted text-muted-foreground border border-border">
             <SearchIcon className="h-3 w-3 mr-1" />
             Under Review
           </Badge>
@@ -430,17 +430,17 @@ export function FactCheckDisplay({
           };
           const getSentimentIconColor = () => {
             if (emotionalIntensity > 0.7 || manipulationTactics.length > 0) {
-              return "text-red-600 dark:text-red-400";
+              return "text-destructive";
             }
             switch (sentiment) {
               case "POSITIVE":
-                return scores.positive > 0.85 ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400";
+                return scores.positive > 0.85 ? "text-muted-foreground" : "text-primary";
               case "NEGATIVE":
-                return "text-red-600 dark:text-red-400";
+                return "text-destructive";
               case "MIXED":
-                return "text-yellow-600 dark:text-yellow-400";
+                return "text-muted-foreground";
               default:
-                return "text-blue-600 dark:text-blue-400";
+                return "text-muted-foreground";
             }
           };
           
@@ -530,7 +530,7 @@ export function FactCheckDisplay({
             <AnalysisOverviewCard
               title="Belief Drivers"
               description={`Top psychological factors influencing belief${totalCount > 3 ? ` (${totalCount} total)` : ''}`}
-              icon={<BrainIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+              icon={<BrainIcon className="h-5 w-5 text-muted-foreground" />}
               onClick={() => setOpenModal("beliefDrivers")}
               variant="info"
               listItems={top3Drivers}
@@ -545,7 +545,7 @@ export function FactCheckDisplay({
           <AnalysisOverviewCard
             title="Political Bias Analysis"
             description="Analysis of political leaning in Malaysian context"
-            icon={<BarChart3Icon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
+            icon={<BarChart3Icon className="h-5 w-5 text-muted-foreground" />}
             onClick={() => setOpenModal("politicalBias")}
             variant="info"
           />
@@ -556,7 +556,7 @@ export function FactCheckDisplay({
         originTracingData?.originTracing?.hypothesizedOrigin) && (
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+            <div className="w-1 h-6 bg-primary rounded-full"></div>
             <h4 className="font-semibold text-lg">
               Origin Tracing & Belief Evolution
             </h4>
@@ -655,36 +655,36 @@ export function FactCheckDisplay({
       >
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+            <div className="bg-muted/30 rounded-lg p-4 border border-border">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 Confidence Level
               </h4>
               <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                <span className="text-3xl font-bold text-primary">
                   {factCheck.confidence}%
                 </span>
               </div>
-              <div className="mt-3 h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+              <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 dark:bg-blue-400 rounded-full transition-all duration-300"
+                  className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{ width: `${factCheck.confidence}%` }}
                 />
               </div>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Based on source credibility and evidence strength
               </p>
             </div>
 
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-              <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
+            <div className="bg-muted/30 rounded-lg p-4 border border-border">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 Sources Analyzed
               </h4>
               <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold text-green-600 dark:text-green-400">
+                <span className="text-3xl font-bold text-foreground">
                   {factCheck.sources?.length || 0}
                 </span>
               </div>
-              <p className="text-xs text-green-700 dark:text-green-300 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Credible sources verified for accuracy
               </p>
             </div>

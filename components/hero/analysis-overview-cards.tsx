@@ -26,11 +26,11 @@ export function AnalysisOverviewCard({
   listItems,
 }: OverviewCardProps) {
   const variantStyles = {
-    default: "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-900",
-    success: "border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 bg-green-50/50 dark:bg-green-900/10",
-    warning: "border-orange-200 dark:border-orange-800 hover:border-orange-300 dark:hover:border-orange-700 bg-orange-50/50 dark:bg-orange-900/10",
-    danger: "border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 bg-red-50/50 dark:bg-red-900/10",
-    info: "border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10",
+    default: "border hover:border-muted-foreground/20 bg-card",
+    success: "border hover:border-primary/30 bg-card shadow-sm",
+    warning: "border hover:border-muted-foreground/30 bg-card",
+    danger: "border-destructive/20 hover:border-destructive/30 bg-card",
+    info: "border hover:border-muted-foreground/30 bg-card",
   };
 
   return (
@@ -41,7 +41,7 @@ export function AnalysisOverviewCard({
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm shrink-0">
+            <div className="p-2 rounded-lg bg-muted/30 shrink-0">
               {icon}
             </div>
             <div className="flex-1 min-w-0">
@@ -54,9 +54,9 @@ export function AnalysisOverviewCard({
                   {listItems.map((item, index) => (
                     <li
                       key={index}
-                      className="text-xs text-gray-700 dark:text-gray-300 flex items-start gap-1.5"
+                      className="text-xs text-foreground flex items-start gap-1.5"
                     >
-                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span className="text-muted-foreground mt-0.5">•</span>
                       <span className="line-clamp-1">{item}</span>
                     </li>
                   ))}
@@ -107,14 +107,14 @@ export function VerdictOverviewCard({
     <Card
       className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${
         verdict === "verified" || verdict === "true"
-          ? "border-l-green-500 bg-green-50/50 dark:bg-green-900/10"
+          ? "border-l-primary bg-card shadow-sm"
           : verdict === "false" || verdict === "debunked"
-            ? "border-l-red-500 bg-red-50/50 dark:bg-red-900/10"
+            ? "border-l-destructive bg-card"
             : verdict === "misleading" || verdict === "exaggerated"
-              ? "border-l-orange-500 bg-orange-50/50 dark:bg-orange-900/10"
+              ? "border-l-muted-foreground bg-card"
               : verdict === "satire"
-                ? "border-l-purple-500 bg-purple-50/50 dark:bg-purple-900/10"
-                : "border-l-gray-500 bg-gray-50/50 dark:bg-gray-900/10"
+                ? "border-l-muted-foreground bg-card"
+                : "border-l-muted-foreground bg-card"
       }`}
       onClick={onClick}
     >
@@ -122,7 +122,7 @@ export function VerdictOverviewCard({
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-full bg-white dark:bg-gray-800 shadow-sm">
+              <div className="p-1.5 rounded-full bg-muted/30">
                 {icon}
               </div>
               <h4 className="font-semibold text-base">Verification Status</h4>
@@ -130,15 +130,15 @@ export function VerdictOverviewCard({
             {badge}
           </div>
 
-          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
+          <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
             {description}
           </p>
 
           <div className="flex items-center gap-2 pt-2">
             <div className="flex-1">
-              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                  className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{ width: `${confidence}%` }}
                 />
               </div>
@@ -149,7 +149,7 @@ export function VerdictOverviewCard({
           </div>
 
           <div className="flex items-center justify-end">
-            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
+            <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
               View Details <ArrowRightIcon className="h-3 w-3" />
             </span>
           </div>
@@ -172,7 +172,7 @@ export function MetricsOverviewCard({
 }: MetricsOverviewCardProps) {
   return (
     <Card
-      className="cursor-pointer transition-all duration-200 hover:shadow-md border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+      className="cursor-pointer transition-all duration-200 hover:shadow-md border hover:border-muted-foreground/20"
       onClick={onClick}
     >
       <CardContent className="p-4">
@@ -185,8 +185,8 @@ export function MetricsOverviewCard({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <TrendingUpIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center">
+                  <TrendingUpIcon className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{confidence}%</p>
@@ -197,8 +197,8 @@ export function MetricsOverviewCard({
 
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <ShieldCheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center">
+                  <ShieldCheckIcon className="h-4 w-4 text-foreground" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{sourcesCount}</p>

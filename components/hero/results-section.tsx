@@ -67,9 +67,9 @@ export function ResultsSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {result?.success || mockResult?.success ? (
-              <CheckCircleIcon className="h-5 w-5 text-green-500" />
+              <CheckCircleIcon className="h-5 w-5 text-primary" />
             ) : (
-              <AlertCircleIcon className="h-5 w-5 text-red-500" />
+              <AlertCircleIcon className="h-5 w-5 text-destructive" />
             )}
             {result?.success || mockResult?.success
               ? result?.success

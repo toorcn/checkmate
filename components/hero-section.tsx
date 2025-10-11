@@ -939,7 +939,7 @@ This claim appears to have originated from legitimate news sources around early 
               </div>
             )}
           </div>
-          {chatError && <p className="mt-2 text-sm text-red-500">{String(chatError)}</p>}
+          {chatError && <p className="mt-2 text-sm text-destructive">{String(chatError)}</p>}
           {/* Fixed bottom input bar for chat - reuse the same UrlInputForm */}
           <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="mx-auto max-w-3xl px-4 py-3">
