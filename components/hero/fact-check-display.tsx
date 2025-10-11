@@ -30,6 +30,7 @@ import {
   AnalysisOverviewCard,
   MetricsOverviewCard,
   SentimentOverviewCard,
+  PoliticalBiasOverviewCard,
 } from "./analysis-overview-cards";
 import {
   AnalysisDetailModal,
@@ -196,7 +197,7 @@ function VerdictGlossary() {
   ];
 
   return (
-    <Accordion type="single" collapsible defaultValue="glossary" className="w-full mb-6">
+    <Accordion type="single" collapsible className="w-full mb-6">
       <AccordionItem value="glossary" className="border-2 rounded-lg px-6 !border-b-2">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center gap-2">
@@ -755,19 +756,56 @@ export function FactCheckDisplay({
             />
           );
         })()}
-      </div>
 
-      {/* Political Bias Card - Only for Malaysia Political Content */}
-      {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
-        (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (
-          <AnalysisOverviewCard
-            title="Political Bias Analysis"
-            description="Analysis of political leaning in Malaysian context"
-            icon={<BarChart3Icon className="h-5 w-5 text-muted-foreground" />}
-            onClick={() => setOpenModal("politicalBias")}
-            variant="info"
-          />
-        )}
+        {/* Political Bias Card - For All News */}
+        {(currentData.factCheck as any)?.politicalBias?.isMalaysiaPolitical &&
+          (currentData.factCheck as any)?.politicalBias?.malaysiaBiasScore !== undefined && (() => {
+            const biasScore = (currentData.factCheck as any).politicalBias.malaysiaBiasScore;
+            const confidence = (currentData.factCheck as any).politicalBias.confidence;
+            
+            // Get bias category (same logic as PoliticalBiasMeter)
+            const getBiasCategory = (score: number): {
+              label: string;
+              position: "left" | "center" | "right";
+              color: string;
+            } => {
+              if (score <= 30) {
+                return {
+                  label: "Likely leaning toward Opposition",
+                  position: "left",
+                  color: "text-blue-600 dark:text-blue-400",
+                };
+              } else if (score >= 70) {
+                return {
+                  label: "Likely leaning toward Pro-Government",
+                  position: "right",
+                  color: "text-green-600 dark:text-green-400",
+                };
+              } else {
+                return {
+                  label: "Appears Neutral / Mixed",
+                  position: "center",
+                  color: "text-gray-600 dark:text-gray-400",
+                };
+              }
+            };
+            
+            const biasCategory = getBiasCategory(biasScore);
+            
+            return (
+              <PoliticalBiasOverviewCard
+                title="Political Bias Analysis"
+                description="Analysis of political leaning in all news"
+                icon={<BarChart3Icon className="h-5 w-5 text-muted-foreground" />}
+                onClick={() => setOpenModal("politicalBias")}
+                variant="info"
+                biasScore={biasScore}
+                confidence={confidence}
+                biasCategory={biasCategory}
+              />
+            );
+          })()}
+      </div>
 
       {/* Origin Tracing Section - Full Display */}
       {(factCheck.originTracing?.hypothesizedOrigin ||

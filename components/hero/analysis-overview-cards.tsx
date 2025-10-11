@@ -99,7 +99,7 @@ export function VerdictOverviewCard({
   badge,
   onClick,
 }: VerdictOverviewCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger the main onClick if not clicking the toggle button
@@ -287,6 +287,21 @@ interface SentimentOverviewCardProps {
   overall: string;
 }
 
+interface PoliticalBiasOverviewCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  variant?: "default" | "success" | "warning" | "danger" | "info";
+  biasScore: number;
+  confidence?: number;
+  biasCategory: {
+    label: string;
+    position: "left" | "center" | "right";
+    color: string;
+  };
+}
+
 export function SentimentOverviewCard({
   title,
   description,
@@ -422,6 +437,102 @@ export function SentimentOverviewCard({
                 <span className="text-xs font-medium text-muted-foreground w-8 text-right">
                   {Math.round(sentimentScores.mixed * 100)}%
                 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function PoliticalBiasOverviewCard({
+  title,
+  description,
+  icon,
+  onClick,
+  variant = "default",
+  biasScore,
+  confidence,
+  biasCategory,
+}: PoliticalBiasOverviewCardProps) {
+  const variantStyles = {
+    default: "border hover:border-muted-foreground/20 bg-card",
+    success: "border hover:border-primary/30 bg-card shadow-sm",
+    warning: "border hover:border-muted-foreground/30 bg-card",
+    danger: "border-destructive/20 hover:border-destructive/30 bg-card",
+    info: "border hover:border-muted-foreground/30 bg-card",
+  };
+
+  const dotPosition = `${biasScore}%`;
+
+  return (
+    <Card
+      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${variantStyles[variant]} border-l-4`}
+      onClick={onClick}
+    >
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="p-2 rounded-lg bg-muted/30 shrink-0">
+                {icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-sm mb-1">{title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {description}
+                </p>
+              </div>
+            </div>
+            <ArrowRightIcon className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+          </div>
+
+          {/* Bias Category */}
+          <div className="flex items-center justify-between bg-muted/20 rounded-md px-2 py-1.5">
+            <span className="text-xs font-medium text-muted-foreground">Assessment</span>
+            <span className={`text-xs font-bold ${biasCategory.color}`}>
+              {biasCategory.label === "Likely leaning toward Opposition" ? "Opposition" :
+               biasCategory.label === "Likely leaning toward Pro-Government" ? "Pro-Government" :
+               "Neutral"}
+            </span>
+          </div>
+
+          {/* Political Bias Meter Preview */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Political Bias Meter</span>
+              {confidence && (
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {Math.round(confidence * 100)}% confidence
+                </span>
+              )}
+            </div>
+            
+            {/* Mini Meter */}
+            <div className="relative w-full">
+              {/* Meter Background with Color Gradient */}
+              <div className="h-2 bg-gradient-to-r from-red-500 via-gray-400 to-green-500 dark:from-red-500 dark:via-gray-500 dark:to-green-500 rounded-full shadow-inner" />
+              
+              {/* Position Indicator Dot */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-300"
+                style={{ left: dotPosition }}
+              >
+                {/* Confidence glow */}
+                {confidence && confidence >= 0.7 && (
+                  <div className="absolute inset-0 w-4 h-4 -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 bg-amber-400/30 dark:bg-amber-300/20 rounded-full blur-sm animate-pulse" />
+                )}
+                {/* Main dot */}
+                <div className="relative w-3 h-3 bg-amber-600 dark:bg-amber-400 rounded-full border-2 border-white dark:border-gray-900 shadow-md" />
+              </div>
+              
+              {/* End Labels */}
+              <div className="flex justify-between text-xs font-medium mt-2 px-1">
+                <span className="text-red-600 dark:text-red-400">Opposition</span>
+                <span className="text-gray-600 dark:text-gray-400">Neutral</span>
+                <span className="text-green-600 dark:text-green-400">Pro-Government</span>
               </div>
             </div>
           </div>

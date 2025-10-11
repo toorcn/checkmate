@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { HeroSection } from "@/components/hero-section";
 import localFont from "next/font/local";
 import { GradientTracing } from "@/components/ui/gradient-tracing";
@@ -11,6 +12,7 @@ interface DashboardHomeProps {
 }
 
 export default function DashboardHome({ initialUrl = "" }: DashboardHomeProps) {
+  const [isAnalysisComplete, setIsAnalysisComplete] = useState(false);
   return (
     <div className="relative min-h-[calc(100vh-6rem)] w-full flex items-center justify-center overflow-hidden">
       <div className="pointer-events-none absolute inset-x-0 top-12 opacity-40">
@@ -28,7 +30,7 @@ export default function DashboardHome({ initialUrl = "" }: DashboardHomeProps) {
         </div>
       </div>
       <div className="relative w-full max-w-4xl px-4 md:px-6">
-        <div className="text-center mb-6 md:mb-8">
+        <div className={`text-center ${isAnalysisComplete ? 'pt-20 md:pt-24' : 'mb-6 md:mb-8'}`}>
           <h1 className={`text-3xl md:text-5xl font-semibold tracking-tight mb-2 ${departureMono.className}`}>
             What would you like to fact‑check?
           </h1>
@@ -38,7 +40,11 @@ export default function DashboardHome({ initialUrl = "" }: DashboardHomeProps) {
         </div>
 
         {/* Reuse existing functionality and results via HeroSection */}
-        <HeroSection initialUrl={initialUrl} variant="dashboard" />
+        <HeroSection 
+          initialUrl={initialUrl} 
+          variant="dashboard" 
+          onAnalysisComplete={setIsAnalysisComplete}
+        />
       </div>
     </div>
   );
